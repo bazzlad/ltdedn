@@ -18,11 +18,10 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot()
+    public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
-        // Keep the lines before
-
+        
         \Illuminate\Support\Facades\Gate::define('admin', function($user, $class, $roles) {
             if( isset( $user->superuser ) && $user->superuser ) {
                 return true;
