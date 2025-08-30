@@ -3,7 +3,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -13,15 +15,9 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
-     *
      * @var list<string>
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    protected $guarded = ['id'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -43,6 +39,32 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::Admin;
+    }
+
+    public function isArtist(): bool
+    {
+        return $this->role === UserRole::Artist;
+    }
+
+    public function isUser(): bool
+    {
+        return $this->role === UserRole::User;
+    }
+
+    public function ownedArtists(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Artist::class, 'owner_id');
+    }
+
+    public function artistTeams(): BelongsToMany
+    {
+        return $this->belongsToMany(Artist::class)->withTimestamps();
     }
 }
