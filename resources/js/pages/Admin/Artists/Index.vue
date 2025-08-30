@@ -170,8 +170,8 @@ const breadcrumbs = [
                                 :disabled="!link.url"
                                 as-child
                             >
-                                <Link v-if="link.url" :href="link.url" v-html="link.label" />
-                                <span v-else v-html="link.label" />
+                                <Link v-if="link.url" :href="link.url">{{ link.label }}</Link>
+                                <span v-else>{{ link.label }}</span>
                             </Button>
                         </div>
                     </div>
