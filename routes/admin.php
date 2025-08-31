@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\ArtistController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ProductEditionController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,6 +13,21 @@ Route::prefix('admin')
     ->group(function () {
         // Dashboard route - dispatches to appropriate controller based on role
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Shared routes (both admin and artist can access)
+        Route::resource('products', ProductController::class);
+
+        // Nested edition routes
+        Route::resource('products.editions', ProductEditionController::class)
+            ->except(['show']) // We'll handle show in the main product show page
+            ->names([
+                'index' => 'products.editions.index',
+                'create' => 'products.editions.create',
+                'store' => 'products.editions.store',
+                'edit' => 'products.editions.edit',
+                'update' => 'products.editions.update',
+                'destroy' => 'products.editions.destroy',
+            ]);
 
         // Admin-only routes
         Route::middleware('role:admin')->group(function () {

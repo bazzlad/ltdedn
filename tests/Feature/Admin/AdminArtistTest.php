@@ -12,6 +12,13 @@ class AdminArtistTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+    }
+
     public function test_admin_can_access_artists_index(): void
     {
         $admin = User::factory()->create(['role' => UserRole::Admin]);

@@ -13,6 +13,13 @@ class ArtistTeamTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+    }
+
     public function test_artist_has_owner_and_can_have_team_members(): void
     {
         $owner = User::factory()->create();

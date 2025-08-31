@@ -11,6 +11,13 @@ class UserRoleTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+    }
+
     public function test_user_can_have_admin_role(): void
     {
         $user = User::factory()->admin()->create();
