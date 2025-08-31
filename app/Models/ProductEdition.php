@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use App\Services\QRCodeService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Str;
 
 class ProductEdition extends Model
 {
@@ -29,12 +29,19 @@ class ProductEdition extends Model
         parent::boot();
 
         static::creating(function (ProductEdition $edition) {
-            if (empty($edition->qr_code)) {
-                $edition->qr_code = Str::uuid();
-            }
+            if (empty($edition->qr_code) || empty($edition->qr_short_code)) {
+                $edition->load('product');
 
-            if (empty($edition->qr_short_code)) {
-                $edition->qr_short_code = strtoupper(Str::random(6));
+                $qrService = app(QRCodeService::class);
+                $qrCodes = $qrService->generateQRCodes($edition->product, $edition->number);
+
+                if (empty($edition->qr_code)) {
+                    $edition->qr_code = $qrCodes['qr_code'];
+                }
+
+                if (empty($edition->qr_short_code)) {
+                    $edition->qr_short_code = $qrCodes['qr_short_code'];
+                }
             }
         });
     }

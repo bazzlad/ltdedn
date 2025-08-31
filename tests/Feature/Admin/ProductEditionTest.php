@@ -362,6 +362,28 @@ class ProductEditionTest extends TestCase
         $edition = ProductEdition::where('product_id', $product->id)->first();
         $this->assertNotNull($edition->qr_code);
         $this->assertNotNull($edition->qr_short_code);
-        $this->assertEquals(6, strlen($edition->qr_short_code));
+        $this->assertEquals(64, strlen($edition->qr_code)); // SHA256 hash
+        $this->assertEquals(8, strlen($edition->qr_short_code)); // 8-character short code
+        $this->assertMatchesRegularExpression('/^[A-Z0-9]{8}$/', $edition->qr_short_code);
+    }
+
+    public function test_edition_qr_codes_are_deterministic_using_service(): void
+    {
+        $artist = Artist::factory()->create();
+        $product = Product::factory()->for($artist)->create();
+
+        // Create an edition
+        $edition = ProductEdition::factory()->for($product)->create([
+            'number' => 5,
+            'status' => 'available',
+        ]);
+
+        // Use the QRCodeService to generate what the codes should be
+        $qrService = app(\App\Services\QRCodeService::class);
+        $expectedCodes = $qrService->generateQRCodes($product, 5);
+
+        // The edition should have the same codes as the service would generate
+        $this->assertEquals($expectedCodes['qr_code'], $edition->qr_code);
+        $this->assertEquals($expectedCodes['qr_short_code'], $edition->qr_short_code);
     }
 }
