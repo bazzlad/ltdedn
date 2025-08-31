@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import AdminLayout from '@/layouts/AdminLayout.vue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 import { Link } from '@inertiajs/vue3';
-import { ArrowLeft, Edit, Palette, User, Users, Calendar, ExternalLink } from 'lucide-vue-next';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
+import { ArrowLeft, Calendar, Edit, ExternalLink, Palette, User, Users } from 'lucide-vue-next';
 
 interface Owner {
     id: number;
@@ -46,9 +46,7 @@ const breadcrumbs = [
             <div class="flex items-center justify-between space-y-2">
                 <div>
                     <h2 class="text-3xl font-bold tracking-tight">{{ artist.name }}</h2>
-                    <p class="text-muted-foreground">
-                        Artist profile details and information
-                    </p>
+                    <p class="text-muted-foreground">Artist profile details and information</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <Button variant="outline" as-child>
@@ -71,9 +69,7 @@ const breadcrumbs = [
                 <Card>
                     <CardHeader>
                         <CardTitle>Artist Information</CardTitle>
-                        <CardDescription>
-                            Basic profile details
-                        </CardDescription>
+                        <CardDescription> Basic profile details </CardDescription>
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div class="flex items-center space-x-4">
@@ -91,7 +87,7 @@ const breadcrumbs = [
                                 <ExternalLink class="h-4 w-4 text-muted-foreground" />
                                 <div>
                                     <p class="text-sm font-medium">Slug</p>
-                                    <code class="text-sm bg-muted px-2 py-1 rounded">{{ artist.slug }}</code>
+                                    <code class="rounded bg-muted px-2 py-1 text-sm">{{ artist.slug }}</code>
                                 </div>
                             </div>
 
@@ -113,9 +109,7 @@ const breadcrumbs = [
                 <Card>
                     <CardHeader>
                         <CardTitle>Owner Information</CardTitle>
-                        <CardDescription>
-                            User who owns this artist profile
-                        </CardDescription>
+                        <CardDescription> User who owns this artist profile </CardDescription>
                     </CardHeader>
                     <CardContent v-if="artist.owner" class="space-y-4">
                         <div class="flex items-center space-x-4">
@@ -130,9 +124,7 @@ const breadcrumbs = [
 
                         <div class="flex justify-end">
                             <Button as-child size="sm" variant="outline">
-                                <Link :href="`/admin/users/${artist.owner.id}`">
-                                    View User Profile
-                                </Link>
+                                <Link :href="`/admin/users/${artist.owner.id}`"> View User Profile </Link>
                             </Button>
                         </div>
                     </CardContent>
@@ -153,11 +145,7 @@ const breadcrumbs = [
                 </CardHeader>
                 <CardContent>
                     <div v-if="artist.team_members && artist.team_members.length > 0" class="grid gap-3">
-                        <div
-                            v-for="member in artist.team_members"
-                            :key="member.id"
-                            class="flex items-center justify-between p-3 border rounded-lg"
-                        >
+                        <div v-for="member in artist.team_members" :key="member.id" class="flex items-center justify-between rounded-lg border p-3">
                             <div class="flex items-center space-x-3">
                                 <div class="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
                                     <Users class="h-4 w-4" />
@@ -172,12 +160,10 @@ const breadcrumbs = [
                             </Button>
                         </div>
                     </div>
-                    <div v-else class="text-center py-8">
+                    <div v-else class="py-8 text-center">
                         <Users class="mx-auto h-12 w-12 text-muted-foreground" />
                         <h3 class="mt-2 text-sm font-semibold">No team members</h3>
-                        <p class="mt-1 text-sm text-muted-foreground">
-                            This artist doesn't have any team members yet.
-                        </p>
+                        <p class="mt-1 text-sm text-muted-foreground">This artist doesn't have any team members yet.</p>
                     </div>
                 </CardContent>
             </Card>

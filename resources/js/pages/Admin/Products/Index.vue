@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import AdminLayout from '@/layouts/AdminLayout.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Link, usePage, router } from '@inertiajs/vue3';
-import { Eye, Plus, SquarePen, Trash2, Search, Package } from 'lucide-vue-next';
-import { formatDistanceToNow } from 'date-fns';
-import { computed, ref } from 'vue';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { formatDistanceToNow } from 'date-fns';
+import { Eye, Package, Plus, Search, SquarePen, Trash2 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 interface Artist {
     id: number;
@@ -97,9 +97,7 @@ const deleteProduct = (productId: number) => {
             <div class="flex items-center justify-between space-y-2">
                 <div>
                     <h2 class="text-3xl font-bold tracking-tight">Products</h2>
-                    <p class="text-muted-foreground">
-                        Manage your music products and releases
-                    </p>
+                    <p class="text-muted-foreground">Manage your music products and releases</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <Button as-child>
@@ -116,25 +114,19 @@ const deleteProduct = (productId: number) => {
                     <div class="flex items-center justify-between">
                         <div>
                             <CardTitle>All Products</CardTitle>
-                            <CardDescription>
-                                {{ products.meta?.total || 0 }} total products
-                            </CardDescription>
+                            <CardDescription> {{ products.meta?.total || 0 }} total products </CardDescription>
                         </div>
                         <div class="flex items-center space-x-2">
                             <div class="relative">
-                                <Search class="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    v-model="searchTerm"
-                                    placeholder="Search products..."
-                                    class="pl-8 w-64"
-                                />
+                                <Search class="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
+                                <Input v-model="searchTerm" placeholder="Search products..." class="w-64 pl-8" />
                             </div>
                         </div>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div class="space-y-4">
-                        <div v-if="products.data.length === 0" class="text-center py-8">
+                        <div v-if="products.data.length === 0" class="py-8 text-center">
                             <p class="text-muted-foreground">No products found.</p>
                             <Button as-child class="mt-4">
                                 <Link href="/admin/products/create">
@@ -145,19 +137,19 @@ const deleteProduct = (productId: number) => {
                         </div>
 
                         <div v-else>
-                                                                        <Table>
-                                                <TableHeader>
-                                                    <TableRow>
-                                                        <TableHead>Product</TableHead>
-                                                        <TableHead>Artist</TableHead>
-                                                        <TableHead>Edition</TableHead>
-                                                        <TableHead>Visibility</TableHead>
-                                                        <TableHead>Price</TableHead>
-                                                        <TableHead>Sales</TableHead>
-                                                        <TableHead>Created</TableHead>
-                                                        <TableHead class="text-right">Actions</TableHead>
-                                                    </TableRow>
-                                                </TableHeader>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Product</TableHead>
+                                        <TableHead>Artist</TableHead>
+                                        <TableHead>Edition</TableHead>
+                                        <TableHead>Visibility</TableHead>
+                                        <TableHead>Price</TableHead>
+                                        <TableHead>Sales</TableHead>
+                                        <TableHead>Created</TableHead>
+                                        <TableHead class="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
                                 <TableBody>
                                     <TableRow v-for="product in products.data" :key="product.id">
                                         <TableCell class="font-medium">
@@ -167,7 +159,7 @@ const deleteProduct = (productId: number) => {
                                                 </div>
                                                 <div>
                                                     <div class="font-medium">{{ product.name }}</div>
-                                                    <div v-if="product.description" class="text-sm text-muted-foreground truncate max-w-[200px]">
+                                                    <div v-if="product.description" class="max-w-[200px] truncate text-sm text-muted-foreground">
                                                         {{ product.description }}
                                                     </div>
                                                 </div>
@@ -191,19 +183,15 @@ const deleteProduct = (productId: number) => {
                                         </TableCell>
                                         <TableCell>{{ formatPrice(product.base_price) }}</TableCell>
                                         <TableCell>
-                                            <span v-if="product.sell_through_ltdedn" class="text-green-600">
-                                                Through LTDEDN
-                                            </span>
-                                            <span v-else class="text-muted-foreground">
-                                                Self-managed
-                                            </span>
+                                            <span v-if="product.sell_through_ltdedn" class="text-green-600"> Through LTDEDN </span>
+                                            <span v-else class="text-muted-foreground"> Self-managed </span>
                                         </TableCell>
                                         <TableCell class="text-sm text-muted-foreground">
                                             {{ formatDistanceToNow(new Date(product.created_at), { addSuffix: true }) }}
                                         </TableCell>
                                         <TableCell class="text-right">
                                             <div class="flex items-center justify-end space-x-2">
-                                                                                                <Button as-child size="sm" variant="ghost">
+                                                <Button as-child size="sm" variant="ghost">
                                                     <Link :href="`/admin/products/${product.id}`">
                                                         <Eye class="h-3 w-3" />
                                                     </Link>
@@ -230,9 +218,7 @@ const deleteProduct = (productId: number) => {
                             <!-- Pagination -->
                             <div v-if="products.meta && products.meta.last_page > 1" class="flex items-center justify-between space-x-2 py-4">
                                 <div class="text-sm text-muted-foreground">
-                                    Showing {{ products.meta.from }} to
-                                    {{ products.meta.to }} of
-                                    {{ products.meta.total }} results
+                                    Showing {{ products.meta.from }} to {{ products.meta.to }} of {{ products.meta.total }} results
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <Button

@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import AdminLayout from '@/layouts/AdminLayout.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Link, router } from '@inertiajs/vue3';
-import { ArrowLeft, Plus, SquarePen, Trash2, Hash, User } from 'lucide-vue-next';
-import { formatDistanceToNow } from 'date-fns';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
+import { Link, router } from '@inertiajs/vue3';
+import { formatDistanceToNow } from 'date-fns';
+import { ArrowLeft, Hash, Plus, SquarePen, Trash2, User } from 'lucide-vue-next';
 
 interface Artist {
     id: number;
@@ -59,8 +59,6 @@ const props = defineProps<{
     product: Product;
     editions: EditionsData;
 }>();
-
-
 
 const breadcrumbs: BreadcrumbItemType[] = [
     { title: 'Admin', href: '/admin' },
@@ -122,9 +120,7 @@ const deleteEdition = (editionId: number, editionNumber: number) => {
                 </Button>
                 <div class="flex-1">
                     <h2 class="text-3xl font-bold tracking-tight">{{ product.name }} - Editions</h2>
-                    <p class="text-muted-foreground">
-                        Manage individual editions for this product
-                    </p>
+                    <p class="text-muted-foreground">Manage individual editions for this product</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <Button as-child>
@@ -141,16 +137,14 @@ const deleteEdition = (editionId: number, editionNumber: number) => {
                     <div class="flex items-center justify-between">
                         <div>
                             <CardTitle>All Editions</CardTitle>
-                            <CardDescription>
-                                {{ editions.meta?.total || 0 }} total editions
-                            </CardDescription>
+                            <CardDescription> {{ editions.meta?.total || 0 }} total editions </CardDescription>
                         </div>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div class="space-y-4">
-                        <div v-if="editions.data.length === 0" class="text-center py-8">
-                            <p class="text-muted-foreground mb-4">No editions created yet.</p>
+                        <div v-if="editions.data.length === 0" class="py-8 text-center">
+                            <p class="mb-4 text-muted-foreground">No editions created yet.</p>
                             <Button as-child>
                                 <Link :href="`/admin/products/${product.id}/editions/create`">
                                     <Plus class="mr-2 h-4 w-4" />
@@ -195,10 +189,8 @@ const deleteEdition = (editionId: number, editionNumber: number) => {
                                         </TableCell>
                                         <TableCell>
                                             <div class="space-y-1">
-                                                <div class="text-xs font-mono text-muted-foreground">
-                                                    {{ edition.qr_code.substring(0, 12) }}...
-                                                </div>
-                                                <div v-if="edition.qr_short_code" class="text-sm font-mono">
+                                                <div class="font-mono text-xs text-muted-foreground">{{ edition.qr_code.substring(0, 12) }}...</div>
+                                                <div v-if="edition.qr_short_code" class="font-mono text-sm">
                                                     {{ edition.qr_short_code }}
                                                 </div>
                                             </div>
@@ -230,9 +222,7 @@ const deleteEdition = (editionId: number, editionNumber: number) => {
                             <!-- Pagination -->
                             <div v-if="editions.meta && editions.meta.last_page > 1" class="flex items-center justify-between space-x-2 py-4">
                                 <div class="text-sm text-muted-foreground">
-                                    Showing {{ editions.meta.from }} to
-                                    {{ editions.meta.to }} of
-                                    {{ editions.meta.total }} results
+                                    Showing {{ editions.meta.from }} to {{ editions.meta.to }} of {{ editions.meta.total }} results
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <Button

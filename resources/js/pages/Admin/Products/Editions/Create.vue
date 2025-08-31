@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import AdminLayout from '@/layouts/AdminLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import AdminLayout from '@/layouts/AdminLayout.vue';
+import type { BreadcrumbItemType } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
 import { computed } from 'vue';
-import type { BreadcrumbItemType } from '@/types';
 
 interface Artist {
     id: number;
@@ -73,9 +73,7 @@ const submit = () => {
                 </Button>
                 <div>
                     <h2 class="text-3xl font-bold tracking-tight">Create Edition</h2>
-                    <p class="text-muted-foreground">
-                        Add a new edition for {{ product.name }}
-                    </p>
+                    <p class="text-muted-foreground">Add a new edition for {{ product.name }}</p>
                 </div>
             </div>
 
@@ -85,24 +83,15 @@ const submit = () => {
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="submit" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <!-- Edition Number -->
                             <div class="space-y-2">
                                 <Label for="number">Edition Number *</Label>
-                                <Input
-                                    id="number"
-                                    v-model="form.number"
-                                    type="number"
-                                    min="1"
-                                    placeholder="Edition number"
-                                    required
-                                />
+                                <Input id="number" v-model="form.number" type="number" min="1" placeholder="Edition number" required />
                                 <div v-if="form.errors.number" class="text-sm text-red-600">
                                     {{ form.errors.number }}
                                 </div>
-                                <p class="text-xs text-muted-foreground">
-                                    Next available number: {{ nextNumber }}
-                                </p>
+                                <p class="text-xs text-muted-foreground">Next available number: {{ nextNumber }}</p>
                             </div>
 
                             <!-- Status -->
@@ -112,7 +101,7 @@ const submit = () => {
                                     id="status"
                                     v-model="form.status"
                                     required
-                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <option v-for="status in statuses" :key="status.value" :value="status.value">
                                         {{ status.label }}
@@ -129,19 +118,15 @@ const submit = () => {
                                 <select
                                     id="owner_id"
                                     v-model="form.owner_id"
-                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <option value="">No owner assigned</option>
-                                    <option v-for="user in users" :key="user.id" :value="user.id">
-                                        {{ user.name }} ({{ user.email }})
-                                    </option>
+                                    <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }} ({{ user.email }})</option>
                                 </select>
                                 <div v-if="form.errors.owner_id" class="text-sm text-red-600">
                                     {{ form.errors.owner_id }}
                                 </div>
-                                <p class="text-xs text-muted-foreground">
-                                    Assign this edition to a specific user
-                                </p>
+                                <p class="text-xs text-muted-foreground">Assign this edition to a specific user</p>
                             </div>
                         </div>
 

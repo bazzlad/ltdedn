@@ -18,8 +18,7 @@ return new class extends Migration
             $table->unsignedInteger('number');
             $table->unique(['product_id', 'number']);
             $table->enum('status', ['available', 'sold', 'redeemed', 'pending_transfer', 'invalidated'])->default('available')->index();
-            $table->string('qr_code')->unique(); // long unique hash string used in URL
-            $table->string('qr_short_code')->nullable()->unique(); // optional short code
+            $table->string('qr_code')->unique();
             $table->timestamps();
             $table->softDeletes();
         });

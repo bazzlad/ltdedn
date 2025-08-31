@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import AdminLayout from '@/layouts/AdminLayout.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Link, usePage } from '@inertiajs/vue3';
-import { ArrowLeft, SquarePen, Plus, Eye, Trash2 } from 'lucide-vue-next';
-import { formatDistanceToNow } from 'date-fns';
-import { computed } from 'vue';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
+import { Link, usePage } from '@inertiajs/vue3';
+import { formatDistanceToNow } from 'date-fns';
+import { ArrowLeft, Eye, Plus, SquarePen, Trash2 } from 'lucide-vue-next';
+import { computed } from 'vue';
 
 interface Artist {
     id: number;
@@ -155,9 +155,7 @@ const deleteEdition = (edition: Edition) => {
                 </Button>
                 <div class="flex-1">
                     <h2 class="text-3xl font-bold tracking-tight">{{ product.title }}</h2>
-                    <p class="text-muted-foreground">
-                        Product details and edition management
-                    </p>
+                    <p class="text-muted-foreground">Product details and edition management</p>
                 </div>
                 <Button as-child>
                     <Link :href="`/admin/products/${product.id}/edit`">
@@ -168,7 +166,7 @@ const deleteEdition = (edition: Edition) => {
             </div>
 
             <!-- Product Details -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
                 <div class="lg:col-span-2">
                     <Card>
                         <CardHeader>
@@ -177,11 +175,11 @@ const deleteEdition = (edition: Edition) => {
                         <CardContent class="space-y-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <h4 class="font-medium text-sm text-muted-foreground">Title</h4>
+                                    <h4 class="text-sm font-medium text-muted-foreground">Title</h4>
                                     <p class="font-medium">{{ product.title }}</p>
                                 </div>
                                 <div>
-                                    <h4 class="font-medium text-sm text-muted-foreground">Artist</h4>
+                                    <h4 class="text-sm font-medium text-muted-foreground">Artist</h4>
                                     <Link
                                         v-if="isAdmin"
                                         :href="`/admin/artists/${product.artist.id}`"
@@ -192,21 +190,21 @@ const deleteEdition = (edition: Edition) => {
                                     <p v-else class="font-medium">{{ product.artist.name }}</p>
                                 </div>
                                 <div>
-                                    <h4 class="font-medium text-sm text-muted-foreground">Type</h4>
+                                    <h4 class="text-sm font-medium text-muted-foreground">Type</h4>
                                     <p>{{ getTypeLabel(product.type) }}</p>
                                 </div>
                                 <div>
-                                    <h4 class="font-medium text-sm text-muted-foreground">Status</h4>
+                                    <h4 class="text-sm font-medium text-muted-foreground">Status</h4>
                                     <Badge :variant="getStatusBadgeVariant(product.status)">
                                         {{ getStatusLabel(product.status) }}
                                     </Badge>
                                 </div>
                                 <div>
-                                    <h4 class="font-medium text-sm text-muted-foreground">Price</h4>
+                                    <h4 class="text-sm font-medium text-muted-foreground">Price</h4>
                                     <p>{{ formatPrice(product.price) }}</p>
                                 </div>
                                 <div>
-                                    <h4 class="font-medium text-sm text-muted-foreground">Release Date</h4>
+                                    <h4 class="text-sm font-medium text-muted-foreground">Release Date</h4>
                                     <p v-if="product.release_date">
                                         {{ new Date(product.release_date).toLocaleDateString() }}
                                     </p>
@@ -214,7 +212,7 @@ const deleteEdition = (edition: Edition) => {
                                 </div>
                             </div>
                             <div v-if="product.description">
-                                <h4 class="font-medium text-sm text-muted-foreground mb-2">Description</h4>
+                                <h4 class="mb-2 text-sm font-medium text-muted-foreground">Description</h4>
                                 <p class="text-sm leading-relaxed">{{ product.description }}</p>
                             </div>
                         </CardContent>
@@ -228,15 +226,15 @@ const deleteEdition = (edition: Edition) => {
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <div>
-                                <h4 class="font-medium text-sm text-muted-foreground">Slug</h4>
-                                <p class="text-sm font-mono bg-muted px-2 py-1 rounded">{{ product.slug }}</p>
+                                <h4 class="text-sm font-medium text-muted-foreground">Slug</h4>
+                                <p class="rounded bg-muted px-2 py-1 font-mono text-sm">{{ product.slug }}</p>
                             </div>
                             <div>
-                                <h4 class="font-medium text-sm text-muted-foreground">Created</h4>
+                                <h4 class="text-sm font-medium text-muted-foreground">Created</h4>
                                 <p class="text-sm">{{ formatDistanceToNow(new Date(product.created_at), { addSuffix: true }) }}</p>
                             </div>
                             <div>
-                                <h4 class="font-medium text-sm text-muted-foreground">Last Updated</h4>
+                                <h4 class="text-sm font-medium text-muted-foreground">Last Updated</h4>
                                 <p class="text-sm">{{ formatDistanceToNow(new Date(product.updated_at), { addSuffix: true }) }}</p>
                             </div>
                         </CardContent>
@@ -250,9 +248,7 @@ const deleteEdition = (edition: Edition) => {
                     <CardTitle>Editions</CardTitle>
                     <div class="flex items-center gap-2">
                         <Button size="sm" variant="outline" as-child>
-                            <Link :href="`/admin/products/${product.id}/editions`">
-                                Manage Editions
-                            </Link>
+                            <Link :href="`/admin/products/${product.id}/editions`"> Manage Editions </Link>
                         </Button>
                         <Button size="sm" as-child>
                             <Link :href="`/admin/products/${product.id}/editions/create`">
@@ -263,8 +259,8 @@ const deleteEdition = (edition: Edition) => {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div v-if="product.editions.length === 0" class="text-center py-8">
-                        <p class="text-muted-foreground mb-4">No editions created yet.</p>
+                    <div v-if="product.editions.length === 0" class="py-8 text-center">
+                        <p class="mb-4 text-muted-foreground">No editions created yet.</p>
                         <Button>
                             <Plus class="mr-2 h-4 w-4" />
                             Create your first edition
@@ -289,7 +285,7 @@ const deleteEdition = (edition: Edition) => {
                                     <TableCell>
                                         <div>
                                             <div class="font-medium">{{ edition.name }}</div>
-                                            <div v-if="edition.description" class="text-sm text-muted-foreground truncate max-w-[150px]">
+                                            <div v-if="edition.description" class="max-w-[150px] truncate text-sm text-muted-foreground">
                                                 {{ edition.description }}
                                             </div>
                                         </div>
@@ -310,7 +306,7 @@ const deleteEdition = (edition: Edition) => {
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <span v-if="edition.sku" class="text-sm font-mono">{{ edition.sku }}</span>
+                                        <span v-if="edition.sku" class="font-mono text-sm">{{ edition.sku }}</span>
                                         <span v-else class="text-muted-foreground">-</span>
                                     </TableCell>
                                     <TableCell>
@@ -321,12 +317,7 @@ const deleteEdition = (edition: Edition) => {
                                             <Button variant="ghost" size="sm">
                                                 <SquarePen class="h-4 w-4" />
                                             </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                @click="deleteEdition(edition)"
-                                                class="text-red-600 hover:text-red-700"
-                                            >
+                                            <Button variant="ghost" size="sm" @click="deleteEdition(edition)" class="text-red-600 hover:text-red-700">
                                                 <Trash2 class="h-4 w-4" />
                                             </Button>
                                         </div>

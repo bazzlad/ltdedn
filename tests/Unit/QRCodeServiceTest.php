@@ -62,61 +62,19 @@ class QRCodeServiceTest extends TestCase
         $this->assertNotEquals($qrCode1, $qrCode2);
     }
 
-    public function test_generates_deterministic_short_qr_code(): void
-    {
-        $artist = Artist::factory()->create();
-        $product = Product::factory()->for($artist)->create([
-            'slug' => 'test-product',
-        ]);
-
-        $shortQRCode1 = $this->qrService->generateShortQRCode($product, 1);
-        $shortQRCode2 = $this->qrService->generateShortQRCode($product, 1);
-
-        $this->assertEquals($shortQRCode1, $shortQRCode2);
-        $this->assertIsString($shortQRCode1);
-        $this->assertEquals(8, strlen($shortQRCode1));
-        $this->assertMatchesRegularExpression('/^[A-Z0-9]{8}$/', $shortQRCode1);
-    }
-
-    public function test_generates_different_short_qr_codes_for_different_editions(): void
-    {
-        $artist = Artist::factory()->create();
-        $product = Product::factory()->for($artist)->create();
-
-        $shortQRCode1 = $this->qrService->generateShortQRCode($product, 1);
-        $shortQRCode2 = $this->qrService->generateShortQRCode($product, 2);
-
-        $this->assertNotEquals($shortQRCode1, $shortQRCode2);
-    }
-
-    public function test_generates_both_qr_codes(): void
-    {
-        $artist = Artist::factory()->create();
-        $product = Product::factory()->for($artist)->create();
-
-        $qrCodes = $this->qrService->generateQRCodes($product, 1);
-
-        $this->assertArrayHasKey('qr_code', $qrCodes);
-        $this->assertArrayHasKey('qr_short_code', $qrCodes);
-        $this->assertEquals(64, strlen($qrCodes['qr_code']));
-        $this->assertEquals(8, strlen($qrCodes['qr_short_code']));
-    }
-
-    public function test_generates_qr_codes_for_existing_edition(): void
+    public function test_generates_qr_code_for_existing_edition(): void
     {
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
         $edition = ProductEdition::factory()->for($product)->create(['number' => 5]);
 
-        $qrCodes = $this->qrService->generateQRCodesForEdition($edition);
+        $qrCode = $this->qrService->generateQRCodeForEdition($edition);
 
-        $this->assertArrayHasKey('qr_code', $qrCodes);
-        $this->assertArrayHasKey('qr_short_code', $qrCodes);
+        $this->assertIsString($qrCode);
+        $this->assertEquals(64, strlen($qrCode));
 
-        // Verify they match what we'd generate directly
-        $expectedQRCodes = $this->qrService->generateQRCodes($product, 5);
-        $this->assertEquals($expectedQRCodes['qr_code'], $qrCodes['qr_code']);
-        $this->assertEquals($expectedQRCodes['qr_short_code'], $qrCodes['qr_short_code']);
+        $expectedQRCode = $this->qrService->generateQRCode($product, 5);
+        $this->assertEquals($expectedQRCode, $qrCode);
     }
 
     public function test_verifies_valid_qr_code(): void
@@ -136,27 +94,6 @@ class QRCodeServiceTest extends TestCase
         $product = Product::factory()->for($artist)->create();
 
         $isValid = $this->qrService->verifyQRCode($product, 1, 'invalid-qr-code');
-
-        $this->assertFalse($isValid);
-    }
-
-    public function test_verifies_valid_short_qr_code(): void
-    {
-        $artist = Artist::factory()->create();
-        $product = Product::factory()->for($artist)->create();
-
-        $shortQRCode = $this->qrService->generateShortQRCode($product, 1);
-        $isValid = $this->qrService->verifyShortQRCode($product, 1, $shortQRCode);
-
-        $this->assertTrue($isValid);
-    }
-
-    public function test_rejects_invalid_short_qr_code(): void
-    {
-        $artist = Artist::factory()->create();
-        $product = Product::factory()->for($artist)->create();
-
-        $isValid = $this->qrService->verifyShortQRCode($product, 1, 'INVALID1');
 
         $this->assertFalse($isValid);
     }
@@ -204,31 +141,6 @@ class QRCodeServiceTest extends TestCase
     public function test_returns_null_for_nonexistent_qr_code(): void
     {
         $foundEdition = $this->qrService->findEditionByQRCode('nonexistent-qr-code');
-
-        $this->assertNull($foundEdition);
-    }
-
-    public function test_finds_edition_by_short_qr_code(): void
-    {
-        $artist = Artist::factory()->create();
-        $product = Product::factory()->for($artist)->create();
-        $shortQRCode = $this->qrService->generateShortQRCode($product, 1);
-
-        $edition = ProductEdition::factory()->for($product)->create([
-            'number' => 1,
-            'qr_short_code' => $shortQRCode,
-        ]);
-
-        $foundEdition = $this->qrService->findEditionByShortQRCode($shortQRCode);
-
-        $this->assertNotNull($foundEdition);
-        $this->assertEquals($edition->id, $foundEdition->id);
-        $this->assertEquals($product->id, $foundEdition->product->id);
-    }
-
-    public function test_returns_null_for_nonexistent_short_qr_code(): void
-    {
-        $foundEdition = $this->qrService->findEditionByShortQRCode('INVALID1');
 
         $this->assertNull($foundEdition);
     }

@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import AdminLayout from '@/layouts/AdminLayout.vue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
-import { Plus, Search, Eye, Edit, Trash2, Palette, User } from 'lucide-vue-next';
 import { formatDistanceToNow } from 'date-fns';
+import { Edit, Eye, Palette, Plus, Search, Trash2, User } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 interface Owner {
@@ -60,9 +60,7 @@ const breadcrumbs = [
             <div class="flex items-center justify-between space-y-2">
                 <div>
                     <h2 class="text-3xl font-bold tracking-tight">Artists</h2>
-                    <p class="text-muted-foreground">
-                        Manage artist profiles and accounts
-                    </p>
+                    <p class="text-muted-foreground">Manage artist profiles and accounts</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <Button as-child>
@@ -79,18 +77,12 @@ const breadcrumbs = [
                     <div class="flex items-center justify-between">
                         <div>
                             <CardTitle>All Artists</CardTitle>
-                            <CardDescription>
-                                {{ artists.total }} total artists
-                            </CardDescription>
+                            <CardDescription> {{ artists.total }} total artists </CardDescription>
                         </div>
                         <div class="flex items-center space-x-2">
                             <div class="relative">
-                                <Search class="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    v-model="searchTerm"
-                                    placeholder="Search artists..."
-                                    class="pl-8 w-64"
-                                />
+                                <Search class="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
+                                <Input v-model="searchTerm" placeholder="Search artists..." class="w-64 pl-8" />
                             </div>
                         </div>
                     </div>
@@ -117,7 +109,7 @@ const breadcrumbs = [
                                     </div>
                                 </TableCell>
                                 <TableCell>
-                                    <code class="text-sm bg-muted px-2 py-1 rounded">{{ artist.slug }}</code>
+                                    <code class="rounded bg-muted px-2 py-1 text-sm">{{ artist.slug }}</code>
                                 </TableCell>
                                 <TableCell>
                                     <div class="flex items-center space-x-2">
@@ -140,12 +132,7 @@ const breadcrumbs = [
                                                 <Edit class="h-3 w-3" />
                                             </Link>
                                         </Button>
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            @click="deleteArtist(artist.id)"
-                                            class="text-red-600 hover:text-red-700"
-                                        >
+                                        <Button size="sm" variant="ghost" @click="deleteArtist(artist.id)" class="text-red-600 hover:text-red-700">
                                             <Trash2 class="h-3 w-3" />
                                         </Button>
                                     </div>
@@ -158,8 +145,7 @@ const breadcrumbs = [
                     <div v-if="artists.last_page > 1" class="flex items-center justify-between space-x-2 py-4">
                         <div class="text-sm text-muted-foreground">
                             Showing {{ (artists.current_page - 1) * artists.per_page + 1 }} to
-                            {{ Math.min(artists.current_page * artists.per_page, artists.total) }} of
-                            {{ artists.total }} results
+                            {{ Math.min(artists.current_page * artists.per_page, artists.total) }} of {{ artists.total }} results
                         </div>
                         <div class="flex items-center space-x-2">
                             <Button

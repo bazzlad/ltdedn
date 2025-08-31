@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import AdminLayout from '@/layouts/AdminLayout.vue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 import { Link } from '@inertiajs/vue3';
-import { ArrowLeft, Edit, Mail, CheckCircle, XCircle, Calendar, Users, Palette } from 'lucide-vue-next';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
+import { ArrowLeft, Calendar, CheckCircle, Edit, Mail, Palette, Users, XCircle } from 'lucide-vue-next';
 
 interface Artist {
     id: number;
@@ -48,9 +48,7 @@ const breadcrumbs = [
             <div class="flex items-center justify-between space-y-2">
                 <div>
                     <h2 class="text-3xl font-bold tracking-tight">{{ props.user.name }}</h2>
-                    <p class="text-muted-foreground">
-                        User account details and information
-                    </p>
+                    <p class="text-muted-foreground">User account details and information</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <Button variant="outline" as-child>
@@ -73,9 +71,7 @@ const breadcrumbs = [
                 <Card>
                     <CardHeader>
                         <CardTitle>User Information</CardTitle>
-                        <CardDescription>
-                            Basic account details
-                        </CardDescription>
+                        <CardDescription> Basic account details </CardDescription>
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div class="flex items-center space-x-4">
@@ -123,9 +119,7 @@ const breadcrumbs = [
                 <Card>
                     <CardHeader>
                         <CardTitle>Activity Summary</CardTitle>
-                        <CardDescription>
-                            User activity and associations
-                        </CardDescription>
+                        <CardDescription> User activity and associations </CardDescription>
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div class="grid gap-3">
@@ -157,16 +151,14 @@ const breadcrumbs = [
             <Card v-if="props.user.owned_artists && props.user.owned_artists.length > 0">
                 <CardHeader>
                     <CardTitle>Owned Artists</CardTitle>
-                    <CardDescription>
-                        Artists owned by this user
-                    </CardDescription>
+                    <CardDescription> Artists owned by this user </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div class="grid gap-3">
                         <div
                             v-for="artist in props.user.owned_artists"
                             :key="artist.id"
-                            class="flex items-center justify-between p-3 border rounded-lg"
+                            class="flex items-center justify-between rounded-lg border p-3"
                         >
                             <div class="flex items-center space-x-3">
                                 <div class="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
@@ -189,16 +181,14 @@ const breadcrumbs = [
             <Card v-if="props.user.artist_teams && props.user.artist_teams.length > 0">
                 <CardHeader>
                     <CardTitle>Team Memberships</CardTitle>
-                    <CardDescription>
-                        Artists where this user is a team member
-                    </CardDescription>
+                    <CardDescription> Artists where this user is a team member </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div class="grid gap-3">
                         <div
                             v-for="artist in props.user.artist_teams"
                             :key="artist.id"
-                            class="flex items-center justify-between p-3 border rounded-lg"
+                            class="flex items-center justify-between rounded-lg border p-3"
                         >
                             <div class="flex items-center space-x-3">
                                 <div class="flex h-8 w-8 items-center justify-center rounded-full bg-muted">

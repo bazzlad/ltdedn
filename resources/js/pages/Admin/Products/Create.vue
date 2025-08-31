@@ -1,19 +1,17 @@
 <script setup lang="ts">
-import AdminLayout from '@/layouts/AdminLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import AdminLayout from '@/layouts/AdminLayout.vue';
+import type { BreadcrumbItemType } from '@/types';
 import { useForm } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
-import type { BreadcrumbItemType } from '@/types';
 
 interface Artist {
     id: number;
     name: string;
 }
-
-
 
 defineProps<{
     artists: Artist[];
@@ -55,9 +53,7 @@ const submit = () => {
                 </Button>
                 <div>
                     <h2 class="text-3xl font-bold tracking-tight">Create Product</h2>
-                    <p class="text-muted-foreground">
-                        Add a new music product or release
-                    </p>
+                    <p class="text-muted-foreground">Add a new music product or release</p>
                 </div>
             </div>
 
@@ -67,7 +63,7 @@ const submit = () => {
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="submit" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <!-- Artist Selection -->
                             <div class="space-y-2">
                                 <Label for="artist_id">Artist *</Label>
@@ -75,7 +71,7 @@ const submit = () => {
                                     id="artist_id"
                                     v-model="form.artist_id"
                                     required
-                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <option value="">Select an artist</option>
                                     <option v-for="artist in artists" :key="artist.id" :value="artist.id">
@@ -90,13 +86,7 @@ const submit = () => {
                             <!-- Name -->
                             <div class="space-y-2">
                                 <Label for="name">Name *</Label>
-                                <Input
-                                    id="name"
-                                    v-model="form.name"
-                                    type="text"
-                                    placeholder="Enter product name"
-                                    required
-                                />
+                                <Input id="name" v-model="form.name" type="text" placeholder="Enter product name" required />
                                 <div v-if="form.errors.name" class="text-sm text-red-600">
                                     {{ form.errors.name }}
                                 </div>
@@ -105,29 +95,17 @@ const submit = () => {
                             <!-- Slug -->
                             <div class="space-y-2">
                                 <Label for="slug">Slug</Label>
-                                <Input
-                                    id="slug"
-                                    v-model="form.slug"
-                                    type="text"
-                                    placeholder="auto-generated-from-title"
-                                />
+                                <Input id="slug" v-model="form.slug" type="text" placeholder="auto-generated-from-title" />
                                 <div v-if="form.errors.slug" class="text-sm text-red-600">
                                     {{ form.errors.slug }}
                                 </div>
-                                <p class="text-xs text-muted-foreground">
-                                    Leave empty to auto-generate from name
-                                </p>
+                                <p class="text-xs text-muted-foreground">Leave empty to auto-generate from name</p>
                             </div>
 
                             <!-- Cover Image URL -->
                             <div class="space-y-2">
                                 <Label for="cover_image_url">Cover Image URL</Label>
-                                <Input
-                                    id="cover_image_url"
-                                    v-model="form.cover_image_url"
-                                    type="url"
-                                    placeholder="https://example.com/image.jpg"
-                                />
+                                <Input id="cover_image_url" v-model="form.cover_image_url" type="url" placeholder="https://example.com/image.jpg" />
                                 <div v-if="form.errors.cover_image_url" class="text-sm text-red-600">
                                     {{ form.errors.cover_image_url }}
                                 </div>
@@ -136,14 +114,7 @@ const submit = () => {
                             <!-- Base Price -->
                             <div class="space-y-2">
                                 <Label for="base_price">Base Price</Label>
-                                <Input
-                                    id="base_price"
-                                    v-model="form.base_price"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    placeholder="0.00"
-                                />
+                                <Input id="base_price" v-model="form.base_price" type="number" step="0.01" min="0" placeholder="0.00" />
                                 <div v-if="form.errors.base_price" class="text-sm text-red-600">
                                     {{ form.errors.base_price }}
                                 </div>
@@ -163,9 +134,7 @@ const submit = () => {
                                 <div v-if="form.errors.edition_size" class="text-sm text-red-600">
                                     {{ form.errors.edition_size }}
                                 </div>
-                                <p class="text-xs text-muted-foreground">
-                                    Only applies to limited editions
-                                </p>
+                                <p class="text-xs text-muted-foreground">Only applies to limited editions</p>
                             </div>
 
                             <!-- Edition Options -->
@@ -175,7 +144,7 @@ const submit = () => {
                                         id="is_limited"
                                         v-model="form.is_limited"
                                         type="checkbox"
-                                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                        class="focus:ring-opacity-50 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
                                     />
                                     <Label for="is_limited">Limited Edition</Label>
                                 </div>
@@ -184,7 +153,7 @@ const submit = () => {
                                         id="sell_through_ltdedn"
                                         v-model="form.sell_through_ltdedn"
                                         type="checkbox"
-                                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                        class="focus:ring-opacity-50 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
                                     />
                                     <Label for="sell_through_ltdedn">Sell through LTDEDN</Label>
                                 </div>
@@ -193,7 +162,7 @@ const submit = () => {
                                         id="is_public"
                                         v-model="form.is_public"
                                         type="checkbox"
-                                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                        class="focus:ring-opacity-50 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
                                     />
                                     <Label for="is_public">Public (SEO)</Label>
                                 </div>
@@ -207,7 +176,7 @@ const submit = () => {
                                     v-model="form.description"
                                     rows="4"
                                     placeholder="Enter product description..."
-                                    class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                 ></textarea>
                                 <div v-if="form.errors.description" class="text-sm text-red-600">
                                     {{ form.errors.description }}

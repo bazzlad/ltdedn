@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import AdminLayout from '@/layouts/AdminLayout.vue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 
 import { Form, Link } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
@@ -31,9 +31,7 @@ const breadcrumbs = [
             <div class="flex items-center justify-between space-y-2">
                 <div>
                     <h2 class="text-3xl font-bold tracking-tight">Create Artist</h2>
-                    <p class="text-muted-foreground">
-                        Add a new artist profile to the system
-                    </p>
+                    <p class="text-muted-foreground">Add a new artist profile to the system</p>
                 </div>
                 <Button variant="outline" as-child>
                     <Link href="/admin/artists">
@@ -46,26 +44,14 @@ const breadcrumbs = [
             <Card>
                 <CardHeader>
                     <CardTitle>Artist Details</CardTitle>
-                    <CardDescription>
-                        Enter the details for the new artist profile
-                    </CardDescription>
+                    <CardDescription> Enter the details for the new artist profile </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Form
-                        action="/admin/artists"
-                        method="post"
-                        #default="{ errors, processing }"
-                    >
+                    <Form action="/admin/artists" method="post" #default="{ errors, processing }">
                         <div class="grid gap-6">
                             <div class="grid gap-2">
                                 <Label for="name">Artist Name</Label>
-                                <Input
-                                    id="name"
-                                    name="name"
-                                    type="text"
-                                    placeholder="Enter artist name"
-                                    required
-                                />
+                                <Input id="name" name="name" type="text" placeholder="Enter artist name" required />
                                 <div v-if="errors.name" class="text-sm text-red-600">
                                     {{ errors.name }}
                                 </div>
@@ -73,12 +59,7 @@ const breadcrumbs = [
 
                             <div class="grid gap-2">
                                 <Label for="slug">Slug</Label>
-                                <Input
-                                    id="slug"
-                                    name="slug"
-                                    type="text"
-                                    placeholder="Leave blank to auto-generate from name"
-                                />
+                                <Input id="slug" name="slug" type="text" placeholder="Leave blank to auto-generate from name" />
                                 <p class="text-sm text-muted-foreground">
                                     URL-friendly identifier. Leave blank to auto-generate from the artist name.
                                 </p>
@@ -92,16 +73,14 @@ const breadcrumbs = [
                                 <select
                                     name="owner_id"
                                     required
-                                    class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <option value="" disabled selected>Select an owner</option>
                                     <option v-for="user in users" :key="user.id" :value="user.id.toString()">
                                         {{ user.name }} ({{ user.email }})
                                     </option>
                                 </select>
-                                <p class="text-sm text-muted-foreground">
-                                    The user who will own and manage this artist profile.
-                                </p>
+                                <p class="text-sm text-muted-foreground">The user who will own and manage this artist profile.</p>
                                 <div v-if="errors.owner_id" class="text-sm text-red-600">
                                     {{ errors.owner_id }}
                                 </div>

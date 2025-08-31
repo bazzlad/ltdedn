@@ -18,6 +18,10 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(Request $request): Response
     {
+        if ($request->has('intended')) {
+            $request->session()->put('url.intended', $request->query('intended'));
+        }
+
         return Inertia::render('auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => $request->session()->get('status'),
@@ -33,7 +37,15 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $intendedUrl = $request->session()->get('url.intended');
+
+        if ($intendedUrl) {
+            $request->session()->forget('url.intended');
+
+            return redirect($intendedUrl);
+        }
+
+        return redirect()->route('dashboard');
     }
 
     /**

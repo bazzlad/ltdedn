@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import AdminLayout from '@/layouts/AdminLayout.vue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 
 import { Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
@@ -46,9 +46,7 @@ const breadcrumbs = [
             <div class="flex items-center justify-between space-y-2">
                 <div>
                     <h2 class="text-3xl font-bold tracking-tight">Edit User</h2>
-                    <p class="text-muted-foreground">
-                        Update user account information
-                    </p>
+                    <p class="text-muted-foreground">Update user account information</p>
                 </div>
                 <Button variant="outline" as-child>
                     <Link :href="`/admin/users/${props.user.id}`">
@@ -61,23 +59,14 @@ const breadcrumbs = [
             <Card>
                 <CardHeader>
                     <CardTitle>User Details</CardTitle>
-                    <CardDescription>
-                        Update the user account information
-                    </CardDescription>
+                    <CardDescription> Update the user account information </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="form.put(`/admin/users/${props.user.id}`)">
                         <div class="grid gap-6">
                             <div class="grid gap-2">
                                 <Label for="name">Full Name</Label>
-                                <Input
-                                    id="name"
-                                    name="name"
-                                    type="text"
-                                    v-model="form.name"
-                                    placeholder="Enter full name"
-                                    required
-                                />
+                                <Input id="name" name="name" type="text" v-model="form.name" placeholder="Enter full name" required />
                                 <div v-if="form.errors.name" class="text-sm text-red-600">
                                     {{ form.errors.name }}
                                 </div>
@@ -85,14 +74,7 @@ const breadcrumbs = [
 
                             <div class="grid gap-2">
                                 <Label for="email">Email Address</Label>
-                                <Input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    v-model="form.email"
-                                    placeholder="Enter email address"
-                                    required
-                                />
+                                <Input id="email" name="email" type="email" v-model="form.email" placeholder="Enter email address" required />
                                 <div v-if="form.errors.email" class="text-sm text-red-600">
                                     {{ form.errors.email }}
                                 </div>
@@ -107,9 +89,7 @@ const breadcrumbs = [
                                     v-model="form.password"
                                     placeholder="Leave blank to keep current password"
                                 />
-                                <p class="text-sm text-muted-foreground">
-                                    Leave blank to keep the current password
-                                </p>
+                                <p class="text-sm text-muted-foreground">Leave blank to keep the current password</p>
                                 <div v-if="form.errors.password" class="text-sm text-red-600">
                                     {{ form.errors.password }}
                                 </div>
@@ -132,7 +112,7 @@ const breadcrumbs = [
                                     name="role"
                                     v-model="form.role"
                                     required
-                                    class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <option value="" disabled>Select a role</option>
                                     <option v-for="role in roles" :key="role.value" :value="role.value">

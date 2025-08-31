@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import AdminLayout from '@/layouts/AdminLayout.vue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import AdminLayout from '@/layouts/AdminLayout.vue';
 import { Link, usePage } from '@inertiajs/vue3';
-import { Users, Palette, Plus, Eye, Package } from 'lucide-vue-next';
 import { formatDistanceToNow } from 'date-fns';
+import { Eye, Package, Palette, Plus, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface User {
@@ -101,9 +101,7 @@ const dashboardTitle = computed(() => {
                     </CardHeader>
                     <CardContent>
                         <div class="text-2xl font-bold">{{ stats.total_users }}</div>
-                        <p class="text-xs text-muted-foreground">
-                            Registered users in the system
-                        </p>
+                        <p class="text-xs text-muted-foreground">Registered users in the system</p>
                     </CardContent>
                 </Card>
 
@@ -155,7 +153,7 @@ const dashboardTitle = computed(() => {
                                     <Users class="h-4 w-4" />
                                 </div>
                                 <div>
-                                    <p class="text-sm font-medium leading-none">{{ user.name }}</p>
+                                    <p class="text-sm leading-none font-medium">{{ user.name }}</p>
                                     <p class="text-sm text-muted-foreground">{{ user.email }}</p>
                                 </div>
                             </div>
@@ -191,10 +189,8 @@ const dashboardTitle = computed(() => {
                                     <Palette class="h-4 w-4" />
                                 </div>
                                 <div>
-                                    <p class="text-sm font-medium leading-none">{{ artist.name }}</p>
-                                    <p class="text-sm text-muted-foreground" v-if="isAdmin">
-                                        Owner: {{ artist.owner?.name || 'Unknown' }}
-                                    </p>
+                                    <p class="text-sm leading-none font-medium">{{ artist.name }}</p>
+                                    <p class="text-sm text-muted-foreground" v-if="isAdmin">Owner: {{ artist.owner?.name || 'Unknown' }}</p>
                                     <p class="text-sm text-muted-foreground" v-else>
                                         {{ formatDistanceToNow(new Date(artist.created_at), { addSuffix: true }) }}
                                     </p>

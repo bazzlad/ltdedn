@@ -29,19 +29,11 @@ class ProductEdition extends Model
         parent::boot();
 
         static::creating(function (ProductEdition $edition) {
-            if (empty($edition->qr_code) || empty($edition->qr_short_code)) {
+            if (empty($edition->qr_code)) {
                 $edition->load('product');
 
                 $qrService = app(QRCodeService::class);
-                $qrCodes = $qrService->generateQRCodes($edition->product, $edition->number);
-
-                if (empty($edition->qr_code)) {
-                    $edition->qr_code = $qrCodes['qr_code'];
-                }
-
-                if (empty($edition->qr_short_code)) {
-                    $edition->qr_short_code = $qrCodes['qr_short_code'];
-                }
+                $edition->qr_code = $qrService->generateQRCode($edition->product, $edition->number);
             }
         });
     }
