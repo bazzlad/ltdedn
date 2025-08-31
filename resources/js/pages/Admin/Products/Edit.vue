@@ -13,10 +13,7 @@ interface Artist {
     name: string;
 }
 
-interface SelectOption {
-    value: string;
-    label: string;
-}
+
 
 interface Product {
     id: number;
