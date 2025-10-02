@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { dashboard, login, register } from '@/routes';
 import { Head, Link } from '@inertiajs/vue3';
+
 </script>
 
 <template>
@@ -41,15 +42,15 @@ import { Head, Link } from '@inertiajs/vue3';
                 >
                     <h1 class="mb-4 text-2xl font-medium lg:text-3xl">Welcome</h1>
                     <p class="mb-6 text-base text-[#706f6c] dark:text-[#A1A09A] lg:text-lg">
-                        This is where the landing page will come.
+                        Lander will be here.
                     </p>
                 </div>
                 <div
                     class="relative -mb-px aspect-335/376 w-full shrink-0 overflow-hidden rounded-t-lg bg-gradient-to-br from-blue-50 to-indigo-100 lg:mb-0 lg:-ml-px lg:aspect-auto lg:w-[438px] lg:rounded-t-none lg:rounded-r-lg dark:from-gray-800 dark:to-gray-900"
                 >
                     <div class="flex h-full items-center justify-center p-8">
-                        <div class="text-center">
-                            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300">ltdedn</h3>
+                        <div class="text-center text-white">                            
+                            <img src="/images/logo-lg.svg" alt="Logo" width="100%" />
                         </div>
                     </div>
                 </div>
