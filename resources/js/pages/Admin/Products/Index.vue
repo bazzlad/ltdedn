@@ -147,7 +147,7 @@ const deleteProduct = (productId: number) => {
                                         <TableHead>Price</TableHead>
                                         <TableHead>Sales</TableHead>
                                         <TableHead>Created</TableHead>
-                                        <TableHead class="text-right">Actions</TableHead>
+                                        <TableHead class="text-center">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>

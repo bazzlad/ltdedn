@@ -7,7 +7,8 @@ import AdminLayout from '@/layouts/AdminLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
+import QRCode from 'qrcode';
 
 interface Artist {
     id: number;
@@ -47,6 +48,35 @@ const props = defineProps<{
     users: User[];
     statuses: SelectOption[];
 }>();
+
+const qrValue = computed(function() {
+	return props.edition.qr_code || '';
+});
+
+const qrDataUrl = ref<string>('');
+
+function makeQr() {
+	if (!qrValue.value) {
+		qrDataUrl.value = '';
+		return;
+	}
+    
+    // get base url
+    let qrUrl = window.location.origin;
+    qrUrl += '/qr/' + props.edition.qr_code;
+
+	QRCode.toDataURL(qrUrl, {
+		width: 1024,
+		margin: 1,
+		errorCorrectionLevel: 'M'
+	}).then(function(url) {
+		qrDataUrl.value = url;
+	});
+}
+
+onMounted(makeQr);
+watch(qrValue, makeQr);
+
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -172,6 +202,17 @@ const submit = () => {
                             </div>
                             <div v-else>
                                 <p class="text-sm text-muted-foreground">No short code generated</p>
+                            </div>
+
+                            <!-- actual qr -->
+                            <div class="space-y-3">
+                                <h4 class="mb-2 text-sm font-medium text-muted-foreground">QR Image</h4>
+                                <img v-if="qrDataUrl" :src="qrDataUrl" alt="QR code" class="rounded border" width="256" height="256" />
+                                <div class="flex gap-2" v-if="qrDataUrl">
+                                    <Button as-child size="sm">
+                                        <a :href="qrDataUrl" :download="`product-${product.id}-edition-${edition.number}.png`">Download PNG</a>
+                                    </Button>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>

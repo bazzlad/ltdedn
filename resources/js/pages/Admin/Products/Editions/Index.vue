@@ -7,7 +7,10 @@ import AdminLayout from '@/layouts/AdminLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
 import { formatDistanceToNow } from 'date-fns';
-import { ArrowLeft, Hash, Plus, SquarePen, Trash2, User } from 'lucide-vue-next';
+import { ArrowLeft, Hash, Plus, QrCodeIcon, SquarePen, Trash2, User } from 'lucide-vue-next';
+import { computed } from 'vue';
+import QRCode from 'qrcode';
+import { title } from 'process';
 
 interface Artist {
     id: number;
@@ -60,6 +63,10 @@ const props = defineProps<{
     editions: EditionsData;
 }>();
 
+const totalCount = computed(() =>
+	props.editions.total || props.editions.data.length
+);
+
 const breadcrumbs: BreadcrumbItemType[] = [
     { title: 'Admin', href: '/admin' },
     { title: 'Products', href: '/admin/products' },
@@ -106,6 +113,26 @@ const deleteEdition = (editionId: number, editionNumber: number) => {
         router.delete(`/admin/products/${props.product.id}/editions/${editionId}`);
     }
 };
+
+const downloadQrCode = (editionQr: string, editionId: number, editionNumber: number) => {
+    // Generate the QR code URL
+    let qrUrl = window.location.origin;
+    qrUrl += '/qr/' + editionQr;
+
+    QRCode.toDataURL(qrUrl, {
+        width: 1024,
+        margin: 1,
+        errorCorrectionLevel: 'M'
+    }).then(function(url) {
+        // Create a temporary link to trigger the download
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `qr_${editionId}_${editionNumber}_qrcode.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+};
 </script>
 
 <template>
@@ -137,7 +164,7 @@ const deleteEdition = (editionId: number, editionNumber: number) => {
                     <div class="flex items-center justify-between">
                         <div>
                             <CardTitle>All Editions</CardTitle>
-                            <CardDescription> {{ editions.meta?.total || 0 }} total editions </CardDescription>
+                            <CardDescription> {{ totalCount || 0 }} total editions </CardDescription>
                         </div>
                     </div>
                 </CardHeader>
@@ -162,7 +189,7 @@ const deleteEdition = (editionId: number, editionNumber: number) => {
                                         <TableHead>Owner</TableHead>
                                         <TableHead>QR Code</TableHead>
                                         <TableHead>Created</TableHead>
-                                        <TableHead class="text-right">Actions</TableHead>
+                                        <TableHead class="text-center">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -201,11 +228,21 @@ const deleteEdition = (editionId: number, editionNumber: number) => {
                                         <TableCell class="text-right">
                                             <div class="flex items-center justify-end space-x-2">
                                                 <Button as-child size="sm" variant="ghost">
-                                                    <Link :href="`/admin/products/${product.id}/editions/${edition.id}/edit`">
+                                                    <Link :href="`/admin/products/${product.id}/editions/${edition.id}/edit`" :title="`Edit Edition #${edition.number}`">
                                                         <SquarePen class="h-3 w-3" />
                                                     </Link>
                                                 </Button>
                                                 <Button
+                                                    title="Download QR Code"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    @click="downloadQrCode(edition.qr_code, edition.id, edition.number)"
+                                                    class="text-white-600"
+                                                >
+                                                    <QrCodeIcon class="h-3 w-3" />
+                                                </Button>
+                                                <Button
+                                                    title="Delete Edition"
                                                     size="sm"
                                                     variant="ghost"
                                                     @click="deleteEdition(edition.id, edition.number)"
