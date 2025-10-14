@@ -8,7 +8,7 @@
 	import { Link, usePage, router } from '@inertiajs/vue3';
 	import { formatDistanceToNow } from 'date-fns';
 	import { ArrowLeft, Eye, Plus, SquarePen, Trash2, QrCodeIcon } from 'lucide-vue-next';
-	import { computed } from 'vue';
+	import { computed, ref } from 'vue';
     import QRCode from 'qrcode';
 
 	interface Artist { id: number; name: string; slug: string; }
@@ -110,10 +110,8 @@
 
 	
 	//const showUrl = (e: { id: number }) => `/admin/products/${props.product.id}/editions/${e.id}`;
-
     const downloadQrCode = (edition: { qr_code: string, id: number, number: number }) => {
-        debugger;
-        // Generate the QR code URL
+        // generate the QR code URL
         let qrUrl = window.location.origin;
         qrUrl += '/qr/' + edition.qr_code;
 
@@ -122,7 +120,7 @@
             margin: 1,
             errorCorrectionLevel: 'M'
         }).then(function(url) {
-            // Create a temporary link to trigger the download
+            // create a temporary link to trigger the download
             const link = document.createElement('a');
             link.href = url;
             link.download = `qr_${edition.id}_${edition.number}_qrcode.png`;
@@ -131,7 +129,6 @@
             document.body.removeChild(link);
         });
     };
-
 	const editUrl = (e: { id: number }) => `/admin/products/${props.product.id}/editions/${e.id}/edit`;
 	const destroy = (e: { id: number; name?: string }) => {
 		const label = e.name ? `"${e.name}"` : `Edition #${e.id}`;
@@ -139,6 +136,35 @@
 			router.delete(showUrl(e));
 		}
 	};
+
+    function getCsrf() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? (meta as HTMLMetaElement).content : '';
+    }
+
+    function downloadQrPdf(productId: number) {
+        const payload = JSON.stringify({ product_id: productId });
+        fetch(`/admin/products/${productId}/editions/qr-batch-pdf`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCsrf()
+            },
+            body: payload
+        }).then(function(res) {
+            if (!res.ok) throw new Error('PDF generation failed');
+            return res.blob();
+        }).then(function(blob) {
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = `product-${productId}-qrs.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        });
+    }
 </script>
 
 <template>
@@ -245,14 +271,13 @@
                 <CardHeader class="flex flex-row items-center justify-between">
                     <CardTitle>Editions</CardTitle>
                     <div class="flex items-center gap-2">
-                        <!-- add download QRs button -->
-                        <Button size="sm" variant="outline" as-child>
-                            <Link :href="`/admin/products/${product.id}/editions/qr-codes`" target="_blank" rel="noopener">
+                        <!-- only show if editions -->
+                        <div v-if="product.editions.length > 0">
+                            <Button size="sm" variant="outline" @click="downloadQrPdf(product.id)">
                                 <QrCodeIcon class="h-3 w-3" />
                                 Download QR Codes
-                            </Link>
-                        </Button>
-
+                            </Button>
+                        </div>
                         <Button size="sm" variant="outline" as-child>
                             <Link :href="`/admin/products/${product.id}/editions`"> Manage Editions </Link>
                         </Button>

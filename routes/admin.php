@@ -29,9 +29,14 @@ Route::prefix('admin')
                 'destroy' => 'products.editions.destroy',
             ]);
 
+        // Batch PDF of QRs for selected editions or all editions of a product
+		Route::match(['GET','POST'], 'products/{product}/editions/qr-batch-pdf', [ProductEditionController::class, 'qrBatchPdf'])
+			->name('products.editions.qr-batch-pdf');
+            
         // Admin-only routes
         Route::middleware('role:admin')->group(function () {
             Route::resource('users', UserController::class);
             Route::resource('artists', ArtistController::class);
         });
     });
+

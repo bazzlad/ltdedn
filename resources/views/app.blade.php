@@ -43,6 +43,7 @@
         @inertiaHead
     </head>
     <body class="font-sans antialiased">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
         @inertia
     </body>
 </html>
