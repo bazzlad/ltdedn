@@ -9,7 +9,10 @@
 	import { formatDistanceToNow } from 'date-fns';
 	import { ArrowLeft, Eye, Plus, SquarePen, Trash2, QrCodeIcon } from 'lucide-vue-next';
 	import { computed, ref } from 'vue';
-    import QRCode from 'qrcode';
+	import { generateAndDownloadQR } from '@/composables/useQRCode';
+	import { qrBatchPdf } from '@/routes/admin/products/editions';
+	import { index as editionsIndex, create as editionsCreate, edit as editionsEdit, destroy as editionsDestroy } from '@/routes/admin/products/editions';
+	import { index as productsIndex, edit as productsEdit } from '@/routes/admin/products';
 
 	interface Artist { id: number; name: string; slug: string; }
 	interface Edition {
@@ -29,9 +32,12 @@
 	const user = computed(() => page.props.auth.user);
 	const isAdmin = computed(() => user.value?.role === 'admin');
 
+	const isDownloadingQR = ref(false);
+	const isDownloadingBatchPDF = ref(false);
+
 	const breadcrumbs: BreadcrumbItemType[] = [
 		{ title: 'Admin', href: '/admin' },
-		{ title: 'Products', href: '/admin/products' },
+		{ title: 'Products', href: productsIndex().url },
 		{ title: 'View Product', href: '#' },
 	];
 
@@ -108,63 +114,48 @@
 		});
 	});
 
-	
-	//const showUrl = (e: { id: number }) => `/admin/products/${props.product.id}/editions/${e.id}`;
-    const downloadQrCode = (edition: { qr_code: string, id: number, number: number }) => {
-        // generate the QR code URL
-        let qrUrl = window.location.origin;
-        qrUrl += '/qr/' + edition.qr_code;
 
-        QRCode.toDataURL(qrUrl, {
-            width: 1024,
-            margin: 1,
-            errorCorrectionLevel: 'M'
-        }).then(function(url) {
-            // create a temporary link to trigger the download
+	const destroyUrl = (e: { id: number }) => editionsDestroy({ product: props.product.id, edition: e.id }).url;
+    const downloadQrCode = async (edition: { qr_code: string, id: number, number: number }) => {
+        try {
+            isDownloadingQR.value = true;
+            const filename = `qr_${edition.id}_${edition.number}_qrcode.png`;
+            await generateAndDownloadQR(edition.qr_code, filename);
+        } catch (error) {
+            console.error('Failed to download QR code:', error);
+        } finally {
+            isDownloadingQR.value = false;
+        }
+    };
+
+    const downloadBatchPdf = async () => {
+        try {
+            isDownloadingBatchPDF.value = true;
+
             const link = document.createElement('a');
-            link.href = url;
-            link.download = `qr_${edition.id}_${edition.number}_qrcode.png`;
+            link.href = qrBatchPdf(props.product).url;
+            link.download = ''; /
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-        });
+
+            setTimeout(() => {
+                isDownloadingBatchPDF.value = false;
+            }, 1000);
+        } catch (error) {
+            console.error('Failed to download batch PDF:', error);
+            isDownloadingBatchPDF.value = false;
+        }
     };
-	const editUrl = (e: { id: number }) => `/admin/products/${props.product.id}/editions/${e.id}/edit`;
+
+	const editUrl = (e: { id: number }) => editionsEdit({ product: props.product.id, edition: e.id }).url;
 	const destroy = (e: { id: number; name?: string }) => {
 		const label = e.name ? `"${e.name}"` : `Edition #${e.id}`;
 		if (confirm(`Delete ${label}? This cannot be undone.`)) {
-			router.delete(showUrl(e));
+			router.delete(destroyUrl(e));
 		}
 	};
 
-    function getCsrf() {
-        const meta = document.querySelector('meta[name="csrf-token"]');
-        return meta ? (meta as HTMLMetaElement).content : '';
-    }
-
-    function downloadQrPdf(productId: number) {
-        const payload = JSON.stringify({ product_id: productId });
-        fetch(`/admin/products/${productId}/editions/qr-batch-pdf`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': getCsrf()
-            },
-            body: payload
-        }).then(function(res) {
-            if (!res.ok) throw new Error('PDF generation failed');
-            return res.blob();
-        }).then(function(blob) {
-            let url = URL.createObjectURL(blob);
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = `product-${productId}-qrs.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-        });
-    }
 </script>
 
 <template>
@@ -172,7 +163,7 @@
         <div class="flex-1 space-y-4 p-8 pt-6">
             <div class="flex items-center gap-4">
                 <Button variant="outline" size="sm" as-child>
-                    <Link href="/admin/products">
+                    <Link :href="productsIndex().url">
                         <ArrowLeft class="mr-2 h-4 w-4" />
                         Back to Products
                     </Link>
@@ -182,7 +173,7 @@
                     <p class="text-muted-foreground">Product details and edition management</p>
                 </div>
                 <Button as-child>
-                    <Link :href="`/admin/products/${product.id}/edit`">
+                    <Link :href="productsEdit(product).url">
                         <SquarePen class="mr-2 h-4 w-4" />
                         Edit Product
                     </Link>
@@ -271,18 +262,23 @@
                 <CardHeader class="flex flex-row items-center justify-between">
                     <CardTitle>Editions</CardTitle>
                     <div class="flex items-center gap-2">
-                        <!-- only show if editions -->
                         <div v-if="product.editions.length > 0">
-                            <Button size="sm" variant="outline" @click="downloadQrPdf(product.id)">
-                                <QrCodeIcon class="h-3 w-3" />
-                                Download QR Codes
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                @click="downloadBatchPdf"
+                                :disabled="isDownloadingBatchPDF"
+                            >
+                                <div v-if="isDownloadingBatchPDF" class="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                                <QrCodeIcon v-else class="mr-2 h-3 w-3" />
+                                {{ isDownloadingBatchPDF ? 'Generating...' : 'Download QR Codes' }}
                             </Button>
                         </div>
                         <Button size="sm" variant="outline" as-child>
-                            <Link :href="`/admin/products/${product.id}/editions`"> Manage Editions </Link>
+                            <Link :href="editionsIndex(product).url"> Manage Editions </Link>
                         </Button>
                         <Button size="sm" as-child>
-                            <Link :href="`/admin/products/${product.id}/editions/create`">
+                            <Link :href="editionsCreate(product).url">
                                 <Plus class="mr-2 h-4 w-4" />
                                 Add Edition
                             </Link>
@@ -327,7 +323,7 @@
                                     <TableCell>{{ formatPrice(edition.price) }}</TableCell>
                                     <TableCell>
                                         <div>
-                                            <span>{{ edition.stock_quantity }}</span> 
+                                            <span>{{ edition.stock_quantity }}</span>
                                             <span v-if="edition.limited_quantity" class="text-muted-foreground"> / {{ edition.limited_quantity }}</span>
                                         </div>
                                     </TableCell>
@@ -348,9 +344,11 @@
                                                 size="sm"
                                                 variant="ghost"
                                                 @click="downloadQrCode(edition)"
+                                                :disabled="isDownloadingQR"
                                                 class="text-white-600"
                                             >
-                                                <QrCodeIcon class="h-3 w-3" />
+                                                <div v-if="isDownloadingQR" class="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                                                <QrCodeIcon v-else class="h-3 w-3" />
                                             </Button>
                                             <Button variant="ghost" size="sm" class="text-red-600 hover:text-red-700" @click="destroy(edition)">
                                                 <Trash2 class="h-4 w-4" />
