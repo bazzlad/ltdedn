@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import AppContent from '@/components/AppContent.vue';
 import AppShell from '@/components/AppShell.vue';
-import { logout } from '@/routes';
+import { logout, dashboard } from '@/routes';
+import { dashboard as adminDashboard } from '@/routes/admin';
 import type { User } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
@@ -22,7 +23,7 @@ const handleLogout = () => {
                 <div class="flex h-16 items-center justify-between">
                     <!-- Logo -->
                     <div class="flex items-center">
-                        <Link href="/" class="flex items-center space-x-2">
+                        <Link :href="dashboard().url" class="flex items-center space-x-2">
                             <img src="/images/logo-sm.svg" alt="Logo" class="h-8 w-8" />
                             <span class="text-xl font-bold text-slate-900 dark:text-slate-100">Collection</span>
                         </Link>
@@ -37,7 +38,7 @@ const handleLogout = () => {
                         <!-- Admin/Artist Panel Link -->
                         <Link
                             v-if="user?.role === 'admin' || user?.role === 'artist'"
-                            href="/admin"
+                            :href="adminDashboard().url"
                             class="inline-flex items-center space-x-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
                         >
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

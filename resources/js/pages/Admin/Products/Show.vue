@@ -134,7 +134,7 @@
 
             const link = document.createElement('a');
             link.href = qrBatchPdf(props.product).url;
-            link.download = ''; /
+            link.download = ''; // Forces download instead of navigation
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
