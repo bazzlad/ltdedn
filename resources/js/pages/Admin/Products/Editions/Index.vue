@@ -9,8 +9,7 @@ import { Link, router } from '@inertiajs/vue3';
 import { formatDistanceToNow } from 'date-fns';
 import { ArrowLeft, Hash, Plus, QrCodeIcon, SquarePen, Trash2, User } from 'lucide-vue-next';
 import { computed } from 'vue';
-import QRCode from 'qrcode';
-import { title } from 'process';
+import { generateAndDownloadQR } from '@/composables/useQRCode';
 
 interface Artist {
     id: number;
@@ -64,7 +63,7 @@ const props = defineProps<{
 }>();
 
 const totalCount = computed(() =>
-	props.editions.total || props.editions.data.length
+	props.editions.meta?.total || props.editions.data.length
 );
 
 const breadcrumbs: BreadcrumbItemType[] = [
@@ -114,24 +113,13 @@ const deleteEdition = (editionId: number, editionNumber: number) => {
     }
 };
 
-const downloadQrCode = (editionQr: string, editionId: number, editionNumber: number) => {
-    // Generate the QR code URL
-    let qrUrl = window.location.origin;
-    qrUrl += '/qr/' + editionQr;
-
-    QRCode.toDataURL(qrUrl, {
-        width: 1024,
-        margin: 1,
-        errorCorrectionLevel: 'M'
-    }).then(function(url) {
-        // Create a temporary link to trigger the download
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `qr_${editionId}_${editionNumber}_qrcode.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    });
+const downloadQrCode = async (editionQr: string, editionId: number, editionNumber: number) => {
+    try {
+        const filename = `qr_${editionId}_${editionNumber}_qrcode.png`;
+        await generateAndDownloadQR(editionQr, filename);
+    } catch (error) {
+        console.error('Failed to download QR code:', error);
+    }
 };
 </script>
 

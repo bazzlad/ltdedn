@@ -1,9 +1,9 @@
 <?php
 
 use App\Http\Controllers\ClaimQRController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ShowQRController;
 use App\Http\Controllers\TransferQRController;
+use App\Http\Controllers\UserDashboardController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -11,7 +11,7 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
-Route::get('dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('dashboard', UserDashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------

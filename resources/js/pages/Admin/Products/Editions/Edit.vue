@@ -7,8 +7,8 @@ import AdminLayout from '@/layouts/AdminLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
-import { ref, watch, onMounted, computed } from 'vue';
-import QRCode from 'qrcode';
+import { computed } from 'vue';
+import { useQRCode, getQRCodeUrl, downloadQRCode } from '@/composables/useQRCode';
 
 interface Artist {
     id: number;
@@ -49,33 +49,23 @@ const props = defineProps<{
     statuses: SelectOption[];
 }>();
 
-const qrValue = computed(function() {
-	return props.edition.qr_code || '';
+const qrValue = computed(() => {
+    const qrCode = props.edition.qr_code;
+    return qrCode ? getQRCodeUrl(qrCode) : '';
 });
 
-const qrDataUrl = ref<string>('');
+const { qrDataUrl, isGenerating, error: qrError } = useQRCode(qrValue, {
+    width: 1024,
+    margin: 1,
+    errorCorrectionLevel: 'M'
+});
 
-function makeQr() {
-	if (!qrValue.value) {
-		qrDataUrl.value = '';
-		return;
-	}
-    
-    // get base url
-    let qrUrl = window.location.origin;
-    qrUrl += '/qr/' + props.edition.qr_code;
-
-	QRCode.toDataURL(qrUrl, {
-		width: 1024,
-		margin: 1,
-		errorCorrectionLevel: 'M'
-	}).then(function(url) {
-		qrDataUrl.value = url;
-	});
-}
-
-onMounted(makeQr);
-watch(qrValue, makeQr);
+const handleDownloadQR = () => {
+    if (qrDataUrl.value) {
+        const filename = `product-${props.product.id}-edition-${props.edition.number}.png`;
+        downloadQRCode(qrDataUrl.value, filename);
+    }
+};
 
 
 const page = usePage();
@@ -207,10 +197,29 @@ const submit = () => {
                             <!-- actual qr -->
                             <div class="space-y-3">
                                 <h4 class="mb-2 text-sm font-medium text-muted-foreground">QR Image</h4>
-                                <img v-if="qrDataUrl" :src="qrDataUrl" alt="QR code" class="rounded border" width="256" height="256" />
-                                <div class="flex gap-2" v-if="qrDataUrl">
-                                    <Button as-child size="sm">
-                                        <a :href="qrDataUrl" :download="`product-${product.id}-edition-${edition.number}.png`">Download PNG</a>
+                                <div v-if="isGenerating" class="flex items-center justify-center h-64 w-64 border rounded bg-slate-50 dark:bg-slate-800">
+                                    <div class="text-center">
+                                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                                        <p class="text-sm text-slate-600 dark:text-slate-400">Generating QR code...</p>
+                                    </div>
+                                </div>
+
+                                <div v-else-if="qrError" class="flex items-center justify-center h-64 w-64 border rounded bg-red-50 dark:bg-red-900/20">
+                                    <div class="text-center text-red-600 dark:text-red-400">
+                                        <p class="text-sm font-medium">Error generating QR code</p>
+                                        <p class="text-xs mt-1">{{ qrError }}</p>
+                                    </div>
+                                </div>
+
+                                <img v-else-if="qrDataUrl" :src="qrDataUrl" alt="QR code" class="rounded border" width="256" height="256" />
+
+                                <div v-else class="flex items-center justify-center h-64 w-64 border rounded bg-slate-50 dark:bg-slate-800">
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">No QR code available</p>
+                                </div>
+
+                                <div v-if="qrDataUrl && !isGenerating" class="flex gap-2 mt-4">
+                                    <Button variant="outline" size="sm" @click="handleDownloadQR">
+                                        Download PNG
                                     </Button>
                                 </div>
                             </div>
