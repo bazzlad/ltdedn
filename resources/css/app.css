@@ -58,6 +58,21 @@
     --color-sidebar-ring: var(--sidebar-ring);
 }
 
+
+.main-bg {
+    /* can I copy this gradient overlay trick from Tailwind UI?
+    absolute inset-0 bg-gradient-to-b from-black via-black/50 to-black
+    */
+
+    background: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, .06) 1px, transparent 0) 24px 24px;
+    background: url('/images/bg.jpg') repeat center center fixed !important; /* repeat both axes */
+}
+.main-card {
+    padding: 2em;
+    background: #000000;
+    border-radius: 1em;
+}
+
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still

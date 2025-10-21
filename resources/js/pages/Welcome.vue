@@ -1,61 +1,106 @@
 <script setup lang="ts">
 import { dashboard, login, register } from '@/routes';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 
+const HERO_IMG = '/images/landing-hero.jpg';
+const LOGO_SVG = '/images/logo-sm.svg';
+
+const page = usePage();
+const user = page.props.auth?.user;
 </script>
 
+<style scoped>
+
+</style>
+
 <template>
-    <Head title="Welcome">
-        <link rel="preconnect" href="https://rsms.me/" />
-        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
-    </Head>
-    <div class="flex min-h-screen flex-col items-center bg-[#FDFDFC] p-6 text-[#1b1b18] lg:justify-center lg:p-8 dark:bg-[#0a0a0a]">
-        <header class="mb-6 w-full max-w-[335px] text-sm not-has-[nav]:hidden lg:max-w-4xl">
-            <nav class="flex items-center justify-end gap-4">
-                <Link
-                    v-if="$page.props.auth.user"
-                    :href="dashboard()"
-                    class="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-                >
-                    Dashboard
-                </Link>
-                <template v-else>
-                    <Link
-                        :href="login()"
-                        class="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
-                    >
-                        Log in
-                    </Link>
-                    <Link
-                        :href="register()"
-                        class="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-                    >
-                        Register
-                    </Link>
-                </template>
-            </nav>
-        </header>
-        <div class="flex w-full items-center justify-center opacity-100 transition-opacity duration-750 lg:grow starting:opacity-0">
-            <main class="flex w-full max-w-[335px] flex-col-reverse overflow-hidden rounded-lg lg:max-w-4xl lg:flex-row">
-                <div
-                    class="flex-1 rounded-br-lg rounded-bl-lg bg-white p-6 pb-12 text-[13px] leading-[20px] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] lg:rounded-tl-lg lg:rounded-br-none lg:p-20 dark:bg-[#161615] dark:text-[#EDEDEC] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d]"
-                >
-                    <h1 class="mb-4 text-2xl font-medium lg:text-3xl">Welcome</h1>
-                    <p class="mb-6 text-base text-[#706f6c] dark:text-[#A1A09A] lg:text-lg">
-                        Lander will be here.
-                    </p>
-                </div>
-                <div
-                    class="relative -mb-px aspect-335/376 w-full shrink-0 overflow-hidden rounded-t-lg bg-gradient-to-br from-blue-50 to-indigo-100 lg:mb-0 lg:-ml-px lg:aspect-auto lg:w-[438px] lg:rounded-t-none lg:rounded-r-lg dark:from-gray-800 dark:to-gray-900"
-                >
-                    <div class="flex h-full items-center justify-center p-8">
-                        <div class="text-center text-white">                            
-                            <img src="/images/logo-lg.svg" alt="Logo" width="100%" />
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-        <div class="hidden h-14.5 lg:block"></div>
+<Head title="LTD/EDN – Limited Editions">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</Head>
+
+<!-- KEY CHANGES: add flex flex-col; keep min-h-screen on wrapper only -->
+<div class="relative min-h-screen bg-black text-neutral-200 antialiased flex flex-col main-bg">
+
+    <!-- background layers -->
+    <div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden">
+        <div class="absolute inset-0 bg-cover bg-center opacity-40"></div>
+        <div class="absolute inset-0 [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,.06)_1px,transparent_0)] [background-size:24px_24px] opacity-20 mix-blend-soft-light"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-black via-black/50 to-black"></div>
     </div>
+
+    <!-- Top nav -->
+    <header class="relative z-10">
+    <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
+        <div class="flex items-center gap-3">
+        <img :src="LOGO_SVG" alt="LTD/EDN" class="h-16 w-auto" />
+        <span class="sr-only">LTD/EDN</span>
+        </div>
+        <div class="flex items-center gap-3 text-sm">
+        <Link
+            v-if="user"
+            :href="dashboard()"
+            class="inline-flex items-center rounded-xl px-4 py-2 font-semibold ring-1 ring-white/20 hover:ring-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        >
+            Dashboard
+        </Link>
+        <template v-else>
+            <Link
+            :href="login()"
+            class="inline-flex items-center rounded-xl bg-white/10 px-4 py-2 font-semibold ring-1 ring-white/15 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+            Log in
+            </Link>
+            <Link
+            :href="register()"
+            class="inline-flex items-center rounded-xl px-4 py-2 font-semibold ring-1 ring-white/20 hover:ring-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+            Create account
+            </Link>
+        </template>
+        </div>
+    </nav>
+    </header>
+
+    <!-- Hero fills the space between header and footer -->
+    <main
+    class="relative z-10 isolate mx-auto flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-6 pb-16 pt-10 text-center lg:px-8 lg:pt-14"
+    >
+    <div class="mx-auto max-w-2xl">
+        <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+        Digitally authenticated limited editions
+        </h1>
+        <p class="mt-4 text-base leading-relaxed text-neutral-300">
+        A new way to collect and verify art. Built with artist-first values, exceptional quality, and a modern ownership record that travels with the work.
+        </p>
+        <div class="mt-8 flex items-center justify-center gap-3">
+        <Link
+            :href="register()"
+            class="inline-flex items-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-sm hover:bg-neutral-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/50"
+        >
+            Create account
+        </Link>
+        <Link
+            :href="login()"
+            class="inline-flex items-center rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/15 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        >
+            Log in
+        </Link>
+        </div>
+    </div>
+    </main>
+
+    <!-- Footer stays at bottom because parent is flex-col and main is flex-1 -->
+    <footer class="relative z-10 border-t border-white/10 bg-black/50">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-neutral-400 sm:flex-row lg:px-8">
+        <p>© {{ new Date().getFullYear() }} LTD/EDN. All rights reserved.</p>
+        <div class="flex items-center gap-4">
+        <Link href="#" class="hover:text-neutral-200">Privacy</Link>
+        <span aria-hidden="true" class="text-white/20">•</span>
+        <Link href="#" class="hover:text-neutral-200">Terms</Link>
+        </div>
+    </div>
+    </footer>
+</div>
 </template>
