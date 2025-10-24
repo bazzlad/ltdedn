@@ -136,13 +136,13 @@
                                     <p class="mb-4 text-slate-600 dark:text-slate-400">You need to be logged in to claim this edition</p>
                                     <div class="flex justify-center gap-3">
                                         <Link
-                                            :href="login({ intended: qr.show(edition.qr_code).url }).url"
+                                            :href="login({ query: { intended: qr.show(edition.qr_code).url } }).url"
                                             class="inline-flex items-center rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
                                         >
                                             Log In
                                         </Link>
                                         <Link
-                                            :href="register({ intended: qr.show(edition.qr_code).url }).url"
+                                            :href="register({ query: { intended: qr.show(edition.qr_code).url } }).url"
                                             class="inline-flex items-center rounded-lg bg-slate-600 px-6 py-3 font-medium text-white transition-colors hover:bg-slate-700"
                                         >
                                             Sign Up
