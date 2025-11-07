@@ -262,8 +262,8 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                             >
                                 <option value="20">20</option>
                                 <option value="50">50</option>
-                                <option value="100">100</option>
-                                <option value="200">200</option>
+                                <!--<option value="100">100</option>
+                                <option value="200">200</option>-->
                             </select>
                             <span class="text-sm text-muted-foreground">per page</span>
                         </div>
