@@ -42,6 +42,17 @@ const page = usePage();
 const user = computed(() => page.props.auth.user);
 const isAdmin = computed(() => user.value?.role === 'admin');
 
+const endNumber = computed(() => {
+    if (form.creation_type === 'bulk' && form.start_number && form.quantity) {
+        return Number(form.start_number) + Number(form.quantity) - 1;
+    }
+    return null;
+});
+
+const isLargeQuantity = computed(() => {
+    return form.creation_type === 'bulk' && Number(form.quantity) > 100;
+});
+
 const breadcrumbs: BreadcrumbItemType[] = [
     { title: 'Admin', href: '/admin' },
     { title: 'Products', href: '/admin/products' },
@@ -51,13 +62,20 @@ const breadcrumbs: BreadcrumbItemType[] = [
 ];
 
 const form = useForm({
+    creation_type: 'single', // 'single' or 'bulk'
     number: props.nextNumber,
+    quantity: 1,
+    start_number: props.nextNumber,
     status: 'available',
     owner_id: '',
 });
 
 const submit = () => {
-    form.post(`/admin/products/${props.product.id}/editions`);
+    if (form.creation_type === 'bulk') {
+        form.post(`/admin/products/${props.product.id}/editions/bulk`);
+    } else {
+        form.post(`/admin/products/${props.product.id}/editions`);
+    }
 };
 </script>
 
@@ -83,9 +101,36 @@ const submit = () => {
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="submit" class="space-y-6">
+                        <!-- Creation Type Selection -->
+                        <div class="space-y-4">
+                            <div>
+                                <Label>Creation Type</Label>
+                                <div class="mt-2 space-x-6">
+                                    <label class="inline-flex items-center">
+                                        <input
+                                            v-model="form.creation_type"
+                                            type="radio"
+                                            value="single"
+                                            class="focus:ring-opacity-50 border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                        />
+                                        <span class="ml-2">Single Edition</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input
+                                            v-model="form.creation_type"
+                                            type="radio"
+                                            value="bulk"
+                                            class="focus:ring-opacity-50 border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                        />
+                                        <span class="ml-2">Multiple Editions</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <!-- Edition Number -->
-                            <div class="space-y-2">
+                            <!-- Single Edition Number -->
+                            <div v-if="form.creation_type === 'single'" class="space-y-2">
                                 <Label for="number">Edition Number *</Label>
                                 <Input id="number" v-model="form.number" type="number" min="1" placeholder="Edition number" required />
                                 <div v-if="form.errors.number" class="text-sm text-red-600">
@@ -93,6 +138,32 @@ const submit = () => {
                                 </div>
                                 <p class="text-xs text-muted-foreground">Next available number: {{ nextNumber }}</p>
                             </div>
+
+                            <!-- Bulk Edition Fields -->
+                            <template v-if="form.creation_type === 'bulk'">
+                                <div class="space-y-2">
+                                    <Label for="start_number">Starting Number *</Label>
+                                    <Input id="start_number" v-model="form.start_number" type="number" min="1" placeholder="Starting edition number" required />
+                                    <div v-if="form.errors.start_number" class="text-sm text-red-600">
+                                        {{ form.errors.start_number }}
+                                    </div>
+                                    <p class="text-xs text-muted-foreground">Next available number: {{ nextNumber }}</p>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <Label for="quantity">Quantity *</Label>
+                                    <Input id="quantity" v-model="form.quantity" type="number" min="1" max="1000" placeholder="Number of editions to create" required />
+                                    <div v-if="form.errors.quantity" class="text-sm text-red-600">
+                                        {{ form.errors.quantity }}
+                                    </div>
+                                    <p class="text-xs text-muted-foreground">
+                                        <span v-if="endNumber">Will create editions {{ form.start_number }} - {{ endNumber }}</span>
+                                    </p>
+                                    <div v-if="isLargeQuantity" class="text-xs text-amber-600 font-medium">
+                                        ⚠️ Creating {{ form.quantity }} editions may take a moment due to QR code generation
+                                    </div>
+                                </div>
+                            </template>
 
                             <!-- Status -->
                             <div class="space-y-2">
@@ -132,7 +203,12 @@ const submit = () => {
 
                         <div class="flex items-center gap-4">
                             <Button type="submit" :disabled="form.processing">
-                                {{ form.processing ? 'Creating...' : 'Create Edition' }}
+                                <template v-if="form.processing">
+                                    {{ form.creation_type === 'bulk' ? 'Creating Editions...' : 'Creating Edition...' }}
+                                </template>
+                                <template v-else>
+                                    {{ form.creation_type === 'bulk' ? `Create ${form.quantity} Editions` : 'Create Edition' }}
+                                </template>
                             </Button>
                             <Button type="button" variant="outline" as-child>
                                 <a :href="`/admin/products/${product.id}/editions`">Cancel</a>

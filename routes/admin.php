@@ -6,7 +6,6 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductEditionController;
 use App\Http\Controllers\Admin\ProductEditionQrBatchPdfController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\DashboardController as MainDashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('admin')
@@ -28,6 +27,7 @@ Route::prefix('admin')
                 'destroy' => 'products.editions.destroy',
             ]);
 
+        Route::post('products/{product}/editions/bulk', [ProductEditionController::class, 'storeBulk'])->name('products.editions.store-bulk');
         Route::get('products/{product}/editions/qr-batch-pdf', ProductEditionQrBatchPdfController::class)->name('products.editions.qr-batch-pdf');
 
         // Admin-only routes

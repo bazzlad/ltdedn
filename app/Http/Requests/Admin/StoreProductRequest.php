@@ -7,6 +7,20 @@ use Illuminate\Foundation\Http\FormRequest;
 class StoreProductRequest extends FormRequest
 {
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'artist_id' => (int) $this->artist_id,
+            'cover_image_url' => $this->cover_image_url === '' ? null : $this->cover_image_url,
+            'sell_through_ltdedn' => $this->boolean('sell_through_ltdedn'),
+            'is_limited' => $this->boolean('is_limited'),
+            'is_public' => $this->boolean('is_public'),
+        ]);
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
@@ -24,7 +38,7 @@ class StoreProductRequest extends FormRequest
             'edition_size' => ['nullable', 'integer', 'min:1'],
             'base_price' => ['nullable', 'numeric', 'min:0'],
             'is_public' => ['boolean'],
-            'collection_id' => ['nullable', 'exists:collections,id'],
+
         ];
     }
 
@@ -45,7 +59,7 @@ class StoreProductRequest extends FormRequest
             'edition_size.min' => 'Edition size must be at least 1.',
             'base_price.numeric' => 'The base price must be a valid number.',
             'base_price.min' => 'The base price must be at least 0.',
-            'collection_id.exists' => 'The selected collection is invalid.',
+
         ];
     }
 }

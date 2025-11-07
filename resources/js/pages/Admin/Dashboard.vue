@@ -116,7 +116,7 @@ const dashboardTitle = computed(() => {
                     <CardContent>
                         <div class="text-2xl font-bold">{{ stats.total_artists }}</div>
                         <p class="text-xs text-muted-foreground">
-                            {{ isAdmin ? 'Artist profiles created' : 'Artists you own' }}
+                            {{ isAdmin ? 'Artist profiles created' : 'Artists you manage' }}
                         </p>
                     </CardContent>
                 </Card>

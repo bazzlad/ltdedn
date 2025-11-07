@@ -19,13 +19,15 @@ class QrBatchPdfService
 
     private const PDF_ORIENTATION = 'portrait';
 
+    private const MAX_EDITIONS_PER_PDF = 50;
+
     public function __construct(
         private QRCodeService $qrCodeService
     ) {}
 
     public function generatePdf(Request $request, Product $product, array $editionIds = []): array
     {
-        $editions = $this->getEditions($product, $editionIds);
+        $editions = $this->getEditions($request, $product, $editionIds);
 
         if ($editions->isEmpty()) {
             return ['success' => false, 'error' => 'No QR codes available for the requested editions.'];
@@ -38,7 +40,7 @@ class QrBatchPdfService
         }
 
         $pdf = $this->createPdf($product, $qrItems);
-        $filename = $this->generateFilename($product);
+        $filename = $this->generateFilename($request, $product, $editionIds);
 
         return [
             'success' => true,
@@ -47,12 +49,21 @@ class QrBatchPdfService
         ];
     }
 
-    private function getEditions(Product $product, array $editionIds): Collection
+    private function getEditions(Request $request, Product $product, array $editionIds): Collection
     {
         $query = ProductEdition::where('product_id', $product->id)->orderBy('number');
 
         if (! empty($editionIds)) {
             $query->whereIn('id', $editionIds);
+        }
+
+        // If no specific edition IDs are provided, paginate to prevent memory issues
+        if (empty($editionIds)) {
+            $page = max(1, (int) $request->input('page', 1));
+            $perPage = min(self::MAX_EDITIONS_PER_PDF, max(1, (int) $request->input('per_page', self::MAX_EDITIONS_PER_PDF)));
+
+            $offset = ($page - 1) * $perPage;
+            $query->skip($offset)->take($perPage);
         }
 
         return $query->get();
@@ -111,9 +122,22 @@ class QrBatchPdfService
         ])->render();
     }
 
-    private function generateFilename(Product $product): string
+    private function generateFilename(Request $request, Product $product, array $editionIds): string
     {
-        return "product-{$product->id}-qrs.pdf";
+        $basename = "product-{$product->id}-qrs";
+
+        // If specific edition IDs are provided, this is a custom selection
+        if (! empty($editionIds)) {
+            return "{$basename}-selection.pdf";
+        }
+
+        // If paginated, include page info
+        $page = (int) $request->input('page', 1);
+        if ($page > 1) {
+            return "{$basename}-page-{$page}.pdf";
+        }
+
+        return "{$basename}.pdf";
     }
 
     private function buildQrUrl(Request $request, ProductEdition $edition): ?string

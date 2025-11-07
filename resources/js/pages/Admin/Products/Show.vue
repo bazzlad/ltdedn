@@ -2,16 +2,15 @@
 	import { Badge } from '@/components/ui/badge';
 	import { Button } from '@/components/ui/button';
 	import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-	import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
 	import AdminLayout from '@/layouts/AdminLayout.vue';
 	import type { BreadcrumbItemType } from '@/types';
-	import { Link, usePage, router } from '@inertiajs/vue3';
+	import { Link, usePage } from '@inertiajs/vue3';
+
+	import { ArrowLeft, Plus } from 'lucide-vue-next';
 	import { formatDistanceToNow } from 'date-fns';
-	import { ArrowLeft, Eye, Plus, SquarePen, Trash2, QrCodeIcon } from 'lucide-vue-next';
-	import { computed, ref } from 'vue';
-	import { generateAndDownloadQR } from '@/composables/useQRCode';
-	import { qrBatchPdf } from '@/routes/admin/products/editions';
-	import { index as editionsIndex, create as editionsCreate, edit as editionsEdit, destroy as editionsDestroy } from '@/routes/admin/products/editions';
+	import { computed } from 'vue';
+	import { index as editionsIndex, create as editionsCreate } from '@/routes/admin/products/editions';
 	import { index as productsIndex, edit as productsEdit } from '@/routes/admin/products';
 
 	interface Artist { id: number; name: string; slug: string; }
@@ -23,17 +22,34 @@
 	interface Product {
 		id: number; artist_id: number; title: string; slug: string; description?: string;
 		price?: string | number; status: string; type?: string; release_date?: string;
-		created_at: string; updated_at: string; artist: Artist; editions: Edition[];
+		created_at: string; updated_at: string; artist: Artist;
 	}
 
-	const props = defineProps<{ product: Product }>();
+	interface EditionsData {
+		data: Edition[];
+		links: Array<{
+			url?: string;
+			label: string;
+			active: boolean;
+		}>;
+		current_page: number;
+		from: number;
+		last_page: number;
+		per_page: number;
+		to: number;
+		total: number;
+	}
+
+	const props = defineProps<{ 
+		product: Product; 
+		editions: EditionsData;
+		editionStats: Record<string, number>;
+		totalEditions: number;
+	}>();
 
 	const page = usePage();
 	const user = computed(() => page.props.auth.user);
 	const isAdmin = computed(() => user.value?.role === 'admin');
-
-	const isDownloadingQR = ref(false);
-	const isDownloadingBatchPDF = ref(false);
 
 	const breadcrumbs: BreadcrumbItemType[] = [
 		{ title: 'Admin', href: '/admin' },
@@ -79,82 +95,43 @@
 		const n = typeof price === 'number' ? price : parseFloat(price);
 		return isNaN(n) ? '-' : `$${n.toFixed(2)}`;
 	};
-	const getFormatLabel = (format?: string) => {
-		if (!format) return '-';
-		switch (format) {
-			case 'vinyl': return 'Vinyl';
-			case 'cd': return 'CD';
-			case 'digital': return 'Digital';
-			case 'cassette': return 'Cassette';
-			default: return format;
-		}
-	};
 
-	// normalize editions from the prop (not page.props)
-	const editionsDisplay = computed(() => {
-		const p = props.product;
-		const list = p.editions || [];
-		return list.map((e: any) => {
-			const price = e.price != null && e.price !== '' ? e.price : p.price;
+
+	// Compute edition summary statistics
+	const editionsSummary = computed(() => {
+		const total = props.totalEditions || 0;
+		
+		if (total === 0) {
 			return {
-				id: e.id,
-				name: e.name || (e.number != null ? `#${e.number}` : ''),
-				format: e.format || (e.qr_code ? 'Unique' : ''),
-				price,
-				stock_quantity: e.stock_quantity != null ? e.stock_quantity : 1,
-				limited_quantity: e.limited_quantity != null ? e.limited_quantity : (p as any).edition_size || null,
-				description: e.description || '',
-				sku: e.sku || e.qr_short_code || '',
-				status: e.status || 'available',
-				created_at: e.created_at,
-                updated_at: e.updated_at,
-                qr_code: e.qr_code || '',
-                number: e.number || 0,
+				total: 0,
+				displayText: 'No editions created'
 			};
-		});
+		}
+
+		// Get counts from the actual stats (all editions, not just paginated)
+		const stats = props.editionStats || {};
+		const redeemed = stats.redeemed || 0;
+		const sold = stats.sold || 0;
+
+		// Build simple display text: "201 Editions, 5 claimed, 3 sold"
+		const parts = [`${total} Edition${total === 1 ? '' : 's'}`];
+		
+		if (redeemed > 0) {
+			parts.push(`${redeemed} claimed`);
+		}
+		
+		if (sold > 0) {
+			parts.push(`${sold} sold`);
+		}
+
+		return {
+			total,
+			displayText: parts.join(', ')
+		};
 	});
 
 
-	const destroyUrl = (e: { id: number }) => editionsDestroy({ product: props.product.id, edition: e.id }).url;
-    const downloadQrCode = async (edition: { qr_code: string, id: number, number: number }) => {
-        try {
-            isDownloadingQR.value = true;
-            const filename = `qr_${edition.id}_${edition.number}_qrcode.png`;
-            await generateAndDownloadQR(edition.qr_code, filename);
-        } catch (error) {
-            console.error('Failed to download QR code:', error);
-        } finally {
-            isDownloadingQR.value = false;
-        }
-    };
 
-    const downloadBatchPdf = async () => {
-        try {
-            isDownloadingBatchPDF.value = true;
-
-            const link = document.createElement('a');
-            link.href = qrBatchPdf(props.product).url;
-            link.download = ''; // Forces download instead of navigation
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            setTimeout(() => {
-                isDownloadingBatchPDF.value = false;
-            }, 1000);
-        } catch (error) {
-            console.error('Failed to download batch PDF:', error);
-            isDownloadingBatchPDF.value = false;
-        }
-    };
-
-	const editUrl = (e: { id: number }) => editionsEdit({ product: props.product.id, edition: e.id }).url;
-	const destroy = (e: { id: number; name?: string }) => {
-		const label = e.name ? `"${e.name}"` : `Edition #${e.id}`;
-		if (confirm(`Delete ${label}? This cannot be undone.`)) {
-			router.delete(destroyUrl(e));
-		}
-	};
 
 </script>
 
@@ -261,19 +238,8 @@
             <Card>
                 <CardHeader class="flex flex-row items-center justify-between">
                     <CardTitle>Editions</CardTitle>
+                    <!--
                     <div class="flex items-center gap-2">
-                        <div v-if="product.editions.length > 0">
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                @click="downloadBatchPdf"
-                                :disabled="isDownloadingBatchPDF"
-                            >
-                                <div v-if="isDownloadingBatchPDF" class="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                                <QrCodeIcon v-else class="mr-2 h-3 w-3" />
-                                {{ isDownloadingBatchPDF ? 'Generating...' : 'Download QR Codes' }}
-                            </Button>
-                        </div>
                         <Button size="sm" variant="outline" as-child>
                             <Link :href="editionsIndex(product).url"> Manage Editions </Link>
                         </Button>
@@ -284,10 +250,11 @@
                             </Link>
                         </Button>
                     </div>
+                    -->
                 </CardHeader>
                 <CardContent>
-                    <div v-if="product.editions.length === 0" class="py-8 text-center">
-                        <p class="mb-4 text-muted-foreground">No editions created yet.</p>
+                    <div v-if="editionsSummary.total === 0" class="py-8 text-center">
+                        <p class="mb-4 text-muted-foreground">{{ editionsSummary.displayText }}</p>
                         <Button as-child>
                             <Link :href="`/admin/products/${product.id}/editions/create`">
                                 <Plus class="mr-2 h-4 w-4" />
@@ -296,69 +263,26 @@
                         </Button>
                     </div>
 
-                    <div v-else>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Format</TableHead>
-                                    <TableHead>Price</TableHead>
-                                    <TableHead>Stock</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>SKU</TableHead>
-                                    <TableHead class="w-[100px] text-center">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow v-for="edition in editionsDisplay" :key="edition.id">
-                                    <TableCell>
-                                        <div>
-                                            <div class="font-medium">{{ edition.name }}</div>
-                                            <div v-if="edition.description" class="max-w-[150px] truncate text-sm text-muted-foreground">
-                                                {{ edition.description }}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{{ getFormatLabel(edition.format) }}</TableCell>
-                                    <TableCell>{{ formatPrice(edition.price) }}</TableCell>
-                                    <TableCell>
-                                        <div>
-                                            <span>{{ edition.stock_quantity }}</span>
-                                            <span v-if="edition.limited_quantity" class="text-muted-foreground"> / {{ edition.limited_quantity }}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge :variant="getStatusBadgeVariant(edition.status)">{{ getStatusLabel(edition.status) }}</Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <span v-if="edition.sku" class="font-mono text-sm">{{ edition.sku }}</span>
-                                        <span v-else class="text-muted-foreground">-</span>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div class="flex items-center gap-2">
-                                            <Button variant="ghost" size="sm" as-child>
-                                                <Link :href="editUrl(edition)"><SquarePen class="h-4 w-4" /></Link>
-                                            </Button>
-                                            <Button
-                                                title="Download QR Code"
-                                                size="sm"
-                                                variant="ghost"
-                                                @click="downloadQrCode(edition)"
-                                                :disabled="isDownloadingQR"
-                                                class="text-white-600"
-                                            >
-                                                <div v-if="isDownloadingQR" class="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                                                <QrCodeIcon v-else class="h-3 w-3" />
-                                            </Button>
-                                            <Button variant="ghost" size="sm" class="text-red-600 hover:text-red-700" @click="destroy(edition)">
-                                                <Trash2 class="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
+                    <div v-else class="space-y-4">
+                        <!-- Simple Edition Summary -->
+                        <div>
+                            <p class="mb-8">{{ editionsSummary.displayText }}</p>
+                        </div>
 
-                            </TableBody>
-                        </Table>
+                        <!-- Action Buttons -->
+                        <div class="flex gap-2">
+                            <Button variant="outline" as-child>
+                                <Link :href="editionsIndex(product).url">
+                                    Manage Editions
+                                </Link>
+                            </Button>
+                            <Button as-child>
+                                <Link :href="editionsCreate(product).url">
+                                    <Plus class="mr-2 h-4 w-4" />
+                                    Add Edition
+                                </Link>
+                            </Button>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
