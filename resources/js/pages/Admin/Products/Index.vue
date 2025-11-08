@@ -80,12 +80,16 @@ const search = () => {
     }
 
     searchTimeout = setTimeout(() => {
-        router.get('/admin/products', {
-            search: searchTerm.value || undefined,
-        }, {
-            preserveState: true,
-            preserveScroll: true,
-        });
+        router.get(
+            '/admin/products',
+            {
+                search: searchTerm.value || undefined,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
     }, 300);
 };
 
@@ -121,10 +125,13 @@ const getEditionsSummary = (product: Product) => {
     }
 
     // Count by status
-    const statusCounts = product.editions.reduce((acc, edition) => {
-        acc[edition.status] = (acc[edition.status] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
+    const statusCounts = product.editions.reduce(
+        (acc, edition) => {
+            acc[edition.status] = (acc[edition.status] || 0) + 1;
+            return acc;
+        },
+        {} as Record<string, number>,
+    );
 
     const available = statusCounts.available || 0;
     const redeemed = statusCounts.redeemed || 0;
@@ -191,11 +198,7 @@ const deleteProduct = (productId: number) => {
                         <div class="flex items-center space-x-2">
                             <div class="relative">
                                 <Search class="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    v-model="searchTerm"
-                                    placeholder="Search products..."
-                                    class="w-64 pl-8 pr-8"
-                                />
+                                <Input v-model="searchTerm" placeholder="Search products..." class="w-64 pr-8 pl-8" />
                                 <button
                                     v-if="searchTerm"
                                     @click="clearSearch"

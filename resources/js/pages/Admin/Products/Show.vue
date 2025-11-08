@@ -1,135 +1,108 @@
 <script setup lang="ts">
-	import { Badge } from '@/components/ui/badge';
-	import { Button } from '@/components/ui/button';
-	import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-	import AdminLayout from '@/layouts/AdminLayout.vue';
-	import type { BreadcrumbItemType } from '@/types';
-	import { Link, usePage } from '@inertiajs/vue3';
+import AdminLayout from '@/layouts/AdminLayout.vue';
+import type { BreadcrumbItemType } from '@/types';
+import { Link, usePage } from '@inertiajs/vue3';
 
-	import { ArrowLeft, Edit } from 'lucide-vue-next';
-	import { formatDistanceToNow } from 'date-fns';
-	import { computed } from 'vue';
-	import { index as productsIndex, edit as productsEdit } from '@/routes/admin/products';
+import { edit as productsEdit, index as productsIndex } from '@/routes/admin/products';
+import { formatDistanceToNow } from 'date-fns';
+import { ArrowLeft, Edit } from 'lucide-vue-next';
+import { computed } from 'vue';
 
-	interface Artist { id: number; name: string; slug: string; }
-	interface Edition {
-		id: number; product_id: number; name: string; format: string; price: string | number;
-		stock_quantity: number; limited_quantity?: number; description?: string; sku?: string;
-		status: string; created_at: string; updated_at: string;
-	}
-	interface Product {
-		id: number; artist_id: number; title: string; slug: string; description?: string;
-		price?: string | number; status: string; type?: string; release_date?: string;
-        count_editions?: number; created_at: string; updated_at: string; artist: Artist;
-	}
+interface Artist {
+    id: number;
+    name: string;
+    slug: string;
+}
+interface Product {
+    id: number;
+    artist_id: number;
+    title: string;
+    slug: string;
+    description?: string;
+    price?: string | number;
+    status: string;
+    type?: string;
+    release_date?: string;
+    count_editions?: number;
+    created_at: string;
+    updated_at: string;
+    artist: Artist;
+}
 
-	interface EditionsData {
-		data: Edition[];
-		links: Array<{
-			url?: string;
-			label: string;
-			active: boolean;
-		}>;
-		current_page: number;
-		from: number;
-		last_page: number;
-		per_page: number;
-		to: number;
-		total: number;
-	}
+defineProps<{
+    product: Product;
+    editionStats: Record<string, number>;
+}>();
 
-	const props = defineProps<{
-		product: Product;
-		editionStats: Record<string, number>;
-	}>();
+const page = usePage();
+const user = computed(() => page.props.auth.user);
+const isAdmin = computed(() => user.value?.role === 'admin');
 
-	const page = usePage();
-	const user = computed(() => page.props.auth.user);
-	const isAdmin = computed(() => user.value?.role === 'admin');
+const breadcrumbs: BreadcrumbItemType[] = [
+    { title: 'Admin', href: '/admin' },
+    { title: 'Products', href: productsIndex().url },
+    { title: 'View Product', href: '#' },
+];
 
-	const breadcrumbs: BreadcrumbItemType[] = [
-		{ title: 'Admin', href: '/admin' },
-		{ title: 'Products', href: productsIndex().url },
-		{ title: 'View Product', href: '#' },
-	];
-
-	const getStatusBadgeVariant = (status: string) => {
-		switch (status) {
-			case 'published':
-			case 'available': return 'default';
-			case 'draft':
-			case 'sold_out': return 'secondary';
-			case 'archived':
-			case 'discontinued': return 'outline';
-			default: return 'secondary';
-		}
-	};
-	const getStatusLabel = (status: string) => {
-		switch (status) {
-			case 'published': return 'Published';
-			case 'draft': return 'Draft';
-			case 'archived': return 'Archived';
-			case 'available': return 'Available';
-			case 'sold_out': return 'Sold Out';
-			case 'discontinued': return 'Discontinued';
-			default: return status;
-		}
-	};
-	const getTypeLabel = (type?: string) => {
-		if (!type) return '-';
-		switch (type) {
-			case 'album': return 'Album';
-			case 'single': return 'Single';
-			case 'ep': return 'EP';
-			case 'merchandise': return 'Merchandise';
-			case 'other': return 'Other';
-			default: return type;
-		}
-	};
-	const formatPrice = (price?: string | number) => {
-		if (price == null || price === '') return '-';
-		const n = typeof price === 'number' ? price : parseFloat(price);
-		return isNaN(n) ? '-' : `$${n.toFixed(2)}`;
-	};
-
-
-	// Compute edition summary statistics
-	const editionsSummary = computed(() => {
-		const total = props.product.count_editions || 0;
-
-		if (total === 0) {
-			return {
-				total: 0,
-				displayText: 'No editions created'
-			};
-		}
-
-		// Get counts from the actual stats (all editions, not just paginated)
-		const stats = props.editionStats || {};
-		const redeemed = stats.redeemed || 0;
-		const sold = stats.sold || 0;
-
-		// Build simple display text: "201 Editions, 5 claimed, 3 sold"
-		const parts = [`${total} Edition${total === 1 ? '' : 's'}`];
-
-		if (redeemed > 0) {
-			parts.push(`${redeemed} claimed`);
-		}
-
-		if (sold > 0) {
-			parts.push(`${sold} sold`);
-		}
-
-		return {
-			total,
-			displayText: parts.join(', ')
-		};
-	});
-
-
-
-
+const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+        case 'published':
+        case 'available':
+            return 'default';
+        case 'draft':
+        case 'sold_out':
+            return 'secondary';
+        case 'archived':
+        case 'discontinued':
+            return 'outline';
+        default:
+            return 'secondary';
+    }
+};
+const getStatusLabel = (status: string) => {
+    switch (status) {
+        case 'published':
+            return 'Published';
+        case 'draft':
+            return 'Draft';
+        case 'archived':
+            return 'Archived';
+        case 'available':
+            return 'Available';
+        case 'sold_out':
+            return 'Sold Out';
+        case 'discontinued':
+            return 'Discontinued';
+        default:
+            return status;
+    }
+};
+const getTypeLabel = (type?: string) => {
+    if (!type) return '-';
+    switch (type) {
+        case 'album':
+            return 'Album';
+        case 'single':
+            return 'Single';
+        case 'ep':
+            return 'EP';
+        case 'merchandise':
+            return 'Merchandise';
+        case 'other':
+            return 'Other';
+        default:
+            return type;
+    }
+};
+const formatPrice = (price?: string | number) => {
+    if (price == null || price === '') return '-';
+    const n = typeof price === 'number' ? price : parseFloat(price);
+    return isNaN(n) ? '-' : `$${n.toFixed(2)}`;
+};
 </script>
 
 <template>

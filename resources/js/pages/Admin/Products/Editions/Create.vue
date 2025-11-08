@@ -143,7 +143,14 @@ const submit = () => {
                             <template v-if="form.creation_type === 'bulk'">
                                 <div class="space-y-2">
                                     <Label for="start_number">Starting Number *</Label>
-                                    <Input id="start_number" v-model="form.start_number" type="number" min="1" placeholder="Starting edition number" required />
+                                    <Input
+                                        id="start_number"
+                                        v-model="form.start_number"
+                                        type="number"
+                                        min="1"
+                                        placeholder="Starting edition number"
+                                        required
+                                    />
                                     <div v-if="form.errors.start_number" class="text-sm text-red-600">
                                         {{ form.errors.start_number }}
                                     </div>
@@ -152,14 +159,22 @@ const submit = () => {
 
                                 <div class="space-y-2">
                                     <Label for="quantity">Quantity *</Label>
-                                    <Input id="quantity" v-model="form.quantity" type="number" min="1" max="1000" placeholder="Number of editions to create" required />
+                                    <Input
+                                        id="quantity"
+                                        v-model="form.quantity"
+                                        type="number"
+                                        min="1"
+                                        max="1000"
+                                        placeholder="Number of editions to create"
+                                        required
+                                    />
                                     <div v-if="form.errors.quantity" class="text-sm text-red-600">
                                         {{ form.errors.quantity }}
                                     </div>
                                     <p class="text-xs text-muted-foreground">
                                         <span v-if="endNumber">Will create editions {{ form.start_number }} - {{ endNumber }}</span>
                                     </p>
-                                    <div v-if="isLargeQuantity" class="text-xs text-amber-600 font-medium">
+                                    <div v-if="isLargeQuantity" class="text-xs font-medium text-amber-600">
                                         ⚠️ Creating {{ form.quantity }} editions may take a moment due to QR code generation
                                     </div>
                                 </div>

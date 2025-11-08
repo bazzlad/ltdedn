@@ -3,14 +3,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { generateAndDownloadQR } from '@/composables/useQRCode';
 import AdminLayout from '@/layouts/AdminLayout.vue';
+import { qrBatchPdf } from '@/routes/admin/products/editions';
 import type { BreadcrumbItemType } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
 import { formatDistanceToNow } from 'date-fns';
 import { ArrowLeft, Hash, Plus, QrCodeIcon, SquarePen, Trash2, User } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
-import { generateAndDownloadQR } from '@/composables/useQRCode';
-import { qrBatchPdf } from '@/routes/admin/products/editions';
 
 interface Artist {
     id: number;
@@ -66,9 +66,7 @@ const props = defineProps<{
     editions: EditionsData;
 }>();
 
-const totalCount = computed(() =>
-	props.editions.total || props.editions.data.length
-);
+const totalCount = computed(() => props.editions.total || props.editions.data.length);
 
 const breadcrumbs: BreadcrumbItemType[] = [
     { title: 'Admin', href: '/admin' },
@@ -139,7 +137,7 @@ const downloadBatchPdf = async () => {
         const url = new URL(qrBatchPdf(props.product).url, window.location.origin);
         url.searchParams.set('page', currentPage.toString());
         url.searchParams.set('per_page', perPage.toString());
-        
+
         link.href = url.toString();
         link.download = ''; // Forces download instead of navigation
         document.body.appendChild(link);
@@ -159,15 +157,15 @@ const batchPdfButtonText = computed(() => {
     if (isDownloadingBatchPDF.value) {
         return 'Generating...';
     }
-    
+
     const total = props.editions?.total || 0;
     const currentPageCount = props.editions?.data?.length || 0;
     const currentPage = props.editions?.current_page || 1;
-    
+
     if (total > currentPageCount && (props.editions?.last_page || 1) > 1) {
         return `Download QR Codes (Page ${currentPage})`;
     }
-    
+
     return 'Download QR Codes';
 });
 
@@ -176,7 +174,7 @@ const changePerPage = (event: Event) => {
     const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.set('per_page', target.value);
     currentUrl.searchParams.delete('page'); // Reset to page 1 when changing per_page
-    
+
     // Use router.visit with preserveState to maintain scroll position
     router.visit(currentUrl.toString(), {
         preserveState: false,
@@ -185,23 +183,21 @@ const changePerPage = (event: Event) => {
 };
 
 const formatLinkLabel = (label: string): string => {
-	return label
-		.replace(/&amp;laquo;|&laquo;|«/g, '‹')
-		.replace(/&amp;raquo;|&raquo;|»/g, '›');
+    return label.replace(/&amp;laquo;|&laquo;|«/g, '‹').replace(/&amp;raquo;|&raquo;|»/g, '›');
 };
 
 const isNavDisabled = (link: { url?: string; label: string; active: boolean }): boolean => {
-	const label = link.label.toLowerCase();
+    const label = link.label.toLowerCase();
 
-	if (label.includes('previous') || label.includes('‹')) {
-		return !link.url || props.editions.current_page <= 1;
-	}
+    if (label.includes('previous') || label.includes('‹')) {
+        return !link.url || props.editions.current_page <= 1;
+    }
 
-	if (label.includes('next') || label.includes('›')) {
-		return !link.url || props.editions.current_page >= props.editions.last_page;
-	}
+    if (label.includes('next') || label.includes('›')) {
+        return !link.url || props.editions.current_page >= props.editions.last_page;
+    }
 
-	return !link.url;
+    return !link.url;
 };
 </script>
 
@@ -221,13 +217,11 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                 </div>
                 <div class="flex items-center space-x-2">
                     <div v-if="editions?.data?.length > 0">
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            @click="downloadBatchPdf"
-                            :disabled="isDownloadingBatchPDF"
-                        >
-                            <div v-if="isDownloadingBatchPDF" class="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                        <Button size="sm" variant="outline" @click="downloadBatchPdf" :disabled="isDownloadingBatchPDF">
+                            <div
+                                v-if="isDownloadingBatchPDF"
+                                class="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"
+                            ></div>
                             <QrCodeIcon v-else class="mr-2 h-3 w-3" />
                             {{ batchPdfButtonText }}
                         </Button>
@@ -246,7 +240,7 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                     <div class="flex items-center justify-between">
                         <div>
                             <CardTitle>All Editions</CardTitle>
-                            <CardDescription> 
+                            <CardDescription>
                                 {{ totalCount || 0 }} total editions
                                 <span v-if="editions.last_page > 1" class="ml-2 text-xs">
                                     ({{ editions.current_page || 1 }}/{{ editions.last_page || 1 }} pages)
@@ -255,11 +249,7 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                         </div>
                         <div v-if="totalCount > 0" class="flex items-center space-x-2">
                             <span class="text-sm text-muted-foreground">Show:</span>
-                            <select 
-                                class="px-2 py-1 text-sm border rounded"
-                                :value="editions.per_page || 20"
-                                @change="changePerPage"
-                            >
+                            <select class="rounded border px-2 py-1 text-sm" :value="editions.per_page || 20" @change="changePerPage">
                                 <option value="20">20</option>
                                 <option value="50">50</option>
                                 <!--<option value="100">100</option>
@@ -329,7 +319,10 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                                         <TableCell class="text-right">
                                             <div class="flex items-center justify-end space-x-2">
                                                 <Button as-child size="sm" variant="ghost">
-                                                    <Link :href="`/admin/products/${product.id}/editions/${edition.id}/edit`" :title="`Edit Edition #${edition.number}`">
+                                                    <Link
+                                                        :href="`/admin/products/${product.id}/editions/${edition.id}/edit`"
+                                                        :title="`Edit Edition #${edition.number}`"
+                                                    >
                                                         <SquarePen class="h-3 w-3" />
                                                     </Link>
                                                 </Button>
@@ -358,11 +351,12 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                             </Table>
 
                             <!-- Pagination -->
-                            <div v-if="editions.links && editions.last_page > 1" class="border-t bg-gray-50 dark:bg-gray-800/50 -mx-6 px-6 py-4 mt-6">
+                            <div v-if="editions.links && editions.last_page > 1" class="-mx-6 mt-6 border-t bg-gray-50 px-6 py-4 dark:bg-gray-800/50">
                                 <!-- Always show results info -->
-                                <div class="flex items-center justify-between mb-4">
+                                <div class="mb-4 flex items-center justify-between">
                                     <div class="text-sm text-muted-foreground">
-                                        Showing {{ editions.from || 1 }} to {{ editions.to || editions.data.length }} of {{ editions.total || editions.data.length }} results
+                                        Showing {{ editions.from || 1 }} to {{ editions.to || editions.data.length }} of
+                                        {{ editions.total || editions.data.length }} results
                                     </div>
                                     <div v-if="editions.last_page > 1" class="text-sm font-medium">
                                         Page {{ editions.current_page || 1 }} of {{ editions.last_page || 1 }}
@@ -380,23 +374,15 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                                             :disabled="isNavDisabled(link)"
                                             class="min-w-[2.5rem]"
                                         >
-                                            <Link
-                                                v-if="!isNavDisabled(link)"
-                                                :href="link.url"
-                                                class="flex items-center justify-center w-full h-full"
-                                            >
+                                            <Link v-if="!isNavDisabled(link)" :href="link.url" class="flex h-full w-full items-center justify-center">
                                                 {{ formatLinkLabel(link.label) }}
                                             </Link>
-                                            <span
-                                                v-else
-                                                class="flex items-center justify-center w-full h-full"
-                                            >
+                                            <span v-else class="flex h-full w-full items-center justify-center">
                                                 {{ formatLinkLabel(link.label) }}
                                             </span>
                                         </Button>
                                     </nav>
                                 </div>
-
 
                                 <!-- No pagination message -->
                                 <div v-else class="text-center text-sm text-muted-foreground">

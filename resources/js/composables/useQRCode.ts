@@ -14,10 +14,7 @@ export interface UseQRCodeReturn {
     generateQR: () => Promise<void>;
 }
 
-export function useQRCode(
-    qrValue: Ref<string> | (() => string),
-    options: QRCodeOptions = {}
-): UseQRCodeReturn {
+export function useQRCode(qrValue: Ref<string> | (() => string), options: QRCodeOptions = {}): UseQRCodeReturn {
     const qrDataUrl = ref<string>('');
     const isGenerating = ref<boolean>(false);
     const error = ref<string | null>(null);
@@ -87,11 +84,7 @@ export function downloadQRCode(dataUrl: string, filename: string = 'qrcode.png')
     document.body.removeChild(link);
 }
 
-export async function generateAndDownloadQR(
-    qrCode: string,
-    filename: string,
-    options: QRCodeOptions = {}
-): Promise<void> {
+export async function generateAndDownloadQR(qrCode: string, filename: string, options: QRCodeOptions = {}): Promise<void> {
     const qrUrl = getQRCodeUrl(qrCode);
 
     const defaultOptions: Required<QRCodeOptions> = {
