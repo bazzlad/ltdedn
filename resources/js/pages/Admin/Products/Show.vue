@@ -7,10 +7,9 @@
 	import type { BreadcrumbItemType } from '@/types';
 	import { Link, usePage } from '@inertiajs/vue3';
 
-	import { ArrowLeft, Plus } from 'lucide-vue-next';
+	import { ArrowLeft, Edit } from 'lucide-vue-next';
 	import { formatDistanceToNow } from 'date-fns';
 	import { computed } from 'vue';
-	import { index as editionsIndex, create as editionsCreate } from '@/routes/admin/products/editions';
 	import { index as productsIndex, edit as productsEdit } from '@/routes/admin/products';
 
 	interface Artist { id: number; name: string; slug: string; }
@@ -22,7 +21,7 @@
 	interface Product {
 		id: number; artist_id: number; title: string; slug: string; description?: string;
 		price?: string | number; status: string; type?: string; release_date?: string;
-		created_at: string; updated_at: string; artist: Artist;
+        count_editions?: number; created_at: string; updated_at: string; artist: Artist;
 	}
 
 	interface EditionsData {
@@ -40,11 +39,9 @@
 		total: number;
 	}
 
-	const props = defineProps<{ 
-		product: Product; 
-		editions: EditionsData;
+	const props = defineProps<{
+		product: Product;
 		editionStats: Record<string, number>;
-		totalEditions: number;
 	}>();
 
 	const page = usePage();
@@ -99,8 +96,8 @@
 
 	// Compute edition summary statistics
 	const editionsSummary = computed(() => {
-		const total = props.totalEditions || 0;
-		
+		const total = props.product.count_editions || 0;
+
 		if (total === 0) {
 			return {
 				total: 0,
@@ -115,11 +112,11 @@
 
 		// Build simple display text: "201 Editions, 5 claimed, 3 sold"
 		const parts = [`${total} Edition${total === 1 ? '' : 's'}`];
-		
+
 		if (redeemed > 0) {
 			parts.push(`${redeemed} claimed`);
 		}
-		
+
 		if (sold > 0) {
 			parts.push(`${sold} sold`);
 		}
@@ -151,7 +148,7 @@
                 </div>
                 <Button as-child>
                     <Link :href="productsEdit(product).url">
-                        <SquarePen class="mr-2 h-4 w-4" />
+                        <Edit class="mr-2 h-4 w-4" />
                         Edit Product
                     </Link>
                 </Button>
@@ -233,59 +230,6 @@
                     </Card>
                 </div>
             </div>
-
-            <!-- Editions -->
-            <Card>
-                <CardHeader class="flex flex-row items-center justify-between">
-                    <CardTitle>Editions</CardTitle>
-                    <!--
-                    <div class="flex items-center gap-2">
-                        <Button size="sm" variant="outline" as-child>
-                            <Link :href="editionsIndex(product).url"> Manage Editions </Link>
-                        </Button>
-                        <Button size="sm" as-child>
-                            <Link :href="editionsCreate(product).url">
-                                <Plus class="mr-2 h-4 w-4" />
-                                Add Edition
-                            </Link>
-                        </Button>
-                    </div>
-                    -->
-                </CardHeader>
-                <CardContent>
-                    <div v-if="editionsSummary.total === 0" class="py-8 text-center">
-                        <p class="mb-4 text-muted-foreground">{{ editionsSummary.displayText }}</p>
-                        <Button as-child>
-                            <Link :href="`/admin/products/${product.id}/editions/create`">
-                                <Plus class="mr-2 h-4 w-4" />
-                                Create your first edition
-                            </Link>
-                        </Button>
-                    </div>
-
-                    <div v-else class="space-y-4">
-                        <!-- Simple Edition Summary -->
-                        <div>
-                            <p class="mb-8">{{ editionsSummary.displayText }}</p>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="flex gap-2">
-                            <Button variant="outline" as-child>
-                                <Link :href="editionsIndex(product).url">
-                                    Manage Editions
-                                </Link>
-                            </Button>
-                            <Button as-child>
-                                <Link :href="editionsCreate(product).url">
-                                    <Plus class="mr-2 h-4 w-4" />
-                                    Add Edition
-                                </Link>
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
         </div>
     </AdminLayout>
 </template>

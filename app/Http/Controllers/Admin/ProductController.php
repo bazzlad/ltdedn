@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\IndexProductRequest;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\Artist;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,47 +19,34 @@ class ProductController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index(): Response
+    public function index(IndexProductRequest $request): Response
     {
         $this->authorize('viewAny', Product::class);
 
         /** @var User $user */
         $user = Auth::user();
 
-        $query = Product::with([
-            'artist:id,name,slug',
-            'editions' => function ($query) {
-                $query->select('product_id', 'status');
-            },
-        ])
-            ->withCount('editions')
-            ->latest();
+        $query = Product::with(['artist', 'editions'])->withCount('editions')->latest();
 
-        // Search functionality
-        if ($search = request('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
+        if ($search = $request->validated('search')) {
+            $query->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhereHas('artist', function ($artistQuery) use ($search) {
-                        $artistQuery->where('name', 'like', "%{$search}%");
+                    ->orWhereHas('artist', function ($query) use ($search) {
+                        $query->where('name', 'like', "%{$search}%");
                     });
             });
         }
 
-        // Role-based data scoping
         if ($user->isArtist()) {
-            // Artists can only see products from their owned artists
-            $artistIds = $user->ownedArtists()->pluck('id');
-            $query->whereIn('artist_id', $artistIds);
+            $query->whereIn('artist_id', $user->ownedArtists()->select('id'));
         }
 
         $products = $query->paginate(15);
 
         return Inertia::render('Admin/Products/Index', [
             'products' => $products,
-            'filters' => [
-                'search' => request('search'),
-            ],
+            'filters' => $request->validated(),
         ]);
     }
 
@@ -69,10 +57,10 @@ class ProductController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Get available artists based on role
+        // Repeating ourself, so should be putting this into a helper
         $artists = $user->isAdmin()
-            ? Artist::select('id', 'name')->orderBy('name')->get()
-            : $user->ownedArtists()->select('id', 'name')->orderBy('name')->get();
+            ? Artist::orderBy('name')->get()
+            : $user->ownedArtists()->orderBy('name')->get();
 
         return Inertia::render('Admin/Products/Create', [
             'artists' => $artists,
@@ -81,14 +69,7 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request): RedirectResponse
     {
-        $this->authorize('create', Product::class);
-
-        // Additional authorization check for specific artist
-        /** @var User $user */
-        $user = Auth::user();
-        if ($user->isArtist()) {
-            $this->authorize('manageForArtist', [Product::class, (int) $request->artist_id]);
-        }
+        $this->authorize('create', [Product::class, $request->validated('artist_id')]);
 
         Product::create($request->validated());
 
@@ -100,23 +81,17 @@ class ProductController extends Controller
     {
         $this->authorize('view', $product);
 
-        // Load product with artist data
-        $product->load(['artist:id,name,slug']);
+        $product->load('artist')->loadCount('editions');
 
-        // Get status counts for all editions
         $editionStats = $product->editions()
             ->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status')
             ->toArray();
 
-        // Get total count
-        $totalEditions = $product->editions()->count();
-
         return Inertia::render('Admin/Products/Show', [
             'product' => $product,
             'editionStats' => $editionStats,
-            'totalEditions' => $totalEditions,
         ]);
     }
 
@@ -127,12 +102,12 @@ class ProductController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Get available artists based on role
+        // Repeating ourself, so should be putting this into a helper
         $artists = $user->isAdmin()
-            ? Artist::select('id', 'name')->orderBy('name')->get()
-            : $user->ownedArtists()->select('id', 'name')->orderBy('name')->get();
+            ? Artist::orderBy('name')->get()
+            : $user->ownedArtists()->orderBy('name')->get();
 
-        $product->load('artist:id,name');
+        $product->load('artist');
 
         return Inertia::render('Admin/Products/Edit', [
             'product' => $product,
@@ -143,13 +118,6 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, Product $product): RedirectResponse
     {
         $this->authorize('update', $product);
-
-        // Additional authorization check for new artist if changed
-        /** @var User $user */
-        $user = Auth::user();
-        if ($user->isArtist() && (int) $product->artist_id !== (int) $request->artist_id) {
-            $this->authorize('manageForArtist', [Product::class, $request->artist_id]);
-        }
 
         $product->update($request->validated());
 

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ArtistController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ProductEditionBulkController;
 use App\Http\Controllers\Admin\ProductEditionController;
 use App\Http\Controllers\Admin\ProductEditionQrBatchPdfController;
 use App\Http\Controllers\Admin\UserController;
@@ -27,7 +28,7 @@ Route::prefix('admin')
                 'destroy' => 'products.editions.destroy',
             ]);
 
-        Route::post('products/{product}/editions/bulk', [ProductEditionController::class, 'storeBulk'])->name('products.editions.store-bulk');
+        Route::post('products/{product}/editions/bulk', [ProductEditionBulkController::class, 'store'])->name('products.editions.store-bulk');
         Route::get('products/{product}/editions/qr-batch-pdf', ProductEditionQrBatchPdfController::class)->name('products.editions.qr-batch-pdf');
 
         // Admin-only routes

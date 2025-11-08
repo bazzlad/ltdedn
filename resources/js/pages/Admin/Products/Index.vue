@@ -78,7 +78,7 @@ const search = () => {
     if (searchTimeout) {
         clearTimeout(searchTimeout);
     }
-    
+
     searchTimeout = setTimeout(() => {
         router.get('/admin/products', {
             search: searchTerm.value || undefined,
@@ -111,7 +111,7 @@ const getPublicLabel = (isPublic: boolean) => {
 
 const getEditionsSummary = (product: Product) => {
     const totalCount = product.editions_count;
-    
+
     if (totalCount === 0) {
         return 'No editions';
     }
@@ -133,16 +133,16 @@ const getEditionsSummary = (product: Product) => {
 
     // Build summary based on what exists
     const parts: string[] = [];
-    
+
     if (available > 0) parts.push(`${available} available`);
     if (redeemed > 0) parts.push(`${redeemed} redeemed`);
     if (sold > 0) parts.push(`${sold} sold`);
     if (otherCount > 0) parts.push(`${otherCount} other`);
-    
+
     if (parts.length === 0) {
         return `${totalCount} edition${totalCount === 1 ? '' : 's'}`;
     }
-    
+
     // Show limited info for brevity in table
     if (parts.length <= 2) {
         return parts.join(', ');
@@ -191,10 +191,10 @@ const deleteProduct = (productId: number) => {
                         <div class="flex items-center space-x-2">
                             <div class="relative">
                                 <Search class="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
-                                <Input 
-                                    v-model="searchTerm" 
-                                    placeholder="Search products..." 
-                                    class="w-64 pl-8 pr-8" 
+                                <Input
+                                    v-model="searchTerm"
+                                    placeholder="Search products..."
+                                    class="w-64 pl-8 pr-8"
                                 />
                                 <button
                                     v-if="searchTerm"
@@ -237,17 +237,19 @@ const deleteProduct = (productId: number) => {
                                 <TableBody>
                                     <TableRow v-for="product in products.data" :key="product.id">
                                         <TableCell class="font-medium">
-                                            <div class="flex items-center space-x-3">
-                                                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-                                                    <Package class="h-4 w-4" />
-                                                </div>
-                                                <div>
-                                                    <div class="font-medium">{{ product.name }}</div>
-                                                    <div v-if="product.description" class="max-w-[200px] truncate text-sm text-muted-foreground">
-                                                        {{ product.description }}
+                                            <Link :href="`/admin/products/${product.id}`">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                                                        <Package class="h-4 w-4" />
+                                                    </div>
+                                                    <div>
+                                                        <div class="font-medium">{{ product.name }}</div>
+                                                        <div v-if="product.description" class="max-w-[200px] truncate text-sm text-muted-foreground">
+                                                            {{ product.description }}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </Link>
                                         </TableCell>
                                         <TableCell>
                                             <Link

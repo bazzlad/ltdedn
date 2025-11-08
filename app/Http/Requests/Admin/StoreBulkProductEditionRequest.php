@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ProductEditionStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreBulkProductEditionRequest extends FormRequest
 {
@@ -21,8 +23,6 @@ class StoreBulkProductEditionRequest extends FormRequest
      */
     public function rules(): array
     {
-        $productId = $this->route('product');
-
         return [
             'start_number' => [
                 'required',
@@ -35,7 +35,7 @@ class StoreBulkProductEditionRequest extends FormRequest
                 'min:1',
                 'max:1000',
             ],
-            'status' => ['required', 'in:available,sold,redeemed,pending_transfer,invalidated'],
+            'status' => ['required', Rule::enum(ProductEditionStatus::class)],
             'owner_id' => ['nullable', 'exists:users,id'],
         ];
     }
@@ -56,37 +56,8 @@ class StoreBulkProductEditionRequest extends FormRequest
             'quantity.min' => 'Quantity must be at least 1.',
             'quantity.max' => 'Quantity cannot exceed 1000 editions at once.',
             'status.required' => 'Status is required.',
-            'status.in' => 'Invalid status selected.',
+            'status.enum' => 'Invalid status selected.',
             'owner_id.exists' => 'Selected owner is invalid.',
         ];
-    }
-
-    /**
-     * Configure the validator instance.
-     */
-    public function withValidator($validator): void
-    {
-        $validator->after(function ($validator) {
-            $productId = $this->route('product');
-            $startNumber = $this->input('start_number');
-            $quantity = $this->input('quantity');
-
-            if ($startNumber && $quantity) {
-                $endNumber = $startNumber + $quantity - 1;
-
-                // Check if any numbers in the range already exist
-                $existingNumbers = \App\Models\ProductEdition::where('product_id', $productId)
-                    ->whereBetween('number', [$startNumber, $endNumber])
-                    ->pluck('number')
-                    ->toArray();
-
-                if (! empty($existingNumbers)) {
-                    $validator->errors()->add(
-                        'start_number',
-                        'Edition numbers '.implode(', ', $existingNumbers).' already exist for this product.'
-                    );
-                }
-            }
-        });
     }
 }
