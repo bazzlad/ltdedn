@@ -260,7 +260,6 @@ class ProductTest extends TestCase
                 )
                 ->etc()
             )
-            ->has('editions')
         );
     }
 

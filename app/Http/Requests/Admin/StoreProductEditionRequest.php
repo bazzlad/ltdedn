@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\ProductEditionStatus;
+use App\Models\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,7 +16,8 @@ class StoreProductEditionRequest extends FormRequest
      */
     public function rules(): array
     {
-        $productId = $this->route('product');
+        $routeProduct = $this->route('product');
+        $productId = $routeProduct instanceof Product ? $routeProduct->id : $routeProduct;
 
         return [
             'number' => [
@@ -23,7 +25,7 @@ class StoreProductEditionRequest extends FormRequest
                 'integer',
                 'min:1',
                 Rule::unique('product_editions')->where(function ($query) use ($productId) {
-                    return $query->where('product_id', $productId);
+                    return $query->where('product_id', $productId)->whereNull('deleted_at');
                 }),
             ],
             'status' => ['required', Rule::enum(ProductEditionStatus::class)],

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ProductEditionStatus;
 use App\Enums\UserRole;
 use App\Models\Artist;
 use App\Models\Product;
@@ -35,8 +36,9 @@ class QRClaimTest extends TestCase
             'description' => 'A test product description',
         ]);
         $edition = ProductEdition::factory()->for($product)->create([
+            'owner_id' => null,
             'number' => 1,
-            'status' => 'available',
+            'status' => ProductEditionStatus::Available,
         ]);
 
         $response = $this->get(route('qr.show', $edition->qr_code));
@@ -46,7 +48,7 @@ class QRClaimTest extends TestCase
             ->component('QR/Claim')
             ->where('edition.id', $edition->id)
             ->where('edition.number', 1)
-            ->where('edition.status', 'available')
+            ->where('edition.status', ProductEditionStatus::Available)
             ->where('edition.product.name', 'Test Product')
             ->where('edition.product.artist.name', $artist->name)
             ->where('isClaimed', false)
@@ -73,7 +75,7 @@ class QRClaimTest extends TestCase
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
         $edition = ProductEdition::factory()->for($product)->create([
-            'status' => 'available',
+            'status' => ProductEditionStatus::Available,
         ]);
 
         $response = $this->get(route('qr.show', $edition->qr_code));
@@ -91,7 +93,7 @@ class QRClaimTest extends TestCase
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
         $edition = ProductEdition::factory()->for($product)->create([
-            'status' => 'available',
+            'status' => ProductEditionStatus::Available,
         ]);
 
         $response = $this->post(route('qr.claim', $edition->qr_code));
@@ -109,7 +111,7 @@ class QRClaimTest extends TestCase
         $product = Product::factory()->for($artist)->create();
         $edition = ProductEdition::factory()->for($product)->create([
             'number' => 1,
-            'status' => 'available',
+            'status' => ProductEditionStatus::Available,
             'owner_id' => null,
         ]);
 
@@ -120,7 +122,7 @@ class QRClaimTest extends TestCase
 
         $edition->refresh();
         $this->assertEquals($user->id, $edition->owner_id);
-        $this->assertEquals('sold', $edition->status);
+        $this->assertEquals(ProductEditionStatus::Sold, $edition->status);
     }
 
     public function test_user_cannot_claim_already_claimed_edition(): void
@@ -130,7 +132,7 @@ class QRClaimTest extends TestCase
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
         $edition = ProductEdition::factory()->for($product)->create([
-            'status' => 'sold',
+            'status' => ProductEditionStatus::Sold,
             'owner_id' => $owner->id,
         ]);
 
@@ -149,7 +151,7 @@ class QRClaimTest extends TestCase
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
         $edition = ProductEdition::factory()->for($product)->create([
-            'status' => 'sold',
+            'status' => ProductEditionStatus::Sold,
             'owner_id' => $user->id,
         ]);
 
@@ -165,7 +167,7 @@ class QRClaimTest extends TestCase
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
         $edition = ProductEdition::factory()->for($product)->create([
-            'status' => 'invalidated',
+            'status' => ProductEditionStatus::Invalidated,
             'owner_id' => null,
         ]);
 
@@ -184,7 +186,7 @@ class QRClaimTest extends TestCase
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
         $edition = ProductEdition::factory()->for($product)->create([
-            'status' => 'sold',
+            'status' => ProductEditionStatus::Sold,
             'owner_id' => $owner->id,
         ]);
 
@@ -206,7 +208,7 @@ class QRClaimTest extends TestCase
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
         $edition = ProductEdition::factory()->for($product)->create([
-            'status' => 'sold',
+            'status' => ProductEditionStatus::Sold,
             'owner_id' => $owner->id,
         ]);
 
@@ -241,7 +243,7 @@ class QRClaimTest extends TestCase
 
         $edition->refresh();
         $this->assertEquals($recipient->id, $edition->owner_id);
-        $this->assertEquals('sold', $edition->status);
+        $this->assertEquals(ProductEditionStatus::Sold, $edition->status);
     }
 
     public function test_non_owner_cannot_transfer_edition(): void
@@ -252,7 +254,7 @@ class QRClaimTest extends TestCase
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
         $edition = ProductEdition::factory()->for($product)->create([
-            'status' => 'sold',
+            'status' => ProductEditionStatus::Sold,
             'owner_id' => $owner->id,
         ]);
 
@@ -273,7 +275,7 @@ class QRClaimTest extends TestCase
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
         $edition = ProductEdition::factory()->for($product)->create([
-            'status' => 'sold',
+            'status' => ProductEditionStatus::Sold,
             'owner_id' => $owner->id,
         ]);
 
@@ -305,7 +307,7 @@ class QRClaimTest extends TestCase
 
         $edition = ProductEdition::factory()->for($product)->create([
             'number' => 5,
-            'status' => 'available',
+            'status' => ProductEditionStatus::Available,
         ]);
 
         $expectedQRCode = $this->qrService->generateQRCode($product, 5);

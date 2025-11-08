@@ -316,14 +316,7 @@ class ProductEditionTest extends TestCase
             'status' => 'available',
         ]);
 
-        if ($response->getStatusCode() === 422) {
-            $response->assertSessionHasErrors(['number']);
-        } else {
-
-            $response->assertRedirect();
-            $response->assertSessionHasErrors(['number']);
-        }
-
+        $response->assertSessionHasErrors(['number']);
         $this->assertEquals(1, ProductEdition::where('product_id', $product->id)->count());
     }
 
