@@ -25,7 +25,7 @@ class ProductPolicy
         }
 
         if ($user->isArtist()) {
-            return $user->ownedArtists()->pluck('id')->contains($product->artist_id);
+            return $this->canManageArtistProduct($user, $product->artist_id);
         }
 
         return false;
@@ -34,9 +34,22 @@ class ProductPolicy
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+    public function create(User $user, ?int $artistId = null): bool
     {
-        return $user->isAdmin() || $user->isArtist();
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($user->isArtist()) {
+            // If no specific artist is provided, allow if user has any owned artists
+            if ($artistId === null) {
+                return $user->ownedArtists()->exists();
+            }
+
+            return $this->canManageArtistProduct($user, $artistId);
+        }
+
+        return false;
     }
 
     /**
@@ -49,7 +62,7 @@ class ProductPolicy
         }
 
         if ($user->isArtist()) {
-            return $user->ownedArtists()->pluck('id')->contains($product->artist_id);
+            return $this->canManageArtistProduct($user, $product->artist_id);
         }
 
         return false;
@@ -65,7 +78,7 @@ class ProductPolicy
         }
 
         if ($user->isArtist()) {
-            return $user->ownedArtists()->pluck('id')->contains($product->artist_id);
+            return $this->canManageArtistProduct($user, $product->artist_id);
         }
 
         return false;
@@ -87,19 +100,12 @@ class ProductPolicy
         return $this->delete($user, $product);
     }
 
-    /**
-     * Determine whether the user can manage a specific artist's products.
-     */
-    public function manageForArtist(User $user, int $artistId): bool
+    protected function canManageArtistProduct(User $user, ?int $artistId): bool
     {
-        if ($user->isAdmin()) {
-            return true;
+        if ($artistId === null) {
+            return false;
         }
 
-        if ($user->isArtist()) {
-            return $user->ownedArtists()->pluck('id')->contains($artistId);
-        }
-
-        return false;
+        return $user->ownedArtists()->where('id', $artistId)->exists();
     }
 }

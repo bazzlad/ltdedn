@@ -2,21 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\ProductEditionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProductEditionRequest;
 use App\Http\Requests\Admin\UpdateProductEditionRequest;
 use App\Models\Product;
 use App\Models\ProductEdition;
 use App\Models\User;
-use Dompdf\Dompdf;
-use Dompdf\Options;
-use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\QrCode as EndroidQrCode;
-use Endroid\QrCode\Writer\PngWriter;
 // QR code generation
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 // use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevel;
@@ -28,16 +23,20 @@ class ProductEditionController extends Controller
 
     public function index(Product $product): Response
     {
-        $this->authorize('viewAny', ProductEdition::class);
         $this->authorize('view', $product);
 
+        $product->load('artist');
+
+        $perPage = request('per_page', 20); // Default to 20, allow customization
+        $perPage = in_array($perPage, [20, 50/* , 100, 200 */]) ? $perPage : 20; // Validate allowed values
+
         $editions = $product->editions()
-            ->with('owner:id,name')
+            ->with('owner')
             ->orderBy('number')
-            ->paginate(20);
+            ->paginate($perPage);
 
         return Inertia::render('Admin/Products/Editions/Index', [
-            'product' => $product->load('artist:id,name'),
+            'product' => $product,
             'editions' => $editions,
         ]);
     }
@@ -49,7 +48,6 @@ class ProductEditionController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Get next available edition number
         $nextNumber = $product->editions()->max('number') + 1;
 
         // Get available users for owner selection (admin only)
@@ -58,10 +56,10 @@ class ProductEditionController extends Controller
             : collect();
 
         return Inertia::render('Admin/Products/Editions/Create', [
-            'product' => $product->load('artist:id,name'),
+            'product' => $product,
             'nextNumber' => $nextNumber,
             'users' => $users,
-            'statuses' => $this->getStatusOptions(),
+            'statuses' => ProductEditionStatus::options(),
         ]);
     }
 
@@ -69,29 +67,10 @@ class ProductEditionController extends Controller
     {
         $this->authorize('create', [ProductEdition::class, $product]);
 
-        try {
-            $edition = $product->editions()->create($request->validated());
+        $edition = $product->editions()->create($request->validated());
 
-            return redirect()->route('admin.products.editions.index', $product)
-                ->with('success', "Edition #{$edition->number} created successfully.");
-        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
-            // Handle the case where validation didn't catch the duplicate
-            return back()->withErrors([
-                'number' => 'This edition number already exists for this product.',
-            ])->withInput();
-        }
-    }
-
-    public function show(Product $product, ProductEdition $edition): Response
-    {
-        $this->authorize('view', [$edition, $product]);
-
-        $edition->load('owner:id,name,email');
-
-        return Inertia::render('Admin/Products/Editions/Show', [
-            'product' => $product->load('artist:id,name'),
-            'edition' => $edition,
-        ]);
+        return redirect()->route('admin.products.editions.index', $product)
+            ->with('success', "Edition #{$edition->number} created successfully.");
     }
 
     public function edit(Product $product, ProductEdition $edition): Response
@@ -106,13 +85,14 @@ class ProductEditionController extends Controller
             ? User::select('id', 'name', 'email')->orderBy('name')->get()
             : collect();
 
-        $edition->load('owner:id,name');
+        $product->load('artist');
+        $edition->load('owner');
 
         return Inertia::render('Admin/Products/Editions/Edit', [
-            'product' => $product->load('artist:id,name'),
+            'product' => $product,
             'edition' => $edition,
             'users' => $users,
-            'statuses' => $this->getStatusOptions(),
+            'statuses' => ProductEditionStatus::options(),
         ]);
     }
 
@@ -135,18 +115,5 @@ class ProductEditionController extends Controller
 
         return redirect()->route('admin.products.editions.index', $product)
             ->with('success', "Edition #{$editionNumber} deleted successfully.");
-    }
-
-
-
-    private function getStatusOptions(): array
-    {
-        return [
-            ['value' => 'available', 'label' => 'Available'],
-            ['value' => 'sold', 'label' => 'Sold'],
-            ['value' => 'redeemed', 'label' => 'Redeemed'],
-            ['value' => 'pending_transfer', 'label' => 'Pending Transfer'],
-            ['value' => 'invalidated', 'label' => 'Invalidated'],
-        ];
     }
 }

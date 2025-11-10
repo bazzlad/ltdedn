@@ -1,9 +1,11 @@
 <template>
-    <div class="flex-grow main-bg">
+    <div class="main-bg flex-grow">
         <!-- background layers -->
         <div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden">
             <div class="absolute inset-0 bg-cover bg-center opacity-40"></div>
-            <div class="absolute inset-0 [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,.06)_1px,transparent_0)] [background-size:24px_24px] opacity-20 mix-blend-soft-light"></div>
+            <div
+                class="absolute inset-0 [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,.06)_1px,transparent_0)] [background-size:24px_24px] opacity-20 mix-blend-soft-light"
+            ></div>
             <div class="absolute inset-0 bg-gradient-to-b from-black via-black/50 to-black"></div>
         </div>
         <!-- Content Wrapper -->
@@ -19,17 +21,19 @@
                         </div>
 
                         <!-- Edition Card -->
-                        <div class="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800">
+                        <div
+                            class="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800"
+                        >
                             <!-- Product Image -->
                             <div v-if="edition.product.cover_image_url" class="aspect-video bg-slate-100 dark:bg-slate-700">
                                 <img :src="edition.product.cover_image_url" :alt="edition.product.name" class="h-full w-full object-cover" />
                             </div>
                             <div
                                 v-else
-                                class="flex aspect-video items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600"
+                                class="flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 pt-8 pb-8 dark:from-slate-700 dark:to-slate-600"
                             >
                                 <div class="text-center text-slate-400 dark:text-slate-500">
-                                    <svg class="mx-auto mb-2 h-16 w-16" fill="currentColor" viewBox="0 0 24 24">
+                                    <svg class="mx-auto h-16 w-16" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M4 4h16v12H4V4zm2 2v8h12V6H6zm2 2h8v4H8V8z" />
                                     </svg>
                                     <p class="text-sm">No image available</p>
@@ -60,7 +64,8 @@
                                             <span
                                                 class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
                                                 :class="{
-                                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300': edition.status === 'available',
+                                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300':
+                                                        edition.status === 'available',
                                                     'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300': edition.status === 'sold',
                                                     'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300':
                                                         edition.status === 'pending_transfer',
@@ -78,7 +83,10 @@
                                 </div>
 
                                 <!-- Ownership Status -->
-                                <div v-if="isClaimed" class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+                                <div
+                                    v-if="isClaimed"
+                                    class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20"
+                                >
                                     <div class="flex items-start">
                                         <svg class="mt-0.5 mr-3 h-5 w-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                                             <path
@@ -102,7 +110,7 @@
                                     </div>
                                 </div>
 
-                                <!-- QR Code Info -->
+                                <!-- QR Code Info
                                 <div class="border-t border-slate-200 pt-4 dark:border-slate-700">
                                     <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">QR Code Information</p>
                                     <div class="flex items-center justify-between text-sm">
@@ -112,6 +120,7 @@
                                         </code>
                                     </div>
                                 </div>
+                                -->
                             </div>
                         </div>
 
@@ -119,9 +128,17 @@
                         <div class="space-y-4">
                             <!-- Claim Button -->
                             <div v-if="canClaim">
-                                <Form v-if="$page.props.auth.user" :action="qr.claim(edition.qr_code).url" method="post" class="w-full">
-                                    <Button type="submit" class="w-full bg-green-600 py-4 text-lg font-semibold text-white hover:bg-green-700">
-                                        <svg class="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                <Form
+                                    v-if="$page.props.auth.user"
+                                    :action="qr.claim(edition.qr_code).url"
+                                    method="post"
+                                    class="mt-6 flex w-full justify-center"
+                                >
+                                    <Button
+                                        type="submit"
+                                        class="flex h-14 w-full max-w-md items-center justify-center gap-2 rounded-xl bg-green-600 text-lg font-semibold text-white shadow-lg hover:bg-green-700"
+                                    >
+                                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
                                             <path
                                                 fill-rule="evenodd"
                                                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"

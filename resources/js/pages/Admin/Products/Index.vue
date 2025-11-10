@@ -8,13 +8,17 @@ import AdminLayout from '@/layouts/AdminLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { formatDistanceToNow } from 'date-fns';
-import { Eye, Package, Plus, Search, SquarePen, Trash2 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { Eye, Package, Plus, Search, SquarePen, Trash2, X } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 
 interface Artist {
     id: number;
     name: string;
     slug: string;
+}
+
+interface Edition {
+    status: string;
 }
 
 interface Product {
@@ -32,6 +36,8 @@ interface Product {
     created_at: string;
     updated_at: string;
     artist: Artist;
+    editions: Edition[];
+    editions_count: number;
 }
 
 interface ProductsData {
@@ -41,25 +47,58 @@ interface ProductsData {
         label: string;
         active: boolean;
     }>;
-    meta?: {
-        current_page: number;
-        from: number;
-        last_page: number;
-        per_page: number;
-        to: number;
-        total: number;
-    };
+    current_page: number;
+    from: number;
+    last_page: number;
+    per_page: number;
+    to: number;
+    total: number;
+    first_page_url?: string;
+    last_page_url?: string;
+    next_page_url?: string;
+    prev_page_url?: string;
+    path?: string;
 }
 
-defineProps<{
+const props = defineProps<{
     products: ProductsData;
+    filters: {
+        search?: string;
+    };
 }>();
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 const isAdmin = computed(() => user.value?.role === 'admin');
 
-const searchTerm = ref('');
+const searchTerm = ref(props.filters.search || '');
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+
+const search = () => {
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+
+    searchTimeout = setTimeout(() => {
+        router.get(
+            '/admin/products',
+            {
+                search: searchTerm.value || undefined,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
+    }, 300);
+};
+
+// Watch for changes in searchTerm and trigger search
+watch(searchTerm, search);
+
+const clearSearch = () => {
+    searchTerm.value = '';
+};
 
 const breadcrumbs: BreadcrumbItemType[] = [
     { title: 'Admin', href: '/admin' },
@@ -74,9 +113,49 @@ const getPublicLabel = (isPublic: boolean) => {
     return isPublic ? 'Public' : 'Private';
 };
 
-const getLimitedLabel = (isLimited: boolean, editionSize?: number) => {
-    if (!isLimited) return 'Open Edition';
-    return editionSize ? `Limited (${editionSize})` : 'Limited';
+const getEditionsSummary = (product: Product) => {
+    const totalCount = product.editions_count;
+
+    if (totalCount === 0) {
+        return 'No editions';
+    }
+
+    if (!product.editions || product.editions.length === 0) {
+        return `${totalCount} edition${totalCount === 1 ? '' : 's'}`;
+    }
+
+    // Count by status
+    const statusCounts = product.editions.reduce(
+        (acc, edition) => {
+            acc[edition.status] = (acc[edition.status] || 0) + 1;
+            return acc;
+        },
+        {} as Record<string, number>,
+    );
+
+    const available = statusCounts.available || 0;
+    const redeemed = statusCounts.redeemed || 0;
+    const sold = statusCounts.sold || 0;
+    const otherCount = totalCount - available - redeemed - sold;
+
+    // Build summary based on what exists
+    const parts: string[] = [];
+
+    if (available > 0) parts.push(`${available} available`);
+    if (redeemed > 0) parts.push(`${redeemed} redeemed`);
+    if (sold > 0) parts.push(`${sold} sold`);
+    if (otherCount > 0) parts.push(`${otherCount} other`);
+
+    if (parts.length === 0) {
+        return `${totalCount} edition${totalCount === 1 ? '' : 's'}`;
+    }
+
+    // Show limited info for brevity in table
+    if (parts.length <= 2) {
+        return parts.join(', ');
+    } else {
+        return `${parts[0]}, +${parts.length - 1} more`;
+    }
 };
 
 const formatPrice = (price?: string) => {
@@ -114,12 +193,20 @@ const deleteProduct = (productId: number) => {
                     <div class="flex items-center justify-between">
                         <div>
                             <CardTitle>All Products</CardTitle>
-                            <CardDescription> {{ products.meta?.total || 0 }} total products </CardDescription>
+                            <CardDescription> {{ products.total || 0 }} total products </CardDescription>
                         </div>
                         <div class="flex items-center space-x-2">
                             <div class="relative">
                                 <Search class="absolute top-2.5 left-2 h-4 w-4 text-muted-foreground" />
-                                <Input v-model="searchTerm" placeholder="Search products..." class="w-64 pl-8" />
+                                <Input v-model="searchTerm" placeholder="Search products..." class="w-64 pr-8 pl-8" />
+                                <button
+                                    v-if="searchTerm"
+                                    @click="clearSearch"
+                                    class="absolute top-2.5 right-2 h-4 w-4 text-muted-foreground hover:text-foreground"
+                                    title="Clear search"
+                                >
+                                    <X class="h-4 w-4" />
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -142,7 +229,7 @@ const deleteProduct = (productId: number) => {
                                     <TableRow>
                                         <TableHead>Product</TableHead>
                                         <TableHead>Artist</TableHead>
-                                        <TableHead>Edition</TableHead>
+                                        <TableHead>Editions</TableHead>
                                         <TableHead>Visibility</TableHead>
                                         <TableHead>Price</TableHead>
                                         <TableHead>Sales</TableHead>
@@ -153,17 +240,19 @@ const deleteProduct = (productId: number) => {
                                 <TableBody>
                                     <TableRow v-for="product in products.data" :key="product.id">
                                         <TableCell class="font-medium">
-                                            <div class="flex items-center space-x-3">
-                                                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-                                                    <Package class="h-4 w-4" />
-                                                </div>
-                                                <div>
-                                                    <div class="font-medium">{{ product.name }}</div>
-                                                    <div v-if="product.description" class="max-w-[200px] truncate text-sm text-muted-foreground">
-                                                        {{ product.description }}
+                                            <Link :href="`/admin/products/${product.id}`">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+                                                        <Package class="h-4 w-4" />
+                                                    </div>
+                                                    <div>
+                                                        <div class="font-medium">{{ product.name }}</div>
+                                                        <div v-if="product.description" class="max-w-[200px] truncate text-sm text-muted-foreground">
+                                                            {{ product.description }}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </Link>
                                         </TableCell>
                                         <TableCell>
                                             <Link
@@ -175,7 +264,7 @@ const deleteProduct = (productId: number) => {
                                             </Link>
                                             <span v-else>{{ product.artist.name }}</span>
                                         </TableCell>
-                                        <TableCell>{{ getLimitedLabel(product.is_limited, product.edition_size) }}</TableCell>
+                                        <TableCell>{{ getEditionsSummary(product) }}</TableCell>
                                         <TableCell>
                                             <Badge :variant="getPublicBadgeVariant(product.is_public)">
                                                 {{ getPublicLabel(product.is_public) }}
@@ -191,12 +280,17 @@ const deleteProduct = (productId: number) => {
                                         </TableCell>
                                         <TableCell class="text-right">
                                             <div class="flex items-center justify-end space-x-2">
-                                                <Button as-child size="sm" variant="ghost">
+                                                <Button as-child size="sm" variant="ghost" title="View Product">
                                                     <Link :href="`/admin/products/${product.id}`">
                                                         <Eye class="h-3 w-3" />
                                                     </Link>
                                                 </Button>
-                                                <Button as-child size="sm" variant="ghost">
+                                                <Button as-child size="sm" variant="ghost" title="Manage Editions">
+                                                    <Link :href="`/admin/products/${product.id}/editions`">
+                                                        <Package class="h-3 w-3" />
+                                                    </Link>
+                                                </Button>
+                                                <Button as-child size="sm" variant="ghost" title="Edit Product">
                                                     <Link :href="`/admin/products/${product.id}/edit`">
                                                         <SquarePen class="h-3 w-3" />
                                                     </Link>
@@ -206,6 +300,7 @@ const deleteProduct = (productId: number) => {
                                                     variant="ghost"
                                                     @click="deleteProduct(product.id)"
                                                     class="text-red-600 hover:text-red-700"
+                                                    title="Delete Product"
                                                 >
                                                     <Trash2 class="h-3 w-3" />
                                                 </Button>
@@ -216,9 +311,9 @@ const deleteProduct = (productId: number) => {
                             </Table>
 
                             <!-- Pagination -->
-                            <div v-if="products.meta && products.meta.last_page > 1" class="flex items-center justify-between space-x-2 py-4">
+                            <div v-if="products.last_page > 1" class="flex items-center justify-between space-x-2 py-4">
                                 <div class="text-sm text-muted-foreground">
-                                    Showing {{ products.meta.from }} to {{ products.meta.to }} of {{ products.meta.total }} results
+                                    Showing {{ products.from }} to {{ products.to }} of {{ products.total }} results
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <Button

@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Enums\UserRole;
 use App\Models\Artist;
 use App\Models\Product;
+use App\Models\ProductEdition;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -53,6 +54,30 @@ class ProductTest extends TestCase
         );
     }
 
+    public function test_admin_can_view_products_index_with_edition_data(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $artist = Artist::factory()->create();
+        $product = Product::factory()->for($artist)->create();
+
+        // Create some editions with different statuses
+        ProductEdition::factory()->for($product)->create(['status' => 'available', 'number' => 1]);
+        ProductEdition::factory()->for($product)->create(['status' => 'redeemed', 'number' => 2]);
+        ProductEdition::factory()->for($product)->create(['status' => 'sold', 'number' => 3]);
+
+        $response = $this->actingAs($admin)->get('/admin/products');
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/Products/Index')
+            ->has('products.data')
+            ->where('products.data', fn ($products) => collect($products)->contains(fn ($p) => $p['id'] === $product->id &&
+                    $p['editions_count'] === 3 &&
+                    count($p['editions']) === 3
+            )
+            )
+        );
+    }
+
     public function test_artist_can_view_own_products_only(): void
     {
         $artist = User::factory()->create(['role' => UserRole::Artist]);
@@ -79,6 +104,66 @@ class ProductTest extends TestCase
                 ->etc()
             )
             ->missing('products.data.1')
+        );
+    }
+
+    public function test_admin_can_search_products(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $artist = Artist::factory()->create(['name' => 'Unique Test Artist']);
+
+        $matchingProduct = Product::factory()->for($artist)->create([
+            'name' => 'Unique Banana Split Album',
+            'description' => 'A great album about bananas',
+        ]);
+
+        $nonMatchingProduct = Product::factory()->for($artist)->create([
+            'name' => 'Unique Rock Album',
+            'description' => 'Heavy metal music',
+        ]);
+
+        // Test search by product name - should find only the banana product
+        $response = $this->actingAs($admin)->get('/admin/products?search=Unique Banana');
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/Products/Index')
+            ->has('products')
+            ->has('products.data', 1)
+            ->has('products.data.0', fn (Assert $page) => $page
+                ->where('id', $matchingProduct->id)
+                ->where('name', $matchingProduct->name)
+                ->etc()
+            )
+            ->has('filters', fn (Assert $page) => $page
+                ->where('search', 'Unique Banana')
+                ->etc()
+            )
+        );
+
+        // Test search by artist name - should find both products from this artist
+        $response = $this->actingAs($admin)->get('/admin/products?search=Unique Test Artist');
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/Products/Index')
+            ->has('products')
+            ->has('products.data', 2) // Both products should match
+            ->has('filters', fn (Assert $page) => $page
+                ->where('search', 'Unique Test Artist')
+                ->etc()
+            )
+        );
+
+        // Test search with no matches
+        $response = $this->actingAs($admin)->get('/admin/products?search=NonExistentSearchTerm');
+        $response->assertStatus(200);
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/Products/Index')
+            ->has('products')
+            ->has('products.data', 0) // No matches
+            ->has('filters', fn (Assert $page) => $page
+                ->where('search', 'NonExistentSearchTerm')
+                ->etc()
+            )
         );
     }
 
@@ -173,7 +258,6 @@ class ProductTest extends TestCase
                     ->where('name', $artist->name)
                     ->etc()
                 )
-                ->has('editions')
                 ->etc()
             )
         );

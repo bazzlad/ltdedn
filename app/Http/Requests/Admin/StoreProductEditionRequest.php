@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ProductEditionStatus;
+use App\Models\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,7 +16,8 @@ class StoreProductEditionRequest extends FormRequest
      */
     public function rules(): array
     {
-        $productId = $this->route('product');
+        $routeProduct = $this->route('product');
+        $productId = $routeProduct instanceof Product ? $routeProduct->id : $routeProduct;
 
         return [
             'number' => [
@@ -22,10 +25,10 @@ class StoreProductEditionRequest extends FormRequest
                 'integer',
                 'min:1',
                 Rule::unique('product_editions')->where(function ($query) use ($productId) {
-                    return $query->where('product_id', $productId);
+                    return $query->where('product_id', $productId)->whereNull('deleted_at');
                 }),
             ],
-            'status' => ['required', 'in:available,sold,redeemed,pending_transfer,invalidated'],
+            'status' => ['required', Rule::enum(ProductEditionStatus::class)],
             'owner_id' => ['nullable', 'exists:users,id'],
         ];
     }
@@ -43,7 +46,7 @@ class StoreProductEditionRequest extends FormRequest
             'number.min' => 'Edition number must be at least 1.',
             'number.unique' => 'This edition number already exists for this product.',
             'status.required' => 'Status is required.',
-            'status.in' => 'Invalid status selected.',
+            'status.enum' => 'Invalid status selected.',
             'owner_id.exists' => 'Selected owner is invalid.',
         ];
     }

@@ -10,18 +10,20 @@ defineProps<{
 </script>
 
 <template>
-    <div class="flex-grow main-bg">
+    <div class="main-bg flex-grow">
         <!-- background layers -->
         <div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden">
             <div class="absolute inset-0 bg-cover bg-center opacity-40"></div>
-            <div class="absolute inset-0 [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,.06)_1px,transparent_0)] [background-size:24px_24px] opacity-20 mix-blend-soft-light"></div>
+            <div
+                class="absolute inset-0 [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,.06)_1px,transparent_0)] [background-size:24px_24px] opacity-20 mix-blend-soft-light"
+            ></div>
             <div class="absolute inset-0 bg-gradient-to-b from-black via-black/50 to-black"></div>
         </div>
         <!-- Content Wrapper -->
         <div class="relative z-10">
             <!--<div class="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">-->
             <div class="flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
-                <div class="w-full max-w-sm main-card">
+                <div class="main-card w-full max-w-sm">
                     <div class="flex flex-col gap-8">
                         <div class="flex flex-col items-center gap-4">
                             <Link :href="home()" class="flex flex-col items-center gap-2 font-medium">

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ProductEditionStatus;
 use App\Services\QRCodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,24 +30,24 @@ class ClaimQRController extends Controller
                 ->with('error', 'Edition not found.');
         }
 
-        if ($edition->owner_id) {
-            if ($edition->owner_id === $user->id) {
-                return redirect()->route('qr.show', $qrCode)
-                    ->with('info', 'You already own this edition.');
-            }
+        if ($edition->owner_id && $edition->owner_id === $user->id) {
+            return redirect()->route('qr.show', $qrCode)
+                ->with('info', 'You already own this edition.');
+        }
 
+        if ($edition->owner_id) {
             return redirect()->route('qr.show', $qrCode)
                 ->with('error', 'This edition has already been claimed by someone else.');
         }
 
-        if ($edition->status !== 'available') {
+        if (!$edition->isAvailable()) {
             return redirect()->route('qr.show', $qrCode)
                 ->with('error', 'This edition is not available for claiming.');
         }
 
         $edition->update([
             'owner_id' => $user->id,
-            'status' => 'sold',
+            'status' => ProductEditionStatus::Sold,
         ]);
 
         return redirect()->route('qr.show', $qrCode)

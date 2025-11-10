@@ -1,10 +1,11 @@
 <template>
-
-    <div class="flex-grow main-bg">
+    <div class="main-bg flex-grow">
         <!-- background layers -->
         <div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden">
             <div class="absolute inset-0 bg-cover bg-center opacity-40"></div>
-            <div class="absolute inset-0 [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,.06)_1px,transparent_0)] [background-size:24px_24px] opacity-20 mix-blend-soft-light"></div>
+            <div
+                class="absolute inset-0 [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,.06)_1px,transparent_0)] [background-size:24px_24px] opacity-20 mix-blend-soft-light"
+            ></div>
             <div class="absolute inset-0 bg-gradient-to-b from-black via-black/50 to-black"></div>
         </div>
         <!-- Content Wrapper -->
@@ -12,7 +13,7 @@
             <!--<div class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">-->
             <div class="flex min-h-screen items-center justify-center">
                 <div class="container mx-auto px-4">
-                    <div class="mx-auto max-w-md text-center main-card">
+                    <div class="main-card mx-auto max-w-md text-center">
                         <!-- Error Icon -->
                         <div class="mb-8">
                             <div class="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
@@ -37,7 +38,10 @@
                         <!-- QR Code Display -->
                         <div class="mb-6 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800">
                             <p class="mb-2 text-sm text-slate-500 dark:text-slate-400">Scanned Code:</p>
-                            <code id="qr-display" class="rounded bg-slate-100 px-3 py-2 font-mono text-sm text-slate-800 dark:bg-slate-700 dark:text-slate-200">
+                            <code
+                                id="qr-display"
+                                class="rounded bg-slate-100 px-3 py-2 font-mono text-sm text-slate-800 dark:bg-slate-700 dark:text-slate-200"
+                            >
                                 {{ qrCode }}
                             </code>
                         </div>
@@ -55,7 +59,10 @@
 
                         <!-- Actions -->
                         <div class="space-y-3">
-                            <Link href="/" class="block w-full rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700">
+                            <Link
+                                href="/"
+                                class="block w-full rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-700"
+                            >
                                 Go to Homepage
                             </Link>
                         </div>
@@ -72,7 +79,6 @@
             </div>
         </div>
     </div>
-
 </template>
 
 <script setup lang="ts">
@@ -86,8 +92,8 @@ defineProps<Props>();
 </script>
 
 <style scoped>
-    #qr-display {
-        word-break: break-all;
-        display: block;
-    }
+#qr-display {
+    word-break: break-all;
+    display: block;
+}
 </style>

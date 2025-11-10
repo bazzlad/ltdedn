@@ -3,12 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { downloadQRCode, getQRCodeUrl, useQRCode } from '@/composables/useQRCode';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
 import { computed } from 'vue';
-import { useQRCode, getQRCodeUrl, downloadQRCode } from '@/composables/useQRCode';
 
 interface Artist {
     id: number;
@@ -54,10 +54,14 @@ const qrValue = computed(() => {
     return qrCode ? getQRCodeUrl(qrCode) : '';
 });
 
-const { qrDataUrl, isGenerating, error: qrError } = useQRCode(qrValue, {
+const {
+    qrDataUrl,
+    isGenerating,
+    error: qrError,
+} = useQRCode(qrValue, {
     width: 1024,
     margin: 1,
-    errorCorrectionLevel: 'M'
+    errorCorrectionLevel: 'M',
 });
 
 const handleDownloadQR = () => {
@@ -66,7 +70,6 @@ const handleDownloadQR = () => {
         downloadQRCode(qrDataUrl.value, filename);
     }
 };
-
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -197,30 +200,34 @@ const submit = () => {
                             <!-- actual qr -->
                             <div class="space-y-3">
                                 <h4 class="mb-2 text-sm font-medium text-muted-foreground">QR Image</h4>
-                                <div v-if="isGenerating" class="flex items-center justify-center h-64 w-64 border rounded bg-slate-50 dark:bg-slate-800">
+                                <div
+                                    v-if="isGenerating"
+                                    class="flex h-64 w-64 items-center justify-center rounded border bg-slate-50 dark:bg-slate-800"
+                                >
                                     <div class="text-center">
-                                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                                        <div class="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
                                         <p class="text-sm text-slate-600 dark:text-slate-400">Generating QR code...</p>
                                     </div>
                                 </div>
 
-                                <div v-else-if="qrError" class="flex items-center justify-center h-64 w-64 border rounded bg-red-50 dark:bg-red-900/20">
+                                <div
+                                    v-else-if="qrError"
+                                    class="flex h-64 w-64 items-center justify-center rounded border bg-red-50 dark:bg-red-900/20"
+                                >
                                     <div class="text-center text-red-600 dark:text-red-400">
                                         <p class="text-sm font-medium">Error generating QR code</p>
-                                        <p class="text-xs mt-1">{{ qrError }}</p>
+                                        <p class="mt-1 text-xs">{{ qrError }}</p>
                                     </div>
                                 </div>
 
                                 <img v-else-if="qrDataUrl" :src="qrDataUrl" alt="QR code" class="rounded border" width="256" height="256" />
 
-                                <div v-else class="flex items-center justify-center h-64 w-64 border rounded bg-slate-50 dark:bg-slate-800">
+                                <div v-else class="flex h-64 w-64 items-center justify-center rounded border bg-slate-50 dark:bg-slate-800">
                                     <p class="text-sm text-slate-600 dark:text-slate-400">No QR code available</p>
                                 </div>
 
-                                <div v-if="qrDataUrl && !isGenerating" class="flex gap-2 mt-4">
-                                    <Button variant="outline" size="sm" @click="handleDownloadQR">
-                                        Download PNG
-                                    </Button>
+                                <div v-if="qrDataUrl && !isGenerating" class="mt-4 flex gap-2">
+                                    <Button variant="outline" size="sm" @click="handleDownloadQR"> Download PNG </Button>
                                 </div>
                             </div>
                         </CardContent>

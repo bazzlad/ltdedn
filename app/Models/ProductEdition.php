@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProductEditionStatus;
 use App\Services\QRCodeService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,6 +22,7 @@ class ProductEdition extends Model
     {
         return [
             'number' => 'integer',
+            'status' => ProductEditionStatus::class,
         ];
     }
 
@@ -50,16 +52,16 @@ class ProductEdition extends Model
 
     public function isAvailable(): bool
     {
-        return $this->status === 'available';
+        return $this->status === ProductEditionStatus::Available;
     }
 
     public function isSold(): bool
     {
-        return $this->status === 'sold';
+        return $this->status === ProductEditionStatus::Sold;
     }
 
     public function isRedeemed(): bool
     {
-        return $this->status === 'redeemed';
+        return $this->status === ProductEditionStatus::Redeemed;
     }
 }

@@ -3,13 +3,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { generateAndDownloadQR } from '@/composables/useQRCode';
 import AdminLayout from '@/layouts/AdminLayout.vue';
+import { qrBatchPdf } from '@/routes/admin/products/editions';
 import type { BreadcrumbItemType } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
 import { formatDistanceToNow } from 'date-fns';
 import { ArrowLeft, Hash, Plus, QrCodeIcon, SquarePen, Trash2, User } from 'lucide-vue-next';
-import { computed } from 'vue';
-import { generateAndDownloadQR } from '@/composables/useQRCode';
+import { computed, ref } from 'vue';
 
 interface Artist {
     id: number;
@@ -47,14 +48,17 @@ interface EditionsData {
         label: string;
         active: boolean;
     }>;
-    meta?: {
-        current_page: number;
-        from: number;
-        last_page: number;
-        per_page: number;
-        to: number;
-        total: number;
-    };
+    current_page: number;
+    from: number;
+    last_page: number;
+    per_page: number;
+    to: number;
+    total: number;
+    first_page_url?: string;
+    last_page_url?: string;
+    next_page_url?: string;
+    prev_page_url?: string;
+    path?: string;
 }
 
 const props = defineProps<{
@@ -62,9 +66,7 @@ const props = defineProps<{
     editions: EditionsData;
 }>();
 
-const totalCount = computed(() =>
-	props.editions.meta?.total || props.editions.data.length
-);
+const totalCount = computed(() => props.editions.total || props.editions.data.length);
 
 const breadcrumbs: BreadcrumbItemType[] = [
     { title: 'Admin', href: '/admin' },
@@ -121,6 +123,82 @@ const downloadQrCode = async (editionQr: string, editionId: number, editionNumbe
         console.error('Failed to download QR code:', error);
     }
 };
+
+const isDownloadingBatchPDF = ref(false);
+
+const downloadBatchPdf = async () => {
+    try {
+        isDownloadingBatchPDF.value = true;
+
+        const link = document.createElement('a');
+        // Include current pagination parameters
+        const currentPage = props.editions?.current_page || 1;
+        const perPage = props.editions?.per_page || 20;
+        const url = new URL(qrBatchPdf(props.product).url, window.location.origin);
+        url.searchParams.set('page', currentPage.toString());
+        url.searchParams.set('per_page', perPage.toString());
+
+        link.href = url.toString();
+        link.download = ''; // Forces download instead of navigation
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        setTimeout(() => {
+            isDownloadingBatchPDF.value = false;
+        }, 1000);
+    } catch (error) {
+        console.error('Failed to download batch PDF:', error);
+        isDownloadingBatchPDF.value = false;
+    }
+};
+
+const batchPdfButtonText = computed(() => {
+    if (isDownloadingBatchPDF.value) {
+        return 'Generating...';
+    }
+
+    const total = props.editions?.total || 0;
+    const currentPageCount = props.editions?.data?.length || 0;
+    const currentPage = props.editions?.current_page || 1;
+
+    if (total > currentPageCount && (props.editions?.last_page || 1) > 1) {
+        return `Download QR Codes (Page ${currentPage})`;
+    }
+
+    return 'Download QR Codes';
+});
+
+const changePerPage = (event: Event) => {
+    const target = event.target as HTMLSelectElement;
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('per_page', target.value);
+    currentUrl.searchParams.delete('page'); // Reset to page 1 when changing per_page
+
+    // Use router.visit with preserveState to maintain scroll position
+    router.visit(currentUrl.toString(), {
+        preserveState: false,
+        preserveScroll: false,
+    });
+};
+
+const formatLinkLabel = (label: string): string => {
+    return label.replace(/&amp;laquo;|&laquo;|«/g, '‹').replace(/&amp;raquo;|&raquo;|»/g, '›');
+};
+
+const isNavDisabled = (link: { url?: string; label: string; active: boolean }): boolean => {
+    const label = link.label.toLowerCase();
+
+    if (label.includes('previous') || label.includes('‹')) {
+        return !link.url || props.editions.current_page <= 1;
+    }
+
+    if (label.includes('next') || label.includes('›')) {
+        return !link.url || props.editions.current_page >= props.editions.last_page;
+    }
+
+    return !link.url;
+};
 </script>
 
 <template>
@@ -138,6 +216,16 @@ const downloadQrCode = async (editionQr: string, editionId: number, editionNumbe
                     <p class="text-muted-foreground">Manage individual editions for this product</p>
                 </div>
                 <div class="flex items-center space-x-2">
+                    <div v-if="editions?.data?.length > 0">
+                        <Button size="sm" variant="outline" @click="downloadBatchPdf" :disabled="isDownloadingBatchPDF">
+                            <div
+                                v-if="isDownloadingBatchPDF"
+                                class="mr-2 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"
+                            ></div>
+                            <QrCodeIcon v-else class="mr-2 h-3 w-3" />
+                            {{ batchPdfButtonText }}
+                        </Button>
+                    </div>
                     <Button as-child>
                         <Link :href="`/admin/products/${product.id}/editions/create`">
                             <Plus class="mr-2 h-4 w-4" />
@@ -152,7 +240,22 @@ const downloadQrCode = async (editionQr: string, editionId: number, editionNumbe
                     <div class="flex items-center justify-between">
                         <div>
                             <CardTitle>All Editions</CardTitle>
-                            <CardDescription> {{ totalCount || 0 }} total editions </CardDescription>
+                            <CardDescription>
+                                {{ totalCount || 0 }} total editions
+                                <span v-if="editions.last_page > 1" class="ml-2 text-xs">
+                                    ({{ editions.current_page || 1 }}/{{ editions.last_page || 1 }} pages)
+                                </span>
+                            </CardDescription>
+                        </div>
+                        <div v-if="totalCount > 0" class="flex items-center space-x-2">
+                            <span class="text-sm text-muted-foreground">Show:</span>
+                            <select class="rounded border px-2 py-1 text-sm" :value="editions.per_page || 20" @change="changePerPage">
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                                <!--<option value="100">100</option>
+                                <option value="200">200</option>-->
+                            </select>
+                            <span class="text-sm text-muted-foreground">per page</span>
                         </div>
                     </div>
                 </CardHeader>
@@ -216,7 +319,10 @@ const downloadQrCode = async (editionQr: string, editionId: number, editionNumbe
                                         <TableCell class="text-right">
                                             <div class="flex items-center justify-end space-x-2">
                                                 <Button as-child size="sm" variant="ghost">
-                                                    <Link :href="`/admin/products/${product.id}/editions/${edition.id}/edit`" :title="`Edit Edition #${edition.number}`">
+                                                    <Link
+                                                        :href="`/admin/products/${product.id}/editions/${edition.id}/edit`"
+                                                        :title="`Edit Edition #${edition.number}`"
+                                                    >
                                                         <SquarePen class="h-3 w-3" />
                                                     </Link>
                                                 </Button>
@@ -245,22 +351,42 @@ const downloadQrCode = async (editionQr: string, editionId: number, editionNumbe
                             </Table>
 
                             <!-- Pagination -->
-                            <div v-if="editions.meta && editions.meta.last_page > 1" class="flex items-center justify-between space-x-2 py-4">
-                                <div class="text-sm text-muted-foreground">
-                                    Showing {{ editions.meta.from }} to {{ editions.meta.to }} of {{ editions.meta.total }} results
+                            <div v-if="editions.links && editions.last_page > 1" class="-mx-6 mt-6 border-t bg-gray-50 px-6 py-4 dark:bg-gray-800/50">
+                                <!-- Always show results info -->
+                                <div class="mb-4 flex items-center justify-between">
+                                    <div class="text-sm text-muted-foreground">
+                                        Showing {{ editions.from || 1 }} to {{ editions.to || editions.data.length }} of
+                                        {{ editions.total || editions.data.length }} results
+                                    </div>
+                                    <div v-if="editions.last_page > 1" class="text-sm font-medium">
+                                        Page {{ editions.current_page || 1 }} of {{ editions.last_page || 1 }}
+                                    </div>
                                 </div>
-                                <div class="flex items-center space-x-2">
-                                    <Button
-                                        v-for="link in editions.links"
-                                        :key="link.label"
-                                        :variant="link.active ? 'default' : 'outline'"
-                                        size="sm"
-                                        :disabled="!link.url"
-                                        as-child
-                                    >
-                                        <Link v-if="link.url" :href="link.url">{{ link.label }}</Link>
-                                        <span v-else>{{ link.label }}</span>
-                                    </Button>
+
+                                <!-- Page Navigation - Always show if multiple pages -->
+                                <div v-if="editions.last_page > 1" class="flex items-center justify-center">
+                                    <nav class="flex items-center space-x-1" aria-label="Pagination">
+                                        <Button
+                                            v-for="link in editions.links"
+                                            :key="link.label"
+                                            :variant="link.active ? 'default' : 'outline'"
+                                            size="sm"
+                                            :disabled="isNavDisabled(link)"
+                                            class="min-w-[2.5rem]"
+                                        >
+                                            <Link v-if="!isNavDisabled(link)" :href="link.url" class="flex h-full w-full items-center justify-center">
+                                                {{ formatLinkLabel(link.label) }}
+                                            </Link>
+                                            <span v-else class="flex h-full w-full items-center justify-center">
+                                                {{ formatLinkLabel(link.label) }}
+                                            </span>
+                                        </Button>
+                                    </nav>
+                                </div>
+
+                                <!-- No pagination message -->
+                                <div v-else class="text-center text-sm text-muted-foreground">
+                                    All {{ editions.total || editions.data.length }} editions shown on this page
                                 </div>
                             </div>
                         </div>

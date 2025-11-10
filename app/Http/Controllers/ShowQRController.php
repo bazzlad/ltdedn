@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ProductEditionStatus;
 use App\Services\QRCodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -49,7 +50,7 @@ class ShowQRController extends Controller
             ],
             'isClaimed' => $isClaimed,
             'isOwnedByCurrentUser' => $isOwnedByCurrentUser,
-            'canClaim' => ! $isClaimed && $edition->status === 'available',
+            'canClaim' => ! $isClaimed && $edition->status === ProductEditionStatus::Available,
         ]);
     }
 }

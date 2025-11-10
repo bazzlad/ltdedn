@@ -3,13 +3,19 @@
 namespace App\Http\Requests\Admin;
 
 use App\Enums\ProductEditionStatus;
-use App\Models\Product;
-use App\Models\ProductEdition;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdateProductEditionRequest extends FormRequest
+class StoreBulkProductEditionRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -17,19 +23,17 @@ class UpdateProductEditionRequest extends FormRequest
      */
     public function rules(): array
     {
-        $routeProduct = $this->route('product');
-        $productId = $routeProduct instanceof Product ? $routeProduct->id : $routeProduct;
-        $routeEdition = $this->route('edition');
-        $editionId = $routeEdition instanceof ProductEdition ? $routeEdition->id : $routeEdition;
-
         return [
-            'number' => [
+            'start_number' => [
                 'required',
                 'integer',
                 'min:1',
-                Rule::unique('product_editions')->where(function ($query) use ($productId) {
-                    return $query->where('product_id', $productId)->whereNull('deleted_at');
-                })->ignore($editionId),
+            ],
+            'quantity' => [
+                'required',
+                'integer',
+                'min:1',
+                'max:1000',
             ],
             'status' => ['required', Rule::enum(ProductEditionStatus::class)],
             'owner_id' => ['nullable', 'exists:users,id'],
@@ -44,10 +48,13 @@ class UpdateProductEditionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'number.required' => 'Edition number is required.',
-            'number.integer' => 'Edition number must be a valid number.',
-            'number.min' => 'Edition number must be at least 1.',
-            'number.unique' => 'This edition number already exists for this product.',
+            'start_number.required' => 'Starting number is required.',
+            'start_number.integer' => 'Starting number must be a valid number.',
+            'start_number.min' => 'Starting number must be at least 1.',
+            'quantity.required' => 'Quantity is required.',
+            'quantity.integer' => 'Quantity must be a valid number.',
+            'quantity.min' => 'Quantity must be at least 1.',
+            'quantity.max' => 'Quantity cannot exceed 1000 editions at once.',
             'status.required' => 'Status is required.',
             'status.enum' => 'Invalid status selected.',
             'owner_id.exists' => 'Selected owner is invalid.',

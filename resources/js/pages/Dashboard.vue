@@ -161,8 +161,9 @@ const breadcrumbs: BreadcrumbItem[] = [
                                   : 'cursor-not-allowed text-slate-400 dark:text-slate-500',
                         ]"
                         :disabled="!link.url"
-                        v-html="link.label"
-                    />
+                    >
+                        {{ link.label }}
+                    </Link>
                 </div>
             </div>
 
