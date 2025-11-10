@@ -7,13 +7,14 @@ import AdminLayout from '@/layouts/AdminLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { useForm } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
+import { onMounted } from 'vue';
 
 interface Artist {
     id: number;
     name: string;
 }
 
-defineProps<{
+const props = defineProps<{
     artists: Artist[];
 }>();
 
@@ -31,14 +32,22 @@ const form = useForm({
     cover_image_url: '',
     sell_through_ltdedn: false,
     is_limited: true,
-    edition_size: null,
-    base_price: null,
+    edition_size: undefined as number | undefined,
+    base_price: undefined as number | undefined,
     is_public: false,
 });
 
 const submit = () => {
     form.post('/admin/products');
 };
+
+onMounted(() => {
+    // pre-select artist if there's only one available
+    if (props.artists.length === 1) {
+        form.artist_id = props.artists[0].id.toString();
+    }
+});
+
 </script>
 
 <template>

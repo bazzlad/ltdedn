@@ -41,6 +41,11 @@ class ProductPolicy
         }
 
         if ($user->isArtist()) {
+            // If no specific artist is provided, allow if user has any owned artists
+            if ($artistId === null) {
+                return $user->ownedArtists()->exists();
+            }
+
             return $this->canManageArtistProduct($user, $artistId);
         }
 
@@ -95,8 +100,12 @@ class ProductPolicy
         return $this->delete($user, $product);
     }
 
-    protected function canManageArtistProduct(User $user, int $artistId): bool
+    protected function canManageArtistProduct(User $user, ?int $artistId): bool
     {
+        if ($artistId === null) {
+            return false;
+        }
+
         return $user->ownedArtists()->where('id', $artistId)->exists();
     }
 }
