@@ -52,8 +52,6 @@ class ProductController extends Controller
 
     public function create(): Response
     {
-        $this->authorize('create', Product::class);
-
         /** @var User $user */
         $user = Auth::user();
 

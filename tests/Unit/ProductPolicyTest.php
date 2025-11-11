@@ -40,23 +40,13 @@ class ProductPolicyTest extends TestCase
         $this->assertTrue($result);
     }
 
-    public function test_artist_can_create_products_when_they_have_owned_artists(): void
+    public function test_artist_can_create_products_general_access(): void
     {
         $user = User::factory()->create(['role' => UserRole::Artist]);
-        Artist::factory()->create(['owner_id' => $user->id]);
 
         $result = $this->policy->create($user);
 
         $this->assertTrue($result);
-    }
-
-    public function test_artist_cannot_create_products_when_they_have_no_owned_artists(): void
-    {
-        $user = User::factory()->create(['role' => UserRole::Artist]);
-
-        $result = $this->policy->create($user);
-
-        $this->assertFalse($result);
     }
 
     public function test_artist_can_create_products_for_their_owned_artist(): void

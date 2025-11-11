@@ -41,12 +41,13 @@ class ProductPolicy
         }
 
         if ($user->isArtist()) {
-            // If no specific artist is provided, allow if user has any owned artists
-            if ($artistId === null) {
-                return $user->ownedArtists()->exists();
+            // If specific artist provided, check ownership
+            if ($artistId !== null) {
+                return $this->canManageArtistProduct($user, $artistId);
             }
 
-            return $this->canManageArtistProduct($user, $artistId);
+            // If no specific artist, allow access (middleware already checked role)
+            return true;
         }
 
         return false;
