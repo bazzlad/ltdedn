@@ -15,7 +15,8 @@ class QRCodeTransferred extends Notification implements ShouldQueue
 
     public function __construct(
         public ProductEdition $edition,
-        public User $sender
+        public User $sender,
+        public string $token
     ) {}
 
     /**
@@ -33,12 +34,12 @@ class QRCodeTransferred extends Notification implements ShouldQueue
         $senderName = $this->sender->name;
 
         return (new MailMessage)
-            ->subject("Edition #{$editionNumber} of \"{$productName}\" Has Been Transferred to You!")
+            ->subject("Transfer Request: Edition #{$editionNumber} of \"{$productName}\"")
             ->greeting("Hello {$notifiable->name}!")
-            ->line("Great news! {$senderName} has transferred edition #{$editionNumber} of \"{$productName}\" to you.")
-            ->line('This edition is now in your collection.')
-            ->action('View Your Collection', route('dashboard'))
-            ->line('Enjoy your new edition!');
+            ->line("{$senderName} wants to transfer edition #{$editionNumber} of \"{$productName}\" to you.")
+            ->line('You have 48 hours to accept this transfer.')
+            ->action('Review Transfer', route('transfers.accept', $this->token))
+            ->line('If you do not accept within 48 hours, the transfer will be automatically cancelled.');
     }
 
     /**
@@ -53,7 +54,10 @@ class QRCodeTransferred extends Notification implements ShouldQueue
             'edition_number' => $this->edition->number,
             'sender_id' => $this->sender->id,
             'sender_name' => $this->sender->name,
-            'message' => "Edition #{$this->edition->number} of \"{$this->edition->product->name}\" has been transferred to you by {$this->sender->name}",
+            'token' => $this->token,
+            'type' => 'transfer_request',
+            'message' => "{$this->sender->name} sent you a transfer request for Edition #{$this->edition->number} of \"{$this->edition->product->name}\"",
+            'action_url' => route('transfers.accept', $this->token),
         ];
     }
 }

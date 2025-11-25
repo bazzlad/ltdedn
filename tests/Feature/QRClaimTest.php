@@ -255,8 +255,15 @@ class QRClaimTest extends TestCase
         $response->assertSessionHas('success');
 
         $edition->refresh();
-        $this->assertEquals($recipient->id, $edition->owner_id);
-        $this->assertEquals(ProductEditionStatus::Sold, $edition->status);
+        $this->assertEquals($owner->id, $edition->owner_id);
+        $this->assertEquals(ProductEditionStatus::PendingTransfer, $edition->status);
+
+        $this->assertDatabaseHas('product_edition_transfers', [
+            'product_edition_id' => $edition->id,
+            'sender_id' => $owner->id,
+            'recipient_id' => $recipient->id,
+            'status' => 'pending',
+        ]);
 
         Notification::assertSentTo($recipient, QRCodeTransferred::class);
     }

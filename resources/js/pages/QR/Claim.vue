@@ -109,20 +109,26 @@
                                     :action="qr.claim(edition.qr_code).url"
                                     method="post"
                                     class="w-full"
+                                    #default="{ processing }"
                                 >
                                     <Button
                                         type="submit"
-                                        class="group relative flex h-16 w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-8 text-xl font-extrabold text-white shadow-2xl shadow-green-500/50 transition-all hover:scale-[1.02] hover:shadow-green-500/60 focus:outline-none focus-visible:ring-4 focus-visible:ring-green-400 active:scale-[0.98] sm:h-20 sm:text-2xl"
+                                        :disabled="processing"
+                                        class="group relative flex h-16 w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-8 text-xl font-extrabold text-white shadow-2xl shadow-green-500/50 transition-all hover:scale-[1.02] hover:shadow-green-500/60 focus:outline-none focus-visible:ring-4 focus-visible:ring-green-400 active:scale-[0.98] sm:h-20 sm:text-2xl disabled:opacity-75 disabled:cursor-not-allowed"
                                     >
                                         <span class="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 opacity-0 transition-opacity group-hover:opacity-100"></span>
-                                        <svg class="relative z-10 h-7 w-7 sm:h-8 sm:w-8" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg v-if="!processing" class="relative z-10 h-7 w-7 sm:h-8 sm:w-8" fill="currentColor" viewBox="0 0 20 20">
                                             <path
                                                 fill-rule="evenodd"
                                                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                                                 clip-rule="evenodd"
                                             />
                                         </svg>
-                                        <span class="relative z-10">Claim This Edition</span>
+                                        <svg v-else class="animate-spin relative z-10 h-7 w-7 sm:h-8 sm:w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span class="relative z-10">{{ processing ? 'Claiming...' : 'Claim This Edition' }}</span>
                                     </Button>
                                 </Form>
 
@@ -149,8 +155,38 @@
                                 </div>
                             </div>
 
+                            <!-- Pending Transfer State -->
+                            <div v-if="isOwnedByCurrentUser && activeTransfer" class="rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-6 ring-1 ring-yellow-500/20 backdrop-blur-sm">
+                                <div class="mb-4 text-center">
+                                    <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-400">
+                                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-yellow-200">Transfer Pending</h3>
+                                    <p class="mt-1 text-sm text-yellow-200/80">
+                                        Waiting for {{ activeTransfer.recipient.name }} to accept.
+                                    </p>
+                                </div>
+                                <Form
+                                    :action="transfers.cancel(activeTransfer.token).url"
+                                    method="post"
+                                    #default="{ processing, submit }"
+                                >
+                                    <Button
+                                        type="button"
+                                        variant="danger"
+                                        class="w-full justify-center"
+                                        :disabled="processing"
+                                        @click="() => handleCancelTransfer(submit)"
+                                    >
+                                        {{ processing ? 'Cancelling...' : 'Cancel Transfer' }}
+                                    </Button>
+                                </Form>
+                            </div>
+
                             <!-- Transfer Button (for owners) -->
-                            <div v-if="isOwnedByCurrentUser">
+                            <div v-else-if="isOwnedByCurrentUser">
                                 <details class="overflow-hidden rounded-xl border border-neutral-200/50 bg-white/5 ring-1 ring-neutral-200/50 backdrop-blur-sm dark:border-neutral-800/50 dark:ring-neutral-800/50">
                                     <summary
                                         class="cursor-pointer p-4 text-sm font-semibold text-neutral-300 transition-colors hover:bg-white/10 hover:text-white sm:p-5 sm:text-base"
@@ -158,7 +194,12 @@
                                         Transfer Edition
                                     </summary>
                                     <div class="border-t border-neutral-200/50 p-4 sm:p-5 dark:border-neutral-800/50">
-                                        <Form :action="qr.transfer(edition.qr_code).url" method="post" class="space-y-4">
+                                        <Form 
+                                            :action="qr.transfer(edition.qr_code).url" 
+                                            method="post" 
+                                            class="space-y-4"
+                                            #default="{ processing }"
+                                        >
                                             <div>
                                                 <Label for="recipient_email" class="text-sm text-neutral-300">Recipient's Email</Label>
                                                 <Input
@@ -169,8 +210,24 @@
                                                     required
                                                     class="mt-2"
                                                 />
+                                                <p class="mt-2 text-xs text-neutral-400">
+                                                    Note: Transfers are only possible to existing accounts. Please ensure the recipient has signed up before initiating the transfer.
+                                                </p>
                                             </div>
-                                            <Button type="submit" variant="outline" class="w-full text-sm font-semibold sm:text-base"> Transfer Ownership </Button>
+                                            <Button 
+                                                type="submit" 
+                                                variant="outline" 
+                                                class="w-full text-sm font-semibold sm:text-base justify-center"
+                                                :disabled="processing"
+                                            >
+                                                <span v-if="processing" class="mr-2">
+                                                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                </span>
+                                                {{ processing ? 'Sending Request...' : 'Transfer Ownership' }}
+                                            </Button>
                                         </Form>
                                     </div>
                                 </details>
@@ -196,6 +253,7 @@ import Input from '@/components/ui/input/Input.vue';
 import Label from '@/components/ui/label/Label.vue';
 import { login, register } from '@/routes';
 import qr from '@/routes/qr';
+import transfers from '@/routes/transfers';
 import { Form, Link } from '@inertiajs/vue3';
 
 interface Props {
@@ -221,7 +279,19 @@ interface Props {
     isClaimed: boolean;
     isOwnedByCurrentUser: boolean;
     canClaim: boolean;
+    activeTransfer?: {
+        token: string;
+        recipient: {
+            name: string;
+        };
+    } | null;
 }
 
 defineProps<Props>();
+
+const handleCancelTransfer = (submit: (e?: Event) => void) => {
+    if (confirm('Are you sure you want to cancel this transfer? The recipient will be notified.')) {
+        submit();
+    }
+};
 </script>

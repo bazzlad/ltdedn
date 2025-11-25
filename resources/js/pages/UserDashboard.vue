@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import UserLayout from '@/layouts/UserLayout.vue';
 import qr from '@/routes/qr';
+import transfers from '@/routes/transfers';
 import { Head, Link } from '@inertiajs/vue3';
+import { formatDistanceToNow } from 'date-fns';
 
 interface ProductEdition {
     id: number;
@@ -22,6 +24,26 @@ interface ProductEdition {
     };
 }
 
+interface PendingTransfer {
+    id: number;
+    token: string;
+    expires_at: string;
+    status: string;
+    product_edition: {
+        number: number;
+        product: {
+            name: string;
+            cover_image: string | null;
+            artist: {
+                name: string;
+            };
+        };
+    };
+    sender: {
+        name: string;
+    };
+}
+
 interface Props {
     ownedEditions: {
         data: ProductEdition[];
@@ -34,6 +56,7 @@ interface Props {
         last_page: number;
         total: number;
     };
+    pendingTransfers: PendingTransfer[];
 }
 
 defineProps<Props>();
@@ -58,6 +81,79 @@ defineProps<Props>();
                 <div class="flex items-center gap-2">
                     <div class="h-2 w-2 rounded-full bg-green-500"></div>
                     <span>Verified Ownership</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Transfers Section -->
+        <div v-if="pendingTransfers.length > 0" class="mb-12 rounded-2xl border border-yellow-200/50 bg-gradient-to-br from-yellow-50/80 to-orange-50/50 p-8 shadow-lg ring-1 ring-yellow-200/50 dark:border-yellow-800/50 dark:from-yellow-900/20 dark:to-orange-900/20 dark:ring-yellow-800/50">
+            <div class="mb-8 text-center">
+                <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-600 ring-4 ring-yellow-500/10 dark:text-yellow-400">
+                    <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h2 class="mb-2 text-3xl font-extrabold text-yellow-900 dark:text-yellow-200">
+                    Pending Transfer{{ pendingTransfers.length !== 1 ? 's' : '' }}
+                </h2>
+                <p class="text-base text-yellow-800 dark:text-yellow-300">
+                    You have {{ pendingTransfers.length }} transfer request{{ pendingTransfers.length !== 1 ? 's' : '' }} waiting for your action
+                </p>
+            </div>
+
+            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div
+                    v-for="transfer in pendingTransfers"
+                    :key="transfer.id"
+                    class="group overflow-hidden rounded-xl border border-neutral-200/50 bg-white shadow-md ring-1 ring-black/5 transition-all hover:scale-[1.02] hover:shadow-xl dark:border-neutral-800/50 dark:bg-neutral-900 dark:ring-white/5"
+                >
+                    <!-- Product Image -->
+                    <div class="relative aspect-video bg-neutral-100 dark:bg-neutral-800">
+                        <img
+                            v-if="transfer.product_edition.product.cover_image"
+                            :src="transfer.product_edition.product.cover_image"
+                            :alt="transfer.product_edition.product.name"
+                            class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div v-else class="flex h-full w-full items-center justify-center">
+                            <svg class="h-12 w-12 text-neutral-400 dark:text-neutral-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M4 4h16v12H4V4zm2 2v8h12V6H6zm2 2h8v4H8V8z" />
+                            </svg>
+                        </div>
+
+                        <!-- Edition Badge -->
+                        <div class="absolute top-3 left-3">
+                            <div class="rounded-full bg-black/80 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
+                                #{{ transfer.product_edition.number }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transfer Info -->
+                    <div class="p-5">
+                        <h3 class="mb-1.5 text-lg font-bold text-neutral-900 dark:text-white">
+                            {{ transfer.product_edition.product.name }}
+                        </h3>
+                        <p class="mb-1 text-sm font-medium text-neutral-600 dark:text-neutral-400">
+                            by {{ transfer.product_edition.product.artist.name }}
+                        </p>
+                        <p class="mb-3 text-sm text-neutral-700 dark:text-neutral-300">
+                            From <span class="font-semibold">{{ transfer.sender.name }}</span>
+                        </p>
+                        <p class="mb-5 text-xs text-neutral-500 dark:text-neutral-500">
+                            Expires {{ formatDistanceToNow(new Date(transfer.expires_at), { addSuffix: true }) }}
+                        </p>
+
+                        <Link
+                            :href="transfers.accept(transfer.token).url"
+                            class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-500/30 transition-all hover:scale-105 hover:shadow-green-500/50 focus:outline-none focus-visible:ring-4 focus-visible:ring-green-400"
+                        >
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Review Transfer
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
@@ -184,7 +280,7 @@ defineProps<Props>();
         </div>
 
         <!-- Empty State -->
-        <div v-else class="py-20 text-center">
+        <div v-if="ownedEditions.data.length === 0 && pendingTransfers.length === 0" class="py-20 text-center">
             <div class="mx-auto mb-8 flex h-32 w-32 items-center justify-center rounded-full bg-neutral-100 ring-1 ring-neutral-200/50 dark:bg-neutral-800 dark:ring-neutral-700/50">
                 <svg class="h-16 w-16 text-neutral-400 dark:text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
