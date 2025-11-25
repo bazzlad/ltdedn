@@ -33,7 +33,9 @@ Route::get('dashboard', UserDashboardController::class)->middleware(['auth', 've
 */
 
 Route::get('/qr/{qrCode}', ShowQRController::class)->name('qr.show');
-Route::post('/qr/{qrCode}/claim', ClaimQRController::class)->middleware('auth')->name('qr.claim');
+Route::post('/qr/{qrCode}/claim', ClaimQRController::class)
+    ->middleware(['auth', 'throttle:10,1'])
+    ->name('qr.claim');
 Route::post('/qr/{qrCode}/transfer', TransferQRController::class)->middleware('auth')->name('qr.transfer');
 
 require __DIR__.'/admin.php';
