@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { dashboard, login, register } from '@/routes';
+import { dashboard, login, privacy, register, terms } from '@/routes';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 
 const LOGO_SVG = '/images/logo-sm.svg';
@@ -13,7 +13,7 @@ const user = page.props.auth?.user;
 <template>
     <Head title="LTD/EDN – Limited Editions">
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     </Head>
 
@@ -93,9 +93,9 @@ const user = page.props.auth?.user;
             <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-neutral-400 sm:flex-row lg:px-8">
                 <p>© {{ new Date().getFullYear() }} LTD/EDN. All rights reserved.</p>
                 <div class="flex items-center gap-4">
-                    <Link href="#" class="hover:text-neutral-200">Privacy</Link>
+                    <Link :href="privacy()" class="hover:text-neutral-200">Privacy</Link>
                     <span aria-hidden="true" class="text-white/20">•</span>
-                    <Link href="#" class="hover:text-neutral-200">Terms</Link>
+                    <Link :href="terms()" class="hover:text-neutral-200">Terms</Link>
                 </div>
             </div>
         </footer>
