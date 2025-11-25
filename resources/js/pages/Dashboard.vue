@@ -55,51 +55,46 @@ const breadcrumbs: BreadcrumbItem[] = [
         <div class="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
             <!-- Header -->
             <div>
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">My Digital Collection</h1>
-                <p class="mt-1 text-slate-600 dark:text-slate-400">
+                <h1 class="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">My Digital Collection</h1>
+                <p class="mt-2 text-base text-neutral-600 dark:text-neutral-400">
                     {{ ownedEditions.total }} edition{{ ownedEditions.total !== 1 ? 's' : '' }} owned
                 </p>
             </div>
 
             <!-- Editions Grid -->
-            <div v-if="ownedEditions.data.length > 0" class="space-y-6">
+            <div v-if="ownedEditions.data.length > 0" class="space-y-8">
                 <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     <div
                         v-for="edition in ownedEditions.data"
                         :key="edition.id"
-                        class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-800"
+                        class="group overflow-hidden rounded-xl border border-neutral-200/50 bg-white shadow-sm ring-1 ring-black/5 transition-all hover:shadow-lg hover:ring-black/10 dark:border-neutral-800/50 dark:bg-neutral-900 dark:ring-white/5 dark:hover:ring-white/10"
                     >
                         <!-- Product Image -->
-                        <div class="relative aspect-video bg-slate-100 dark:bg-slate-700">
+                        <div class="relative aspect-video bg-neutral-100 dark:bg-neutral-800">
                             <img
                                 v-if="edition.product.cover_image_url"
                                 :src="edition.product.cover_image_url"
                                 :alt="edition.product.name"
-                                class="h-full w-full object-cover"
+                                class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                             />
                             <div v-else class="flex h-full w-full items-center justify-center">
-                                <div class="text-center text-slate-400 dark:text-slate-500">
+                                <div class="text-center text-neutral-400 dark:text-neutral-600">
                                     <svg class="mx-auto mb-2 h-12 w-12" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M4 4h16v12H4V4zm2 2v8h12V6H6zm2 2h8v4H8V8z" />
                                     </svg>
-                                    <p class="text-sm">No image</p>
+                                    <p class="text-sm font-medium">No image</p>
                                 </div>
                             </div>
 
                             <!-- Status Badge -->
                             <div class="absolute top-3 right-3">
                                 <span
-                                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                    class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold shadow-sm backdrop-blur-sm"
                                     :class="{
-                                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300': edition.status === 'available',
-                                        'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300': edition.status === 'sold',
-                                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300':
-                                            edition.status === 'pending_transfer',
-                                        'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300': ![
-                                            'available',
-                                            'sold',
-                                            'pending_transfer',
-                                        ].includes(edition.status),
+                                        'bg-green-500/90 text-white': edition.status === 'available',
+                                        'bg-blue-500/90 text-white': edition.status === 'sold',
+                                        'bg-yellow-500/90 text-white': edition.status === 'pending_transfer',
+                                        'bg-neutral-500/90 text-white': !['available', 'sold', 'pending_transfer'].includes(edition.status),
                                     }"
                                 >
                                     {{
@@ -112,23 +107,23 @@ const breadcrumbs: BreadcrumbItem[] = [
                         </div>
 
                         <!-- Product Info -->
-                        <div class="p-4">
-                            <div class="mb-3">
-                                <h3 class="mb-1 font-semibold text-slate-900 dark:text-slate-100">
+                        <div class="p-5">
+                            <div class="mb-4">
+                                <h3 class="mb-1 text-lg font-bold text-neutral-900 dark:text-white">
                                     {{ edition.product.name }}
                                 </h3>
-                                <p class="mb-1 text-sm text-slate-600 dark:text-slate-400">by {{ edition.product.artist.name }}</p>
-                                <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Edition #{{ edition.number }}</p>
+                                <p class="mb-1.5 text-sm text-neutral-600 dark:text-neutral-400">by {{ edition.product.artist.name }}</p>
+                                <p class="text-sm font-semibold text-neutral-700 dark:text-neutral-300">Edition #{{ edition.number }}</p>
                             </div>
 
-                            <div class="flex items-center justify-between">
-                                <div class="text-xs text-slate-500 dark:text-slate-400">
+                            <div class="flex items-center justify-between border-t border-neutral-100 pt-4 dark:border-neutral-800">
+                                <div class="text-xs font-medium text-neutral-500 dark:text-neutral-500">
                                     Acquired {{ new Date(edition.created_at).toLocaleDateString() }}
                                 </div>
 
                                 <Link
                                     :href="qr.show(edition.qr_code).url"
-                                    class="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                                    class="inline-flex items-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-neutral-800 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 dark:bg-white dark:text-black dark:hover:bg-neutral-100 dark:focus-visible:ring-white"
                                 >
                                     <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -147,18 +142,18 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
 
                 <!-- Pagination -->
-                <div v-if="ownedEditions.last_page > 1" class="flex items-center justify-center space-x-1">
+                <div v-if="ownedEditions.last_page > 1" class="flex items-center justify-center gap-2">
                     <Link
                         v-for="link in ownedEditions.links"
                         :key="link.label"
                         :href="link.url || '#'"
                         :class="[
-                            'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                            'rounded-xl px-4 py-2 text-sm font-semibold transition-all',
                             link.active
-                                ? 'bg-blue-600 text-white'
+                                ? 'bg-neutral-900 text-white shadow-sm dark:bg-white dark:text-black'
                                 : link.url
-                                  ? 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
-                                  : 'cursor-not-allowed text-slate-400 dark:text-slate-500',
+                                  ? 'text-neutral-700 ring-1 ring-neutral-300 hover:bg-neutral-50 dark:text-neutral-300 dark:ring-neutral-700 dark:hover:bg-neutral-800'
+                                  : 'cursor-not-allowed text-neutral-400 ring-1 ring-neutral-200 dark:text-neutral-600 dark:ring-neutral-800',
                         ]"
                         :disabled="!link.url"
                     >
@@ -168,9 +163,9 @@ const breadcrumbs: BreadcrumbItem[] = [
             </div>
 
             <!-- Empty State -->
-            <div v-else class="py-12 text-center">
-                <div class="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
-                    <svg class="h-12 w-12 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div v-else class="py-20 text-center">
+                <div class="mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-full bg-neutral-100 ring-1 ring-neutral-200/50 dark:bg-neutral-800 dark:ring-neutral-700/50">
+                    <svg class="h-14 w-14 text-neutral-400 dark:text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
@@ -179,13 +174,13 @@ const breadcrumbs: BreadcrumbItem[] = [
                         />
                     </svg>
                 </div>
-                <h3 class="mb-2 text-lg font-medium text-slate-900 dark:text-slate-100">No editions owned yet</h3>
-                <p class="mb-4 text-slate-600 dark:text-slate-400">
+                <h3 class="mb-2 text-xl font-bold text-neutral-900 dark:text-white">No editions owned yet</h3>
+                <p class="mb-1 text-base text-neutral-600 dark:text-neutral-400">
                     Start building your digital collection by scanning QR codes from physical artworks.
                 </p>
-                <div class="text-sm text-slate-500 dark:text-slate-400">
+                <p class="text-sm text-neutral-500 dark:text-neutral-500">
                     Look for QR codes on art prints, collectibles, or other physical items to claim your digital editions.
-                </div>
+                </p>
             </div>
         </div>
     </AppLayout>
