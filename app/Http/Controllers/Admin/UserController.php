@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
+use App\Notifications\AccountCreatedByAdminNotification;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -37,7 +38,12 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request): RedirectResponse
     {
-        User::create($request->validated());
+        $data = $request->validated();
+        $plainPassword = $data['password'];
+
+        $user = User::create($data);
+
+        $user->notify(new AccountCreatedByAdminNotification($plainPassword, $user->role));
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User created successfully.');
@@ -66,6 +72,7 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
         $data = $request->validated();
+        $oldRole = $user->role;
 
         // Only update password if provided
         if (empty($data['password'])) {

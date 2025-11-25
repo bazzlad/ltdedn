@@ -79,7 +79,7 @@ class ProductController extends Controller
             $validated['cover_image'] = $request->file('cover_image')->store('products', 'public');
         }
 
-        Product::create($validated);
+        $product = Product::create($validated);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product created successfully.');

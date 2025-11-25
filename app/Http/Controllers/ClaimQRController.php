@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ProductEditionStatus;
+use App\Notifications\EditionsSoldOutNotification;
+use App\Notifications\QRCodeClaimed;
+use App\Notifications\QRCodeClaimedConfirmation;
 use App\Services\QRCodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -45,10 +48,25 @@ class ClaimQRController extends Controller
                 ->with('error', 'This edition is not available for claiming.');
         }
 
+        $edition->load('product.artist.owner');
+
         $edition->update([
             'owner_id' => $user->id,
             'status' => ProductEditionStatus::Sold,
         ]);
+
+        $user->notify(new QRCodeClaimedConfirmation($edition));
+
+        if ($edition->product->artist->owner) {
+            $edition->product->artist->owner->notify(
+                new QRCodeClaimed($edition, $user)
+            );
+        }
+
+        $availableCount = $edition->product->availableEditions()->count();
+        if ($availableCount === 0 && $edition->product->artist->owner) {
+            $edition->product->artist->owner->notify(new EditionsSoldOutNotification($edition->product));
+        }
 
         return redirect()->route('qr.show', $qrCode)
             ->with('success', "Congratulations! You now own edition #{$edition->number} of \"{$edition->product->name}\".");

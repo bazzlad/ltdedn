@@ -8,8 +8,9 @@ import type { BreadcrumbItemType } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 
 import { edit as productsEdit, index as productsIndex } from '@/routes/admin/products';
+import { index as editionsIndex } from '@/routes/admin/products/editions';
 import { formatDistanceToNow } from 'date-fns';
-import { ArrowLeft, Edit } from 'lucide-vue-next';
+import { ArrowLeft, Edit, Package } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface Artist {
@@ -203,6 +204,50 @@ const formatPrice = (price?: string | number) => {
                     </Card>
                 </div>
             </div>
+
+            <!-- Editions Overview -->
+            <Card>
+                <CardHeader>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <CardTitle>Editions</CardTitle>
+                            <p class="mt-1 text-sm text-muted-foreground">
+                                {{ product.count_editions }} total edition{{ product.count_editions === 1 ? '' : 's' }}
+                            </p>
+                        </div>
+                        <Button as-child>
+                            <Link :href="editionsIndex(product).url">
+                                <Package class="mr-2 h-4 w-4" />
+                                Manage Editions
+                            </Link>
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <div v-if="product.count_editions === 0" class="py-8 text-center">
+                        <p class="mb-4 text-muted-foreground">No editions created yet.</p>
+                        <Button as-child>
+                            <Link :href="editionsIndex(product).url">
+                                <Package class="mr-2 h-4 w-4" />
+                                Create editions
+                            </Link>
+                        </Button>
+                    </div>
+
+                    <div v-else>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="rounded-lg border bg-card p-6 text-card-foreground">
+                                <p class="text-sm text-muted-foreground">Available</p>
+                                <p class="text-3xl font-bold">{{ editionStats.available || 0 }}</p>
+                            </div>
+                            <div class="rounded-lg border bg-card p-6 text-card-foreground">
+                                <p class="text-sm text-muted-foreground">Claimed</p>
+                                <p class="text-3xl font-bold">{{ editionStats.claimed || 0 }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     </AdminLayout>
 </template>

@@ -8,8 +8,12 @@ use App\Models\Artist;
 use App\Models\Product;
 use App\Models\ProductEdition;
 use App\Models\User;
+use App\Notifications\QRCodeClaimed;
+use App\Notifications\QRCodeClaimedConfirmation;
+use App\Notifications\QRCodeTransferred;
 use App\Services\QRCodeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -106,14 +110,18 @@ class QRClaimTest extends TestCase
 
     public function test_authenticated_user_can_claim_available_edition(): void
     {
-        $user = User::factory()->create(['role' => UserRole::User]);
-        $artist = Artist::factory()->create();
+        Notification::fake();
+
+        $artistOwner = User::factory()->create(['role' => UserRole::Artist]);
+        $artist = Artist::factory()->create(['owner_id' => $artistOwner->id]);
         $product = Product::factory()->for($artist)->create();
         $edition = ProductEdition::factory()->for($product)->create([
             'number' => 1,
             'status' => ProductEditionStatus::Available,
             'owner_id' => null,
         ]);
+
+        $user = User::factory()->create(['role' => UserRole::User]);
 
         $response = $this->actingAs($user)->post(route('qr.claim', $edition->qr_code));
 
@@ -123,6 +131,9 @@ class QRClaimTest extends TestCase
         $edition->refresh();
         $this->assertEquals($user->id, $edition->owner_id);
         $this->assertEquals(ProductEditionStatus::Sold, $edition->status);
+
+        Notification::assertSentTo($user, QRCodeClaimedConfirmation::class);
+        Notification::assertSentTo($artistOwner, QRCodeClaimed::class);
     }
 
     public function test_user_cannot_claim_already_claimed_edition(): void
@@ -225,6 +236,8 @@ class QRClaimTest extends TestCase
 
     public function test_owner_can_transfer_edition(): void
     {
+        Notification::fake();
+
         $owner = User::factory()->create(['role' => UserRole::User]);
         $recipient = User::factory()->create(['role' => UserRole::User, 'email' => 'recipient@example.com']);
         $artist = Artist::factory()->create();
@@ -244,6 +257,8 @@ class QRClaimTest extends TestCase
         $edition->refresh();
         $this->assertEquals($recipient->id, $edition->owner_id);
         $this->assertEquals(ProductEditionStatus::Sold, $edition->status);
+
+        Notification::assertSentTo($recipient, QRCodeTransferred::class);
     }
 
     public function test_non_owner_cannot_transfer_edition(): void

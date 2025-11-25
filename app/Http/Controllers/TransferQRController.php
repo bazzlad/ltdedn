@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Notifications\QRCodeTransferred;
 use App\Services\QRCodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,12 +39,16 @@ class TransferQRController extends Controller
 
         $recipient = User::where('email', $request->recipient_email)->first();
 
+        $edition->load('product.artist');
+
         $edition->update([
             'owner_id' => $recipient->id,
             'status' => 'pending_transfer',
         ]);
 
         $edition->update(['status' => 'sold']);
+
+        $recipient->notify(new QRCodeTransferred($edition, $user));
 
         return redirect()->route('qr.show', $qrCode)
             ->with('success', "Edition successfully transferred to {$recipient->name} ({$recipient->email}).");
