@@ -6,8 +6,8 @@ import { Label } from '@/components/ui/label';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { useForm } from '@inertiajs/vue3';
-import { ArrowLeft } from 'lucide-vue-next';
-import { onMounted } from 'vue';
+import { ArrowLeft, Upload, X } from 'lucide-vue-next';
+import { onMounted, ref } from 'vue';
 
 interface Artist {
     id: number;
@@ -29,7 +29,7 @@ const form = useForm({
     name: '',
     slug: '',
     description: '',
-    cover_image_url: '',
+    cover_image: null as File | null,
     sell_through_ltdedn: false,
     is_limited: true,
     edition_size: undefined as number | undefined,
@@ -37,12 +37,32 @@ const form = useForm({
     is_public: false,
 });
 
+const imagePreview = ref<string | null>(null);
+
+const handleImageUpload = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+
+    if (file) {
+        form.cover_image = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imagePreview.value = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+const clearImage = () => {
+    form.cover_image = null;
+    imagePreview.value = null;
+};
+
 const submit = () => {
     form.post('/admin/products');
 };
 
 onMounted(() => {
-    // pre-select artist if there's only one available
     if (props.artists.length === 1) {
         form.artist_id = props.artists[0].id.toString();
     }
@@ -111,12 +131,45 @@ onMounted(() => {
                                 <p class="text-xs text-muted-foreground">Leave empty to auto-generate from name</p>
                             </div>
 
-                            <!-- Cover Image URL -->
+                            <!-- Cover Image Upload -->
                             <div class="space-y-2">
-                                <Label for="cover_image_url">Cover Image URL</Label>
-                                <Input id="cover_image_url" v-model="form.cover_image_url" type="url" placeholder="https://example.com/image.jpg" />
-                                <div v-if="form.errors.cover_image_url" class="text-sm text-red-600">
-                                    {{ form.errors.cover_image_url }}
+                                <Label for="cover_image">Cover Image</Label>
+                                <div v-if="imagePreview" class="relative mb-4 inline-block">
+                                    <img :src="imagePreview" alt="Cover preview" class="h-48 w-auto rounded-lg border object-cover" />
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="sm"
+                                        class="absolute right-2 top-2"
+                                        @click="clearImage"
+                                    >
+                                        <X class="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                <div v-else class="flex items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 p-12">
+                                    <div class="text-center">
+                                        <Upload class="mx-auto h-12 w-12 text-muted-foreground" />
+                                        <div class="mt-4 flex text-sm leading-6 text-muted-foreground">
+                                            <label
+                                                for="cover_image"
+                                                class="relative cursor-pointer rounded-md font-semibold text-primary hover:text-primary/80"
+                                            >
+                                                <span>Upload a file</span>
+                                                <input
+                                                    id="cover_image"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    class="sr-only"
+                                                    @change="handleImageUpload"
+                                                />
+                                            </label>
+                                            <p class="pl-1">or drag and drop</p>
+                                        </div>
+                                        <p class="text-xs leading-5 text-muted-foreground">PNG, JPG, GIF up to 10MB</p>
+                                    </div>
+                                </div>
+                                <div v-if="form.errors.cover_image" class="text-sm text-red-600">
+                                    {{ form.errors.cover_image }}
                                 </div>
                             </div>
 

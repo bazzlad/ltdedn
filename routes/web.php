@@ -4,10 +4,15 @@ use App\Http\Controllers\ClaimQRController;
 use App\Http\Controllers\ShowQRController;
 use App\Http\Controllers\TransferQRController;
 use App\Http\Controllers\UserDashboardController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    }
+
     return Inertia::render('Welcome');
 })->name('home');
 

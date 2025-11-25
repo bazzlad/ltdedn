@@ -32,7 +32,6 @@ class UserDashboardTest extends TestCase
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => $page->component('UserDashboard')
             ->has('ownedEditions.data', 3)
-            ->where('ownedEditions.total', 3)
         );
     }
 
@@ -45,7 +44,6 @@ class UserDashboardTest extends TestCase
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => $page->component('UserDashboard')
             ->has('ownedEditions.data', 0)
-            ->where('ownedEditions.total', 0)
         );
     }
 

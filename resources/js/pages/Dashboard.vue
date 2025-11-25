@@ -16,7 +16,7 @@ interface ProductEdition {
         name: string;
         slug: string;
         description: string | null;
-        cover_image_url: string | null;
+        cover_image: string | null;
         artist: {
             id: number;
             name: string;
@@ -72,8 +72,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <!-- Product Image -->
                         <div class="relative aspect-video bg-neutral-100 dark:bg-neutral-800">
                             <img
-                                v-if="edition.product.cover_image_url"
-                                :src="edition.product.cover_image_url"
+                                v-if="edition.product.cover_image"
+                                :src="edition.product.cover_image"
                                 :alt="edition.product.name"
                                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                             />

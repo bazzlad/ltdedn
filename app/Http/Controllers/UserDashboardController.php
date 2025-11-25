@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ProductEditionResource;
 use App\Models\ProductEdition;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +21,7 @@ class UserDashboardController extends Controller
             ->paginate(12);
 
         return Inertia::render('UserDashboard', [
-            'ownedEditions' => $ownedEditions,
+            'ownedEditions' => ProductEditionResource::collection($ownedEditions),
         ]);
     }
 }

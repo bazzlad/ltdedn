@@ -14,7 +14,6 @@ class UpdateProductRequest extends FormRequest
     {
         $this->merge([
             'artist_id' => (int) $this->artist_id,
-            'cover_image_url' => $this->cover_image_url === '' ? null : $this->cover_image_url,
             'sell_through_ltdedn' => $this->boolean('sell_through_ltdedn'),
             'is_limited' => $this->boolean('is_limited'),
             'is_public' => $this->boolean('is_public'),
@@ -41,7 +40,7 @@ class UpdateProductRequest extends FormRequest
                 Rule::unique('products', 'slug')->ignore($productId),
             ],
             'description' => ['nullable', 'string'],
-            'cover_image_url' => ['nullable', 'url', 'max:500'],
+            'cover_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:10240'],
             'sell_through_ltdedn' => ['boolean'],
             'is_limited' => ['boolean'],
             'edition_size' => ['nullable', 'integer', 'min:1'],
@@ -62,7 +61,9 @@ class UpdateProductRequest extends FormRequest
             'artist_id.exists' => 'The selected artist is invalid.',
             'name.required' => 'The product name is required.',
             'slug.unique' => 'This slug is already taken.',
-            'cover_image_url.url' => 'The cover image must be a valid URL.',
+            'cover_image.image' => 'The cover image must be an image file.',
+            'cover_image.mimes' => 'The cover image must be a JPEG, PNG, GIF, or WebP file.',
+            'cover_image.max' => 'The cover image must not be larger than 10MB.',
             'edition_size.integer' => 'Edition size must be a number.',
             'edition_size.min' => 'Edition size must be at least 1.',
             'base_price.numeric' => 'The base price must be a valid number.',

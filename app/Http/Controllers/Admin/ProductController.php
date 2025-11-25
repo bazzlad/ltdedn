@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\IndexProductRequest;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
+use App\Http\Resources\ProductResource;
 use App\Models\Artist;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -45,7 +47,7 @@ class ProductController extends Controller
         $products = $query->paginate(15);
 
         return Inertia::render('Admin/Products/Index', [
-            'products' => $products,
+            'products' => ProductResource::collection($products),
             'filters' => $request->validated(),
         ]);
     }
@@ -71,7 +73,13 @@ class ProductController extends Controller
     {
         $this->authorize('create', [Product::class, $request->validated('artist_id')]);
 
-        Product::create($request->validated());
+        $validated = $request->validated();
+
+        if ($request->hasFile('cover_image')) {
+            $validated['cover_image'] = $request->file('cover_image')->store('products', 'public');
+        }
+
+        Product::create($validated);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product created successfully.');
@@ -90,7 +98,7 @@ class ProductController extends Controller
             ->toArray();
 
         return Inertia::render('Admin/Products/Show', [
-            'product' => $product,
+            'product' => new ProductResource($product),
             'editionStats' => $editionStats,
         ]);
     }
@@ -110,7 +118,7 @@ class ProductController extends Controller
         $product->load('artist');
 
         return Inertia::render('Admin/Products/Edit', [
-            'product' => $product,
+            'product' => new ProductResource($product),
             'artists' => $artists,
         ]);
     }
@@ -119,7 +127,17 @@ class ProductController extends Controller
     {
         $this->authorize('update', $product);
 
-        $product->update($request->validated());
+        $validated = $request->validated();
+
+        if ($request->hasFile('cover_image')) {
+            if ($product->cover_image && Storage::disk('public')->exists($product->cover_image)) {
+                Storage::disk('public')->delete($product->cover_image);
+            }
+
+            $validated['cover_image'] = $request->file('cover_image')->store('products', 'public');
+        }
+
+        $product->update($validated);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product updated successfully.');
@@ -128,6 +146,10 @@ class ProductController extends Controller
     public function destroy(Product $product): RedirectResponse
     {
         $this->authorize('delete', $product);
+
+        if ($product->cover_image && Storage::disk('public')->exists($product->cover_image)) {
+            Storage::disk('public')->delete($product->cover_image);
+        }
 
         $product->delete();
 

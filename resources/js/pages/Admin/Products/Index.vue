@@ -27,7 +27,7 @@ interface Product {
     name: string;
     slug: string;
     description?: string;
-    cover_image_url?: string;
+    cover_image?: string;
     sell_through_ltdedn: boolean;
     is_limited: boolean;
     edition_size?: number;
@@ -242,8 +242,11 @@ const deleteProduct = (productId: number) => {
                                         <TableCell class="font-medium">
                                             <Link :href="`/admin/products/${product.id}`">
                                                 <div class="flex items-center space-x-3">
-                                                    <div class="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-                                                        <Package class="h-4 w-4" />
+                                                    <div v-if="product.cover_image" class="h-12 w-12 flex-shrink-0 overflow-hidden rounded">
+                                                        <img :src="product.cover_image" :alt="product.name" class="h-full w-full object-cover" />
+                                                    </div>
+                                                    <div v-else class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded bg-muted">
+                                                        <Package class="h-5 w-5 text-muted-foreground" />
                                                     </div>
                                                     <div>
                                                         <div class="font-medium">{{ product.name }}</div>

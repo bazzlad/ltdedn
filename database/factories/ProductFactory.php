@@ -19,7 +19,7 @@ class ProductFactory extends Factory
         return [
             'name' => fake()->sentence(2, false),
             'description' => fake()->optional()->paragraph(),
-            'cover_image_url' => fake()->optional()->imageUrl(400, 400, 'music'),
+            'cover_image' => fake()->optional()->imageUrl(400, 400, 'music'),
             'sell_through_ltdedn' => fake()->boolean(30),
             'is_limited' => fake()->boolean(80),
             'edition_size' => fake()->optional(70)->numberBetween(10, 500),

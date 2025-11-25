@@ -40,7 +40,7 @@ class ClaimQRController extends Controller
                 ->with('error', 'This edition has already been claimed by someone else.');
         }
 
-        if (!$edition->isAvailable()) {
+        if (! $edition->isAvailable()) {
             return redirect()->route('qr.show', $qrCode)
                 ->with('error', 'This edition is not available for claiming.');
         }
