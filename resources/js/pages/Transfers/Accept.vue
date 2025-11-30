@@ -139,7 +139,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import Button from '@/components/ui/button/Button.vue';
 import { computed } from 'vue';
 import { formatDistanceToNow } from 'date-fns';
-import transfers from '@/routes/transfers';
+import { accept, reject } from '@/routes/transfers';
 
 const props = defineProps<{
     transfer: {
@@ -167,12 +167,12 @@ const acceptForm = useForm({});
 const rejectForm = useForm({});
 
 const acceptTransfer = () => {
-    acceptForm.post(transfers.accept(props.transfer.token).url);
+    acceptForm.post(accept(props.transfer.token).url);
 };
 
 const rejectTransfer = () => {
     if (window.confirm('Are you sure you want to reject this transfer? The edition will be returned to the sender.')) {
-        rejectForm.post(transfers.reject(props.transfer.token).url);
+        rejectForm.post(reject(props.transfer.token).url);
     }
 };
 

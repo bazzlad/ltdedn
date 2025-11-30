@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import UserLayout from '@/layouts/UserLayout.vue';
-import qr from '@/routes/qr';
-import transfers from '@/routes/transfers';
+import { show as qrShow } from '@/routes/qr';
+import { accept as transfersAccept } from '@/routes/transfers';
 import { Head, Link } from '@inertiajs/vue3';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -145,7 +145,7 @@ defineProps<Props>();
                         </p>
 
                         <Link
-                            :href="transfers.accept(transfer.token).url"
+                            :href="transfersAccept(transfer.token).url"
                             class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-500/30 transition-all hover:scale-105 hover:shadow-green-500/50 focus:outline-none focus-visible:ring-4 focus-visible:ring-green-400"
                         >
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,7 +212,7 @@ defineProps<Props>();
                         >
                             <div class="absolute right-4 bottom-4 left-4">
                                 <Link
-                                    :href="qr.show(edition.qr_code).url"
+                                    :href="qrShow(edition.qr_code).url"
                                     class="flex w-full items-center justify-center rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-black shadow-lg backdrop-blur-sm transition-all hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                                 >
                                     <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
