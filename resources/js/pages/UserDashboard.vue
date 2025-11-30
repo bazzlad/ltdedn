@@ -108,14 +108,14 @@ defineProps<Props>();
                     class="group overflow-hidden rounded-xl border border-neutral-200/50 bg-white shadow-md ring-1 ring-black/5 transition-all hover:scale-[1.02] hover:shadow-xl dark:border-neutral-800/50 dark:bg-neutral-900 dark:ring-white/5"
                 >
                     <!-- Product Image -->
-                    <div class="relative aspect-video bg-neutral-100 dark:bg-neutral-800">
+                    <div class="relative bg-neutral-100 dark:bg-neutral-800">
                         <img
                             v-if="transfer.product_edition.product.cover_image"
                             :src="transfer.product_edition.product.cover_image"
                             :alt="transfer.product_edition.product.name"
-                            class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            class="h-auto w-full object-contain transition-transform duration-300 group-hover:scale-105"
                         />
-                        <div v-else class="flex h-full w-full items-center justify-center">
+                        <div v-else class="flex aspect-video h-full w-full items-center justify-center">
                             <svg class="h-12 w-12 text-neutral-400 dark:text-neutral-600" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M4 4h16v12H4V4zm2 2v8h12V6H6zm2 2h8v4H8V8z" />
                             </svg>
@@ -168,14 +168,14 @@ defineProps<Props>();
                     class="group relative overflow-hidden rounded-xl border border-neutral-200/50 bg-white shadow-sm ring-1 ring-black/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:ring-black/10 dark:border-neutral-800/50 dark:bg-neutral-900 dark:ring-white/5 dark:hover:ring-white/10"
                 >
                     <!-- Product Image -->
-                    <div class="relative aspect-[4/5] overflow-hidden bg-neutral-100 dark:bg-neutral-800">
+                    <div class="relative overflow-hidden bg-neutral-100 dark:bg-neutral-800">
                         <img
                             v-if="edition.product.cover_image"
                             :src="edition.product.cover_image"
                             :alt="edition.product.name"
-                            class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            class="h-auto w-full object-contain transition-transform duration-300 group-hover:scale-105"
                         />
-                        <div v-else class="flex h-full w-full items-center justify-center">
+                        <div v-else class="flex aspect-[4/5] h-full w-full items-center justify-center">
                             <div class="text-center text-neutral-400 dark:text-neutral-600">
                                 <svg class="mx-auto mb-4 h-16 w-16" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M4 4h16v12H4V4zm2 2v8h12V6H6zm2 2h8v4H8V8z" />
