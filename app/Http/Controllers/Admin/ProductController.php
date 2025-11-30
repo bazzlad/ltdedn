@@ -44,10 +44,10 @@ class ProductController extends Controller
             $query->whereIn('artist_id', $user->ownedArtists()->select('id'));
         }
 
-        $products = $query->paginate(15);
+        $products = $query->paginate(15)->through(fn ($product) => new ProductResource($product));
 
         return Inertia::render('Admin/Products/Index', [
-            'products' => ProductResource::collection($products),
+            'products' => $products,
             'filters' => $request->validated(),
         ]);
     }

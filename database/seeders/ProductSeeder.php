@@ -29,6 +29,7 @@ class ProductSeeder extends Seeder
                 'name' => 'Arno Poot',
                 'password' => bcrypt('password'),
                 'role' => UserRole::Admin,
+                'email_verified_at' => now(),
             ]
         );
 
@@ -38,6 +39,7 @@ class ProductSeeder extends Seeder
                 'name' => 'Richard Barrington-Hill',
                 'password' => bcrypt('password'),
                 'role' => UserRole::Admin,
+                'email_verified_at' => now(),
             ]
         );
 
@@ -47,6 +49,7 @@ class ProductSeeder extends Seeder
                 'name' => 'Darren',
                 'password' => bcrypt('password'),
                 'role' => UserRole::Admin,
+                'email_verified_at' => now(),
             ]
         );
 

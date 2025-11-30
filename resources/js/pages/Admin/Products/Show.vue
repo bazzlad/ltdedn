@@ -21,14 +21,16 @@ interface Artist {
 interface Product {
     id: number;
     artist_id: number;
-    title: string;
+    name: string;
     slug: string;
     description?: string;
-    price?: string | number;
-    status: string;
-    type?: string;
-    release_date?: string;
-    count_editions?: number;
+    base_price?: string | number;
+    sell_through_ltdedn: boolean;
+    is_limited: boolean;
+    edition_size?: number;
+    is_public: boolean;
+    cover_image?: string | null;
+    editions_count?: number;
     created_at: string;
     updated_at: string;
     artist: Artist;
@@ -49,56 +51,6 @@ const breadcrumbs: BreadcrumbItemType[] = [
     { title: 'View Product', href: '#' },
 ];
 
-const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-        case 'published':
-        case 'available':
-            return 'default';
-        case 'draft':
-        case 'sold_out':
-            return 'secondary';
-        case 'archived':
-        case 'discontinued':
-            return 'outline';
-        default:
-            return 'secondary';
-    }
-};
-const getStatusLabel = (status: string) => {
-    switch (status) {
-        case 'published':
-            return 'Published';
-        case 'draft':
-            return 'Draft';
-        case 'archived':
-            return 'Archived';
-        case 'available':
-            return 'Available';
-        case 'sold_out':
-            return 'Sold Out';
-        case 'discontinued':
-            return 'Discontinued';
-        default:
-            return status;
-    }
-};
-const getTypeLabel = (type?: string) => {
-    if (!type) return '-';
-    switch (type) {
-        case 'album':
-            return 'Album';
-        case 'single':
-            return 'Single';
-        case 'ep':
-            return 'EP';
-        case 'merchandise':
-            return 'Merchandise';
-        case 'other':
-            return 'Other';
-        default:
-            return type;
-    }
-};
 const formatPrice = (price?: string | number) => {
     if (price == null || price === '') return '-';
     const n = typeof price === 'number' ? price : parseFloat(price);
@@ -117,7 +69,7 @@ const formatPrice = (price?: string | number) => {
                     </Link>
                 </Button>
                 <div class="flex-1">
-                    <h2 class="text-3xl font-bold tracking-tight">{{ product.title }}</h2>
+                    <h2 class="text-3xl font-bold tracking-tight">{{ product.name }}</h2>
                     <p class="text-muted-foreground">Product details and edition management</p>
                 </div>
                 <Button as-child>
@@ -138,8 +90,8 @@ const formatPrice = (price?: string | number) => {
                         <CardContent class="space-y-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <h4 class="text-sm font-medium text-muted-foreground">Title</h4>
-                                    <p class="font-medium">{{ product.title }}</p>
+                                    <h4 class="text-sm font-medium text-muted-foreground">Name</h4>
+                                    <p class="font-medium">{{ product.name }}</p>
                                 </div>
                                 <div>
                                     <h4 class="text-sm font-medium text-muted-foreground">Artist</h4>
@@ -153,25 +105,37 @@ const formatPrice = (price?: string | number) => {
                                     <p v-else class="font-medium">{{ product.artist.name }}</p>
                                 </div>
                                 <div>
-                                    <h4 class="text-sm font-medium text-muted-foreground">Type</h4>
-                                    <p>{{ getTypeLabel(product.type) }}</p>
+                                    <h4 class="text-sm font-medium text-muted-foreground">Base Price</h4>
+                                    <p>{{ formatPrice(product.base_price) }}</p>
                                 </div>
                                 <div>
-                                    <h4 class="text-sm font-medium text-muted-foreground">Status</h4>
-                                    <Badge :variant="getStatusBadgeVariant(product.status)">
-                                        {{ getStatusLabel(product.status) }}
+                                    <h4 class="text-sm font-medium text-muted-foreground">Edition Size</h4>
+                                    <p v-if="product.edition_size">{{ product.edition_size }}</p>
+                                    <p v-else class="text-muted-foreground">Open Edition</p>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-medium text-muted-foreground">Limited Edition</h4>
+                                    <Badge :variant="product.is_limited ? 'default' : 'secondary'">
+                                        {{ product.is_limited ? 'Yes' : 'No' }}
                                     </Badge>
                                 </div>
                                 <div>
-                                    <h4 class="text-sm font-medium text-muted-foreground">Price</h4>
-                                    <p>{{ formatPrice(product.price) }}</p>
+                                    <h4 class="text-sm font-medium text-muted-foreground">Public</h4>
+                                    <Badge :variant="product.is_public ? 'default' : 'secondary'">
+                                        {{ product.is_public ? 'Yes' : 'No' }}
+                                    </Badge>
                                 </div>
                                 <div>
-                                    <h4 class="text-sm font-medium text-muted-foreground">Release Date</h4>
-                                    <p v-if="product.release_date">
-                                        {{ new Date(product.release_date).toLocaleDateString() }}
-                                    </p>
-                                    <p v-else class="text-muted-foreground">Not set</p>
+                                    <h4 class="text-sm font-medium text-muted-foreground">Sell Through LTD/EDN</h4>
+                                    <Badge :variant="product.sell_through_ltdedn ? 'default' : 'secondary'">
+                                        {{ product.sell_through_ltdedn ? 'Yes' : 'No' }}
+                                    </Badge>
+                                </div>
+                                <div v-if="product.cover_image">
+                                    <h4 class="text-sm font-medium text-muted-foreground">Cover Image</h4>
+                                    <a :href="product.cover_image" target="_blank" class="text-sm text-blue-600 hover:underline">
+                                        View Image
+                                    </a>
                                 </div>
                             </div>
                             <div v-if="product.description">
@@ -212,7 +176,7 @@ const formatPrice = (price?: string | number) => {
                         <div>
                             <CardTitle>Editions</CardTitle>
                             <p class="mt-1 text-sm text-muted-foreground">
-                                {{ product.count_editions }} total edition{{ product.count_editions === 1 ? '' : 's' }}
+                                {{ product.editions_count }} total edition{{ product.editions_count === 1 ? '' : 's' }}
                             </p>
                         </div>
                         <Button as-child>
@@ -224,7 +188,7 @@ const formatPrice = (price?: string | number) => {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div v-if="product.count_editions === 0" class="py-8 text-center">
+                    <div v-if="product.editions_count === 0" class="py-8 text-center">
                         <p class="mb-4 text-muted-foreground">No editions created yet.</p>
                         <Button as-child>
                             <Link :href="editionsIndex(product).url">
