@@ -88,7 +88,7 @@
                             <div v-if="canClaim">
                                 <Form
                                     v-if="$page.props.auth.user"
-                                    :action="qr.claim(edition.qr_code).url"
+                                    :action="qrClaim(edition.qr_code).url"
                                     method="post"
                                     class="w-full"
                                     #default="{ processing }"
@@ -122,13 +122,13 @@
                                     </div>
                                     <div class="flex flex-col gap-2.5 sm:flex-row sm:gap-3">
                                         <Link
-                                            :href="login({ query: { intended: qr.show(edition.qr_code).url } }).url"
+                                            :href="login({ query: { intended: qrShow(edition.qr_code).url } }).url"
                                             class="inline-flex flex-1 items-center justify-center rounded-xl bg-white px-4 py-3 text-sm font-bold text-black shadow-lg transition-all hover:scale-[1.02] hover:bg-neutral-100 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-[0.98] sm:px-6 sm:text-base"
                                         >
                                             Log In to Claim
                                         </Link>
                                         <Link
-                                            :href="register({ query: { intended: qr.show(edition.qr_code).url } }).url"
+                                            :href="register({ query: { intended: qrShow(edition.qr_code).url } }).url"
                                             class="inline-flex flex-1 items-center justify-center rounded-xl px-4 py-3 text-sm font-bold text-white ring-2 ring-white/30 transition-all hover:scale-[1.02] hover:bg-white/10 hover:ring-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-[0.98] sm:px-6 sm:text-base"
                                         >
                                             Sign Up
@@ -151,7 +151,7 @@
                                     </p>
                                 </div>
                                 <Form
-                                    :action="transfers.cancel(activeTransfer.token).url"
+                                    :action="transfersCancel(activeTransfer.token).url"
                                     method="post"
                                     #default="{ processing, submit }"
                                 >
@@ -177,7 +177,7 @@
                                     </summary>
                                     <div class="border-t border-neutral-200/50 p-3 dark:border-neutral-800/50">
                                         <Form
-                                            :action="qr.transfer(edition.qr_code).url"
+                                            :action="qrTransfer(edition.qr_code).url"
                                             method="post"
                                             class="space-y-3"
                                             #default="{ processing }"
@@ -234,8 +234,8 @@ import Button from '@/components/ui/button/Button.vue';
 import Input from '@/components/ui/input/Input.vue';
 import Label from '@/components/ui/label/Label.vue';
 import { login, register } from '@/routes';
-import qr from '@/routes/qr';
-import transfers from '@/routes/transfers';
+import { claim as qrClaim, show as qrShow, transfer as qrTransfer } from '@/routes/qr';
+import { cancel as transfersCancel } from '@/routes/transfers';
 import { Form, Link } from '@inertiajs/vue3';
 
 interface Props {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
-import qr from '@/routes/qr';
+import { show as qrShow } from '@/routes/qr';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
 
@@ -122,7 +122,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 </div>
 
                                 <Link
-                                    :href="qr.show(edition.qr_code).url"
+                                    :href="qrShow(edition.qr_code).url"
                                     class="inline-flex items-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-neutral-800 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 dark:bg-white dark:text-black dark:hover:bg-neutral-100 dark:focus-visible:ring-white"
                                 >
                                     <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
