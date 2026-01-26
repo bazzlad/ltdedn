@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
+            'password' => \App\Http\Middleware\SimplePasswordProtection::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
