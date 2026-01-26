@@ -2,6 +2,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { generateAndDownloadQR } from '@/composables/useQRCode';
 import AdminLayout from '@/layouts/AdminLayout.vue';
@@ -9,7 +10,7 @@ import { qrBatchPdf } from '@/routes/admin/products/editions';
 import type { BreadcrumbItemType } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
 import { formatDistanceToNow } from 'date-fns';
-import { ArrowLeft, Hash, Plus, QrCodeIcon, SquarePen, Trash2, User } from 'lucide-vue-next';
+import { ArrowLeft, Download, Hash, Plus, QrCodeIcon, Share2, SquarePen, Trash2, User } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 interface Artist {
@@ -115,10 +116,30 @@ const deleteEdition = (editionId: number, editionNumber: number) => {
     }
 };
 
-const downloadQrCode = async (editionQr: string, editionId: number, editionNumber: number) => {
+const qrModalOpen = ref(false);
+const selectedEdition = ref<Edition | null>(null);
+
+const selectedEditionQrUrl = computed(() => {
+    if (!selectedEdition.value) return '';
+    return `${window.location.origin}/qr/${selectedEdition.value.qr_code}`;
+});
+
+const openQrModal = (edition: Edition) => {
+    selectedEdition.value = edition;
+    qrModalOpen.value = true;
+};
+
+const closeQrModal = () => {
+    qrModalOpen.value = false;
+    selectedEdition.value = null;
+};
+
+const downloadQrCode = async () => {
+    if (!selectedEdition.value) return;
+
     try {
-        const filename = `qr_${editionId}_${editionNumber}_qrcode.png`;
-        await generateAndDownloadQR(editionQr, filename);
+        const filename = `qr_${selectedEdition.value.id}_${selectedEdition.value.number}_qrcode.png`;
+        await generateAndDownloadQR(selectedEdition.value.qr_code, filename);
     } catch (error) {
         console.error('Failed to download QR code:', error);
     }
@@ -327,11 +348,11 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                                                     </Link>
                                                 </Button>
                                                 <Button
-                                                    title="Download QR Code"
+                                                    title="View QR Code"
                                                     size="sm"
                                                     variant="ghost"
-                                                    @click="downloadQrCode(edition.qr_code, edition.id, edition.number)"
-                                                    class="text-white-600"
+                                                    @click="openQrModal(edition)"
+                                                    class="text-blue-600 hover:text-blue-700"
                                                 >
                                                     <QrCodeIcon class="h-3 w-3" />
                                                 </Button>
@@ -394,5 +415,51 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                 </CardContent>
             </Card>
         </div>
+
+        <!-- QR Code Modal -->
+        <Dialog :open="qrModalOpen" @update:open="closeQrModal">
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>QR Code - Edition #{{ selectedEdition?.number }}</DialogTitle>
+                    <DialogDescription>
+                        {{ product.name }}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div class="flex flex-col items-center gap-6 py-4">
+                    <!-- QR Code Display -->
+                    <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-neutral-200">
+                        <div v-if="selectedEditionQrUrl" class="qr-code-container">
+                            <img
+                                :src="`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(selectedEditionQrUrl)}`"
+                                alt="QR Code"
+                                class="h-64 w-64"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- QR Code Info -->
+                    <div class="w-full space-y-2 text-center">
+                        <div class="text-sm font-medium text-muted-foreground">
+                            Edition #{{ selectedEdition?.number }}
+                        </div>
+                        <div class="break-all px-4 font-mono text-xs text-muted-foreground">
+                            {{ selectedEditionQrUrl }}
+                        </div>
+                    </div>
+                </div>
+
+                <DialogFooter class="flex-col gap-2 sm:flex-col sm:space-x-0">
+                    <Button @click="downloadQrCode" class="w-full" variant="default">
+                        <Download class="mr-2 h-4 w-4" />
+                        Download QR Code
+                    </Button>
+                    <Button variant="outline" class="w-full" disabled>
+                        <Share2 class="mr-2 h-4 w-4" />
+                        Share (Coming Soon)
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AdminLayout>
 </template>

@@ -8,6 +8,8 @@ use App\Models\Product;
 use App\Models\ProductEdition;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -399,5 +401,174 @@ class ProductTest extends TestCase
             'name' => '',
         ]);
         $response->assertSessionHasErrors(['artist_id', 'name']);
+    }
+
+    public function test_admin_can_create_product_with_image(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $artist = Artist::factory()->create();
+
+        $file = UploadedFile::fake()->image('cover.jpg', 400, 400);
+
+        $productData = [
+            'artist_id' => $artist->id,
+            'name' => 'Product with Image',
+            'description' => 'Test description',
+            'cover_image' => $file,
+            'sell_through_ltdedn' => true,
+            'is_limited' => true,
+            'edition_size' => 100,
+            'base_price' => 29.99,
+            'is_public' => false,
+        ];
+
+        $response = $this->actingAs($admin)->post('/admin/products', $productData);
+
+        $response->assertRedirect('/admin/products');
+        $response->assertSessionHas('success');
+
+        $product = Product::where('name', 'Product with Image')->first();
+        $this->assertNotNull($product);
+        $this->assertNotNull($product->cover_image);
+
+        Storage::disk('public')->assertExists($product->cover_image);
+    }
+
+    public function test_admin_can_update_product_with_new_image(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $artist = Artist::factory()->create();
+
+        $oldFile = UploadedFile::fake()->image('old-cover.jpg');
+        $oldPath = $oldFile->store('products', 'public');
+
+        $product = Product::factory()->for($artist)->create([
+            'name' => 'Original Name',
+            'cover_image' => $oldPath,
+        ]);
+
+        $newFile = UploadedFile::fake()->image('new-cover.jpg', 400, 400);
+
+        $updateData = [
+            'artist_id' => $artist->id,
+            'name' => 'Updated Name',
+            'description' => $product->description,
+            'cover_image' => $newFile,
+            'sell_through_ltdedn' => $product->sell_through_ltdedn,
+            'is_limited' => $product->is_limited,
+            'is_public' => $product->is_public,
+        ];
+
+        $response = $this->actingAs($admin)->put("/admin/products/{$product->id}", $updateData);
+        $response->assertRedirect('/admin/products');
+
+        $product->refresh();
+
+        $this->assertNotEquals($oldPath, $product->cover_image);
+        Storage::disk('public')->assertMissing($oldPath);
+        Storage::disk('public')->assertExists($product->cover_image);
+    }
+
+    public function test_product_image_is_deleted_when_product_is_deleted(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $artist = Artist::factory()->create();
+
+        $file = UploadedFile::fake()->image('cover.jpg');
+        $path = $file->store('products', 'public');
+
+        $product = Product::factory()->for($artist)->create([
+            'cover_image' => $path,
+        ]);
+
+        Storage::disk('public')->assertExists($path);
+
+        $response = $this->actingAs($admin)->delete("/admin/products/{$product->id}");
+        $response->assertRedirect('/admin/products');
+
+        Storage::disk('public')->assertMissing($path);
+    }
+
+    public function test_product_image_validation_rejects_non_image_files(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $artist = Artist::factory()->create();
+
+        $file = UploadedFile::fake()->create('document.pdf', 100);
+
+        $productData = [
+            'artist_id' => $artist->id,
+            'name' => 'Product with PDF',
+            'cover_image' => $file,
+            'sell_through_ltdedn' => false,
+            'is_limited' => false,
+            'is_public' => false,
+        ];
+
+        $response = $this->actingAs($admin)->post('/admin/products', $productData);
+        $response->assertSessionHasErrors(['cover_image']);
+    }
+
+    public function test_product_image_validation_rejects_files_over_10mb(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $artist = Artist::factory()->create();
+
+        $file = UploadedFile::fake()->image('huge.jpg')->size(11000);
+
+        $productData = [
+            'artist_id' => $artist->id,
+            'name' => 'Product with Huge Image',
+            'cover_image' => $file,
+            'sell_through_ltdedn' => false,
+            'is_limited' => false,
+            'is_public' => false,
+        ];
+
+        $response = $this->actingAs($admin)->post('/admin/products', $productData);
+        $response->assertSessionHasErrors(['cover_image']);
+    }
+
+    public function test_updating_product_without_new_image_keeps_existing_image(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $artist = Artist::factory()->create();
+
+        $file = UploadedFile::fake()->image('cover.jpg');
+        $path = $file->store('products', 'public');
+
+        $product = Product::factory()->for($artist)->create([
+            'name' => 'Original Name',
+            'cover_image' => $path,
+        ]);
+
+        $updateData = [
+            'artist_id' => $artist->id,
+            'name' => 'Updated Name',
+            'description' => $product->description,
+            'sell_through_ltdedn' => $product->sell_through_ltdedn,
+            'is_limited' => $product->is_limited,
+            'is_public' => $product->is_public,
+        ];
+
+        $response = $this->actingAs($admin)->put("/admin/products/{$product->id}", $updateData);
+        $response->assertRedirect('/admin/products');
+
+        $product->refresh();
+
+        $this->assertEquals($path, $product->cover_image);
+        Storage::disk('public')->assertExists($path);
     }
 }

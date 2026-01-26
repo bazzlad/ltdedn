@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ProductEditionResource;
+use App\Http\Resources\ProductEditionTransferResource;
 use App\Models\ProductEdition;
+use App\Models\ProductEditionTransfer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -19,8 +22,15 @@ class DashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(12);
 
+        $pendingTransfers = ProductEditionTransfer::with(['productEdition.product.artist', 'sender'])
+            ->where('recipient_id', $user->id)
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return Inertia::render('Dashboard', [
-            'ownedEditions' => $ownedEditions,
+            'ownedEditions' => ProductEditionResource::collection($ownedEditions),
+            'pendingTransfers' => ProductEditionTransferResource::collection($pendingTransfers),
         ]);
     }
 }

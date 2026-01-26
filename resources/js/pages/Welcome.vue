@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { dashboard, login, register } from '@/routes';
+import { dashboard, login, privacy, register, terms } from '@/routes';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 
 const LOGO_SVG = '/images/logo-sm.svg';
@@ -13,7 +13,7 @@ const user = page.props.auth?.user;
 <template>
     <Head title="LTD/EDN – Limited Editions">
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     </Head>
 
@@ -35,7 +35,7 @@ const user = page.props.auth?.user;
                     <img :src="LOGO_SVG" alt="LTD/EDN" class="h-16 w-auto" />
                     <span class="sr-only">LTD/EDN</span>
                 </div>
-                <div class="flex items-center gap-3 text-sm">
+                <div class="hidden items-center gap-3 text-sm sm:flex">
                     <Link
                         v-if="user"
                         :href="dashboard()"
@@ -48,13 +48,13 @@ const user = page.props.auth?.user;
                             :href="login()"
                             class="inline-flex items-center rounded-xl bg-white/10 px-4 py-2 font-semibold ring-1 ring-white/15 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                         >
-                            Log in
+                            LOG IN
                         </Link>
                         <Link
                             :href="register()"
                             class="inline-flex items-center rounded-xl px-4 py-2 font-semibold ring-1 ring-white/20 hover:ring-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
                         >
-                            Create account
+                            CREATE ACCOUNT
                         </Link>
                     </template>
                 </div>
@@ -66,36 +66,36 @@ const user = page.props.auth?.user;
             class="relative isolate z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col items-center justify-center px-6 pt-10 pb-16 text-center lg:px-8 lg:pt-14"
         >
             <div class="mx-auto max-w-2xl">
-                <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">Digitally authenticated limited editions</h1>
-                <p class="mt-4 text-base leading-relaxed text-neutral-300">
-                    A new way to collect and verify art. Built with artist-first values, exceptional quality, and a modern ownership record that
-                    travels with the work.
-                </p>
-                <div class="mt-8 flex items-center justify-center gap-3">
-                    <Link
-                        :href="register()"
-                        class="inline-flex items-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-sm hover:bg-neutral-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/50"
-                    >
-                        Create account
-                    </Link>
-                    <Link
-                        :href="login()"
-                        class="inline-flex items-center rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/15 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                    >
-                        Log in
-                    </Link>
+                <div class="mx-auto max-w-2xl">
+                    <img src="/images/logo-lg.svg" alt="LTD/EDN" class="h-32 w-auto" />
+                </div>
+                <div class="mt-6 sm:hidden">
+                    <div class="mt-8 flex items-center justify-center gap-3">
+                        <Link
+                            :href="login()"
+                            class="inline-flex items-center rounded-xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/15 hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        >
+                            LOG IN
+                        </Link>
+                        <Link
+                            :href="register()"
+                            class="inline-flex items-center rounded-xl px-5 py-3 font-semibold ring-1 ring-white/20 hover:ring-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                        >
+                            CREATE ACCOUNT
+                        </Link>
+                    </div>
                 </div>
             </div>
         </main>
 
         <!-- Footer stays at bottom because parent is flex-col and main is flex-1 -->
         <footer class="relative z-10 border-t border-white/10 bg-black/50">
-            <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-neutral-400 sm:flex-row lg:px-8">
+            <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-white sm:flex-row lg:px-8">
                 <p>© {{ new Date().getFullYear() }} LTD/EDN. All rights reserved.</p>
                 <div class="flex items-center gap-4">
-                    <Link href="#" class="hover:text-neutral-200">Privacy</Link>
-                    <span aria-hidden="true" class="text-white/20">•</span>
-                    <Link href="#" class="hover:text-neutral-200">Terms</Link>
+                    <Link :href="privacy()" class="hover:text-neutral-200">Privacy</Link>
+                    <span aria-hidden="true" class="text-white">/</span>
+                    <Link :href="terms()" class="hover:text-neutral-200">Terms</Link>
                 </div>
             </div>
         </footer>

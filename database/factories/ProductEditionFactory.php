@@ -19,7 +19,7 @@ class ProductEditionFactory extends Factory
         $statuses = ['available', 'sold', 'redeemed', 'pending_transfer', 'invalidated'];
 
         return [
-            'number' => fake()->numberBetween(1, 100),
+            'number' => $this->faker->unique()->numberBetween(1, 100000),
             'status' => fake()->randomElement($statuses),
             'owner_id' => null, // Don't randomly assign owners, let tests control this
         ];

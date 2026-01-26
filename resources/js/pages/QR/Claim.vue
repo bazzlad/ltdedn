@@ -1,5 +1,5 @@
 <template>
-    <div class="main-bg flex-grow">
+    <div class="main-bg relative flex min-h-screen flex-col bg-black text-neutral-200 antialiased">
         <!-- background layers -->
         <div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden">
             <div class="absolute inset-0 bg-cover bg-center opacity-40"></div>
@@ -8,72 +8,51 @@
             ></div>
             <div class="absolute inset-0 bg-gradient-to-b from-black via-black/50 to-black"></div>
         </div>
-        <!-- Content Wrapper -->
-        <div class="relative z-10">
-            <!--<div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">-->
-            <div class="flex min-h-screen items-center justify-center">
-                <div class="container mx-auto px-4 py-8">
-                    <div class="mx-auto max-w-2xl">
-                        <!-- Header -->
-                        <div class="mb-8 text-center">
-                            <h1 class="mb-2 text-3xl font-bold text-slate-900 dark:text-slate-100">Digital Edition</h1>
-                            <p class="text-slate-600 dark:text-slate-400">Scan complete! Here's what you found:</p>
-                        </div>
 
+        <!-- Content Wrapper -->
+        <div class="relative z-10 flex h-screen items-center justify-center">
+            <div class="container mx-auto h-full max-h-screen overflow-y-auto px-4 py-8 sm:py-12">
+                <div class="mx-auto max-w-lg">
                         <!-- Edition Card -->
-                        <div
-                            class="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800"
-                        >
+                        <div class="mb-4 overflow-hidden rounded-xl border border-neutral-200/50 bg-white shadow-lg ring-1 ring-black/5 sm:mb-6 dark:border-neutral-800/50 dark:bg-neutral-900 dark:ring-white/5">
                             <!-- Product Image -->
-                            <div v-if="edition.product.cover_image_url" class="aspect-video bg-slate-100 dark:bg-slate-700">
-                                <img :src="edition.product.cover_image_url" :alt="edition.product.name" class="h-full w-full object-cover" />
+                            <div v-if="edition.product.cover_image" class="bg-neutral-100 dark:bg-neutral-800">
+                                <img :src="edition.product.cover_image" :alt="edition.product.name" class="h-auto w-full object-contain" />
                             </div>
-                            <div
-                                v-else
-                                class="flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 pt-8 pb-8 dark:from-slate-700 dark:to-slate-600"
-                            >
-                                <div class="text-center text-slate-400 dark:text-slate-500">
-                                    <svg class="mx-auto h-16 w-16" fill="currentColor" viewBox="0 0 24 24">
+                            <div v-else class="flex aspect-video items-center justify-center bg-neutral-100 dark:bg-neutral-800">
+                                <div class="text-center text-neutral-400 dark:text-neutral-600">
+                                    <svg class="mx-auto mb-2 h-12 w-12" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M4 4h16v12H4V4zm2 2v8h12V6H6zm2 2h8v4H8V8z" />
                                     </svg>
-                                    <p class="text-sm">No image available</p>
+                                    <p class="text-sm font-medium">No image available</p>
                                 </div>
                             </div>
 
-                            <div class="p-6">
+                            <div class="p-4 sm:p-5">
                                 <!-- Product Info -->
-                                <div class="mb-6">
-                                    <h2 class="mb-2 text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                <div class="mb-3 sm:mb-4">
+                                    <h2 class="mb-1 text-lg font-extrabold tracking-tight text-neutral-900 sm:text-xl dark:text-white">
                                         {{ edition.product.name }}
                                     </h2>
-                                    <p class="mb-3 text-slate-600 dark:text-slate-400">by {{ edition.product.artist.name }}</p>
-                                    <p v-if="edition.product.description" class="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-                                        {{ edition.product.description }}
-                                    </p>
+                                    <p class="text-sm text-neutral-600 dark:text-neutral-400">by {{ edition.product.artist.name }}</p>
                                 </div>
 
                                 <!-- Edition Details -->
-                                <div class="mb-6 rounded-lg bg-slate-50 p-4 dark:bg-slate-700">
-                                    <div class="grid grid-cols-2 gap-4">
+                                <div class="mb-3 rounded-lg bg-neutral-50/50 p-3 ring-1 ring-neutral-200/50 sm:mb-4 dark:bg-neutral-800/50 dark:ring-neutral-700/50">
+                                    <div class="grid grid-cols-2 gap-3">
                                         <div>
-                                            <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Edition Number</p>
-                                            <p class="text-lg font-bold text-slate-900 dark:text-slate-100">#{{ edition.number }}</p>
+                                            <p class="mb-0.5 text-xs font-semibold text-neutral-600 dark:text-neutral-400">Edition</p>
+                                            <p class="text-base font-extrabold text-neutral-900 sm:text-lg dark:text-white">#{{ edition.number }}</p>
                                         </div>
                                         <div>
-                                            <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Status</p>
+                                            <p class="mb-0.5 text-xs font-semibold text-neutral-600 dark:text-neutral-400">Status</p>
                                             <span
-                                                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold shadow-sm"
                                                 :class="{
-                                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300':
-                                                        edition.status === 'available',
-                                                    'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300': edition.status === 'sold',
-                                                    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300':
-                                                        edition.status === 'pending_transfer',
-                                                    'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300': ![
-                                                        'available',
-                                                        'sold',
-                                                        'pending_transfer',
-                                                    ].includes(edition.status),
+                                                    'bg-green-500/90 text-white': edition.status === 'available',
+                                                    'bg-blue-500/90 text-white': edition.status === 'sold',
+                                                    'bg-yellow-500/90 text-white': edition.status === 'pending_transfer',
+                                                    'bg-neutral-500/90 text-white': !['available', 'sold', 'pending_transfer'].includes(edition.status),
                                                 }"
                                             >
                                                 {{ edition.status.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase()) }}
@@ -85,42 +64,21 @@
                                 <!-- Ownership Status -->
                                 <div
                                     v-if="isClaimed"
-                                    class="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20"
+                                    class="rounded-lg border border-blue-200/50 bg-blue-50/50 p-2.5 ring-1 ring-blue-200/50 sm:p-3 dark:border-blue-800/50 dark:bg-blue-900/20 dark:ring-blue-800/50"
                                 >
-                                    <div class="flex items-start">
-                                        <svg class="mt-0.5 mr-3 h-5 w-5 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="h-4 w-4 flex-shrink-0 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                                             <path
                                                 fill-rule="evenodd"
                                                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                                                 clip-rule="evenodd"
                                             />
                                         </svg>
-                                        <div>
-                                            <h3 class="text-sm font-medium text-blue-800 dark:text-blue-300">
-                                                {{ isOwnedByCurrentUser ? 'You own this edition' : 'This edition is already claimed' }}
-                                            </h3>
-                                            <p class="mt-1 text-sm text-blue-700 dark:text-blue-400">
-                                                {{
-                                                    isOwnedByCurrentUser
-                                                        ? 'This digital edition belongs to you!'
-                                                        : 'This edition has been claimed by another collector.'
-                                                }}
-                                            </p>
-                                        </div>
+                                        <p class="text-xs font-semibold text-blue-900 sm:text-sm dark:text-blue-300">
+                                            {{ isOwnedByCurrentUser ? 'You own this edition' : 'Already claimed' }}
+                                        </p>
                                     </div>
                                 </div>
-
-                                <!-- QR Code Info
-                                <div class="border-t border-slate-200 pt-4 dark:border-slate-700">
-                                    <p class="mb-2 text-xs text-slate-500 dark:text-slate-400">QR Code Information</p>
-                                    <div class="flex items-center justify-between text-sm">
-                                        <span class="text-slate-600 dark:text-slate-400">QR Code:</span>
-                                        <code class="rounded bg-slate-100 px-2 py-1 text-xs text-slate-800 dark:bg-slate-700 dark:text-slate-200">
-                                            {{ edition.qr_code.substring(0, 16) }}...
-                                        </code>
-                                    </div>
-                                </div>
-                                -->
                             </div>
                         </div>
 
@@ -130,37 +88,48 @@
                             <div v-if="canClaim">
                                 <Form
                                     v-if="$page.props.auth.user"
-                                    :action="qr.claim(edition.qr_code).url"
+                                    :action="qrClaim(edition.qr_code).url"
                                     method="post"
-                                    class="mt-6 flex w-full justify-center"
+                                    class="w-full"
+                                    #default="{ processing }"
                                 >
                                     <Button
                                         type="submit"
-                                        class="flex h-14 w-full max-w-md items-center justify-center gap-2 rounded-xl bg-green-600 text-lg font-semibold text-white shadow-lg hover:bg-green-700"
+                                        :disabled="processing"
+                                        class="group relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-6 text-lg font-extrabold text-white shadow-2xl shadow-green-500/50 transition-all hover:scale-[1.02] hover:shadow-green-500/60 focus:outline-none focus-visible:ring-4 focus-visible:ring-green-400 active:scale-[0.98] sm:h-16 sm:gap-3 sm:text-xl disabled:cursor-not-allowed disabled:opacity-75"
                                     >
-                                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+                                        <span class="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 opacity-0 transition-opacity group-hover:opacity-100"></span>
+                                        <svg v-if="!processing" class="relative z-10 h-6 w-6 sm:h-7 sm:w-7" fill="currentColor" viewBox="0 0 20 20">
                                             <path
                                                 fill-rule="evenodd"
                                                 d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                                                 clip-rule="evenodd"
                                             />
                                         </svg>
-                                        Claim This Edition
+                                        <svg v-else class="relative z-10 h-6 w-6 animate-spin sm:h-7 sm:w-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span class="relative z-10">{{ processing ? 'Claiming...' : 'Claim This Edition' }}</span>
                                     </Button>
                                 </Form>
 
                                 <div v-else class="text-center">
-                                    <p class="mb-4 text-slate-600 dark:text-slate-400">You need to be logged in to claim this edition</p>
-                                    <div class="flex justify-center gap-3">
+                                    <div class="mb-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 p-3 ring-1 ring-yellow-500/20">
+                                        <p class="text-sm font-semibold text-yellow-200">
+                                            You need to be logged in to claim this edition
+                                        </p>
+                                    </div>
+                                    <div class="flex flex-col gap-2.5 sm:flex-row sm:gap-3">
                                         <Link
-                                            :href="login({ query: { intended: qr.show(edition.qr_code).url } }).url"
-                                            class="inline-flex items-center rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
+                                            :href="login({ query: { intended: qrShow(edition.qr_code).url } }).url"
+                                            class="inline-flex flex-1 items-center justify-center rounded-xl bg-white px-4 py-3 text-sm font-bold text-black shadow-lg transition-all hover:scale-[1.02] hover:bg-neutral-100 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-[0.98] sm:px-6 sm:text-base"
                                         >
-                                            Log In
+                                            Log In to Claim
                                         </Link>
                                         <Link
-                                            :href="register({ query: { intended: qr.show(edition.qr_code).url } }).url"
-                                            class="inline-flex items-center rounded-lg bg-slate-600 px-6 py-3 font-medium text-white transition-colors hover:bg-slate-700"
+                                            :href="register({ query: { intended: qrShow(edition.qr_code).url } }).url"
+                                            class="inline-flex flex-1 items-center justify-center rounded-xl px-4 py-3 text-sm font-bold text-white ring-2 ring-white/30 transition-all hover:scale-[1.02] hover:bg-white/10 hover:ring-white/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-[0.98] sm:px-6 sm:text-base"
                                         >
                                             Sign Up
                                         </Link>
@@ -168,27 +137,79 @@
                                 </div>
                             </div>
 
+                            <!-- Pending Transfer State -->
+                            <div v-if="isOwnedByCurrentUser && activeTransfer" class="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4 ring-1 ring-yellow-500/20 backdrop-blur-sm">
+                                <div class="mb-3 text-center">
+                                    <div class="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-400">
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-base font-bold text-yellow-200">Transfer Pending</h3>
+                                    <p class="mt-0.5 text-xs text-yellow-200/80">
+                                        Waiting for {{ activeTransfer.recipient.name }} to accept.
+                                    </p>
+                                </div>
+                                <Form
+                                    :action="transfersCancel(activeTransfer.token).url"
+                                    method="post"
+                                    #default="{ processing, submit }"
+                                >
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        class="w-full justify-center"
+                                        :disabled="processing"
+                                        @click="() => handleCancelTransfer(submit)"
+                                    >
+                                        {{ processing ? 'Cancelling...' : 'Cancel Transfer' }}
+                                    </Button>
+                                </Form>
+                            </div>
+
                             <!-- Transfer Button (for owners) -->
-                            <div v-if="isOwnedByCurrentUser">
-                                <details class="rounded-lg bg-slate-100 dark:bg-slate-700">
+                            <div v-else-if="isOwnedByCurrentUser">
+                                <details class="overflow-hidden rounded-lg border border-neutral-200/50 bg-white/5 ring-1 ring-neutral-200/50 backdrop-blur-sm dark:border-neutral-800/50 dark:ring-neutral-800/50">
                                     <summary
-                                        class="cursor-pointer rounded-lg p-4 font-medium text-slate-700 transition-colors hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-600"
+                                        class="cursor-pointer p-3 text-sm font-semibold text-neutral-300 transition-colors hover:bg-white/10 hover:text-white"
                                     >
                                         Transfer Edition
                                     </summary>
-                                    <div class="p-4 pt-0">
-                                        <Form :action="qr.transfer(edition.qr_code).url" method="post" class="space-y-4">
+                                    <div class="border-t border-neutral-200/50 p-3 dark:border-neutral-800/50">
+                                        <Form
+                                            :action="qrTransfer(edition.qr_code).url"
+                                            method="post"
+                                            class="space-y-3"
+                                            #default="{ processing }"
+                                        >
                                             <div>
-                                                <Label for="recipient_email">Recipient's Email</Label>
+                                                <Label for="recipient_email" class="text-xs text-neutral-300">Recipient's Email</Label>
                                                 <Input
                                                     id="recipient_email"
                                                     name="recipient_email"
                                                     type="email"
-                                                    placeholder="Enter recipient's email address"
+                                                    placeholder="Enter email address"
                                                     required
+                                                    class="mt-1.5"
                                                 />
+                                                <p class="mt-1.5 text-xs text-neutral-400">
+                                                    Recipient must have an existing account.
+                                                </p>
                                             </div>
-                                            <Button type="submit" variant="outline" class="w-full"> Transfer Ownership </Button>
+                                            <Button
+                                                type="submit"
+                                                variant="outline"
+                                                class="w-full justify-center text-sm font-semibold"
+                                                :disabled="processing"
+                                            >
+                                                <span v-if="processing" class="mr-2">
+                                                    <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                </span>
+                                                {{ processing ? 'Sending Request...' : 'Transfer Ownership' }}
+                                            </Button>
                                         </Form>
                                     </div>
                                 </details>
@@ -197,7 +218,7 @@
                             <!-- Back to Home -->
                             <Link
                                 href="/"
-                                class="block text-center text-slate-600 transition-colors hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                                class="block text-center text-xs font-medium text-neutral-400 transition-colors hover:text-white sm:text-sm"
                             >
                                 ← Back to Homepage
                             </Link>
@@ -206,7 +227,6 @@
                 </div>
             </div>
         </div>
-    </div>
 </template>
 
 <script setup lang="ts">
@@ -214,7 +234,8 @@ import Button from '@/components/ui/button/Button.vue';
 import Input from '@/components/ui/input/Input.vue';
 import Label from '@/components/ui/label/Label.vue';
 import { login, register } from '@/routes';
-import qr from '@/routes/qr';
+import { claim as qrClaim, show as qrShow, transfer as qrTransfer } from '@/routes/qr';
+import { cancel as transfersCancel } from '@/routes/transfers';
 import { Form, Link } from '@inertiajs/vue3';
 
 interface Props {
@@ -229,7 +250,7 @@ interface Props {
             name: string;
             slug: string;
             description: string | null;
-            cover_image_url: string | null;
+            cover_image: string | null;
             artist: {
                 id: number;
                 name: string;
@@ -240,7 +261,19 @@ interface Props {
     isClaimed: boolean;
     isOwnedByCurrentUser: boolean;
     canClaim: boolean;
+    activeTransfer?: {
+        token: string;
+        recipient: {
+            name: string;
+        };
+    } | null;
 }
 
 defineProps<Props>();
+
+const handleCancelTransfer = (submit: (e?: Event) => void) => {
+    if (confirm('Are you sure you want to cancel this transfer? The recipient will be notified.')) {
+        submit();
+    }
+};
 </script>

@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { useForm } from '@inertiajs/vue3';
-import { ArrowLeft } from 'lucide-vue-next';
+import { ArrowLeft, Upload, X } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 interface Artist {
     id: number;
@@ -19,7 +20,7 @@ interface Product {
     name: string;
     slug: string;
     description?: string;
-    cover_image_url?: string;
+    cover_image?: string;
     sell_through_ltdedn: boolean;
     is_limited: boolean;
     edition_size?: number;
@@ -40,11 +41,12 @@ const breadcrumbs: BreadcrumbItemType[] = [
 ];
 
 const form = useForm({
+    _method: 'PUT',
     artist_id: props.product.artist_id.toString(),
     name: props.product.name,
     slug: props.product.slug,
     description: props.product.description || '',
-    cover_image_url: props.product.cover_image_url || '',
+    cover_image: null as File | null,
     sell_through_ltdedn: props.product.sell_through_ltdedn,
     is_limited: props.product.is_limited,
     edition_size: props.product.edition_size || null,
@@ -52,8 +54,34 @@ const form = useForm({
     is_public: props.product.is_public,
 });
 
+const imagePreview = ref<string | null>(props.product.cover_image || null);
+
+const handleImageUpload = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+
+    if (file) {
+        form.cover_image = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            imagePreview.value = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+const clearImage = () => {
+    form.cover_image = null;
+    imagePreview.value = null;
+};
+
 const submit = () => {
-    form.put(`/admin/products/${props.product.id}`);
+    form.post(`/admin/products/${props.product.id}`, {
+        preserveScroll: true,
+        onSuccess: () => {
+            form.cover_image = null;
+        },
+    });
 };
 </script>
 
@@ -118,12 +146,45 @@ const submit = () => {
                                 <p class="text-xs text-muted-foreground">Leave empty to auto-generate from name</p>
                             </div>
 
-                            <!-- Cover Image URL -->
+                            <!-- Cover Image Upload -->
                             <div class="space-y-2">
-                                <Label for="cover_image_url">Cover Image URL</Label>
-                                <Input id="cover_image_url" v-model="form.cover_image_url" type="url" placeholder="https://example.com/image.jpg" />
-                                <div v-if="form.errors.cover_image_url" class="text-sm text-red-600">
-                                    {{ form.errors.cover_image_url }}
+                                <Label for="cover_image">Cover Image</Label>
+                                <div v-if="imagePreview" class="relative mb-4 inline-block">
+                                    <img :src="imagePreview" alt="Cover preview" class="h-48 w-auto rounded-lg border object-cover" />
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="sm"
+                                        class="absolute right-2 top-2"
+                                        @click="clearImage"
+                                    >
+                                        <X class="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                <div v-else class="flex items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 p-12">
+                                    <div class="text-center">
+                                        <Upload class="mx-auto h-12 w-12 text-muted-foreground" />
+                                        <div class="mt-4 flex text-sm leading-6 text-muted-foreground">
+                                            <label
+                                                for="cover_image"
+                                                class="relative cursor-pointer rounded-md font-semibold text-primary hover:text-primary/80"
+                                            >
+                                                <span>Upload a file</span>
+                                                <input
+                                                    id="cover_image"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    class="sr-only"
+                                                    @change="handleImageUpload"
+                                                />
+                                            </label>
+                                            <p class="pl-1">or drag and drop</p>
+                                        </div>
+                                        <p class="text-xs leading-5 text-muted-foreground">PNG, JPG, GIF up to 10MB</p>
+                                    </div>
+                                </div>
+                                <div v-if="form.errors.cover_image" class="text-sm text-red-600">
+                                    {{ form.errors.cover_image }}
                                 </div>
                             </div>
 
