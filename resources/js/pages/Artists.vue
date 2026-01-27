@@ -92,7 +92,7 @@ const userName = computed(function () {
 					</div>
 
 					<p class="mt-14 text-xl font-extrabold tracking-wide text-white">
-						OUR DOWNLOADABLE ARTIST HANDBOOK IS AVAILABLE ABOVE
+						OUR DOWNLOADABLE ARTIST HANDBOOK IS AVAILABLE <span class="lg:hidden">BELOW</span><span class="hidden lg:inline">ABOVE</span>
 					</p>
 				</section>
 

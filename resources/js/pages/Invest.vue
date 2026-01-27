@@ -102,7 +102,7 @@ const logoutUrl = '/logout';
 					</div>
 
 					<p class="mt-14 text-xl font-extrabold tracking-wide text-white">
-						OUR DOWNLOADABLE INVESTOR PACKS ARE AVAILABLE ABOVE
+						OUR DOWNLOADABLE INVESTOR PACKS ARE AVAILABLE <span class="lg:hidden">BELOW</span><span class="hidden lg:inline">ABOVE</span>
 					</p>
 				</section>
 
