@@ -6,7 +6,7 @@ import { computed } from 'vue';
 const LOGO_SVG = '/images/logo-sm.svg';
 
 // swap these for your real file URLs (or Inertia routes)
-const INVESTOR_GUIDE_URL = '/downloads/investor-guide.pdf';
+const INVESTOR_GUIDE_URL = '/downloads/Investor-Guide.pdf';
 const FINANCIAL_MODEL_URL = '/downloads/financial-model-and-assumptions.pdf';
 
 const page = usePage();
@@ -109,7 +109,7 @@ const logoutUrl = '/logout';
 				<!-- Right: downloads -->
 				<aside class="mx-auto w-full max-w-sm lg:mx-0 lg:max-w-none">
 					<div class="flex flex-col items-center space-y-16 lg:items-start">
-						<a :href="INVESTOR_GUIDE_URL" class="group block">
+						<a :href="INVESTOR_GUIDE_URL" download class="group block">
 							<div class="aspect-square w-56 bg-emerald-200/90 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] flex items-center justify-center group-hover:bg-emerald-300/90 transition-colors">
 								<svg class="h-16 w-16 text-black/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -121,6 +121,7 @@ const logoutUrl = '/logout';
 							</div>
 						</a>
 
+						<!--
 						<a :href="FINANCIAL_MODEL_URL" class="group block">
 							<div class="aspect-square w-56 bg-emerald-200/90 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] flex items-center justify-center group-hover:bg-emerald-300/90 transition-colors">
 								<svg class="h-16 w-16 text-black/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -133,6 +134,7 @@ const logoutUrl = '/logout';
 								<span class="font-semibold text-white/80">SUPPORT DOCUMENT</span>
 							</div>
 						</a>
+						-->
 					</div>
 				</aside>
 			</div>

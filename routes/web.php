@@ -38,14 +38,14 @@ Route::get('dashboard', UserDashboardController::class)->middleware(['auth', 've
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('password:artists123')->group(function () {
+Route::middleware('password:Authenticate')->group(function () {
     Route::get('/artists', ArtistsController::class)->name('artists');
     Route::post('/artists', function () {
         return redirect()->route('artists');
     });
 });
 
-Route::middleware('password:invest456')->group(function () {
+Route::middleware('password:Authenticate')->group(function () {
     Route::get('/invest', InvestController::class)->name('invest');
     Route::post('/invest', function () {
         return redirect()->route('invest');

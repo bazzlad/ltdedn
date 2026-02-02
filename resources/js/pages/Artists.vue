@@ -6,8 +6,8 @@ import { computed } from 'vue';
 const LOGO_SVG = '/images/logo-sm.svg';
 
 // sample download URLs
-const ARTIST_PORTFOLIO_URL = '/downloads/artist-portfolio.pdf';
-const ARTIST_GUIDELINES_URL = '/downloads/artist-guidelines.pdf';
+const ARTIST_HANDBOOK_URL = '/downloads/Artist-Handbook.pdf';
+const ARTIST_AGREEMENT_URL = '/downloads/Artist-Agreement.pdf';
 
 const page = usePage();
 
@@ -99,18 +99,18 @@ const userName = computed(function () {
 				<!-- Right: downloads -->
 				<aside class="mx-auto w-full max-w-sm lg:mx-0 lg:max-w-none">
 					<div class="flex flex-col items-center space-y-16 lg:items-start">
-						<a :href="ARTIST_PORTFOLIO_URL" class="group block">
+						<a :href="ARTIST_HANDBOOK_URL" download class="group block">
 							<div class="aspect-square w-56 bg-emerald-200/90 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] flex items-center justify-center group-hover:bg-emerald-300/90 transition-colors">
 								<svg class="h-16 w-16 text-black/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
 								</svg>
 							</div>
 							<div class="mt-5 text-center text-sm font-extrabold tracking-wide text-white md:text-left">
-								ARTIST<br />PORTFOLIO
+								ARTIST<br />HANDBOOK
 							</div>
 						</a>
 
-						<a :href="ARTIST_GUIDELINES_URL" class="group block">
+						<a :href="ARTIST_AGREEMENT_URL" download class="group block">
 							<div class="aspect-square w-56 bg-emerald-200/90 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] flex items-center justify-center group-hover:bg-emerald-300/90 transition-colors">
 								<svg class="h-16 w-16 text-black/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -118,7 +118,7 @@ const userName = computed(function () {
 							</div>
 							<div class="mt-5 text-center text-sm font-extrabold tracking-wide text-white md:text-left">
 								ARTIST<br />
-								GUIDELINES<br />
+								AGREEMENT<br />
 								<span class="font-semibold text-white/80">REFERENCE GUIDE</span>
 							</div>
 						</a>
