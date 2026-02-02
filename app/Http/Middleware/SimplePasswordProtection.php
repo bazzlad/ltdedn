@@ -4,7 +4,6 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 class SimplePasswordProtection
@@ -14,31 +13,21 @@ class SimplePasswordProtection
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, string $password): Response
+    public function handle(Request $request, Closure $next): Response
     {
-        $sessionKey = 'password_protected_'.md5($password);
-
-        if (session($sessionKey)) {
+        // Skip protection if no password is configured
+        if (! config('password_gate.password')) {
             return $next($request);
         }
 
-        if ($request->method() === 'POST') {
-            if ($request->input('password') === $password) {
-                session([$sessionKey => true]);
-
-                return redirect($request->url());
-            }
-
-            // Show error on the same page for wrong password
-            return Inertia::render('PasswordProtected', [
-                'action' => $request->url(),
-                'error' => 'Incorrect password',
-            ])->toResponse($request);
+        // Check if already authenticated
+        if (session(config('password_gate.session_key'))) {
+            return $next($request);
         }
 
-        return Inertia::render('PasswordProtected', [
-            'action' => $request->url(),
-            'error' => null,
-        ])->toResponse($request);
+        // Redirect to password gate with intended URL
+        return redirect()->route('password-gate', [
+            'intended' => $request->fullUrl(),
+        ]);
     }
 }
