@@ -68,30 +68,42 @@ const userName = computed(function () {
 					</p>
 
 					<p class="mt-10 text-lg leading-8 text-white/75">
-						Since its launch in 2007, the brand became known for producing high-quality,artist-led limited editions that connected creators with collectors around the world. Over the years, it collaborated with many of the most respected and loved artists working today, including Audrey Kawasaki, Dan Baldwin, INSA, James Jean,Kozik, Mab Graves, Tara McPherson, Tom Lewis, tokidoki, and many more.
+						Since its launch in 2007, the brand became known for producing high-quality, artist-led limited editions that connected creators with collectors around the world.
+					</p>
+
+					<p class="mt-10 text-lg leading-8 text-white/75">
+						Over the years, it collaborated with many of the most respected and loved artists working today, including Audrey Kawasaki, Dan Baldwin, INSA, James Jean, Kozik, Mab Graves, Tara McPherson, Tom Lewis, tokidoki, and many more.
 					</p>
 
 					<div class="mt-10 space-y-10">
 						<p class="text-xl font-semibold leading-8 text-white">
-							LTD/EDN is the next chapter. Built by the original founders, it carries forward the experience and values of the past while embracing a new era of tools, technologies, and opportunities for artists.
+							LTD/EDN is a new chapter. Built by the original founders, it carries forward the experience and values of the past while embracing a new era of tools, technologies, and opportunities for artists.
 						</p>
 					</div>
 
 					<div class="mt-12 space-y-10 text-lg leading-8 text-white/85">
 						<p>
-							Over the last decade, the art and design landscape has changed dramatically.New ways of creating, sharing, and collecting work have emerged - from digital production and global e-commerce to more advanced systems for authenticationand provenance.
+							Over the past five years, the art & design world has undergone rapid & sweeping change. Advances in AI, the rise and fall of NFT, the growth of blockchain, licensing, e-commerce, digital print, social media, print-on-demand & personalisation have all disrupted how art is created, sold & experienced.
 						</p>
 
 						<p>
-							LTD/EDN brings these developments together in a platform designed to support artists, combining premium manufacturing, transparent collaboration, and a new generation of digital authentication. Our focus is simple: to help artists create exceptional limited editions, connect meaningfully with their audiences, and build long-term value in their work.
+							LTD/EDN is embracing this evolution, building a next-generation platform that combines the best of these technologies with artist-first values, exceptional quality with an innovative new authentication system.
 						</p>
 
 						<p>
-							Curate, Elevate, Authenticate.
+							Today collectors aren't just buying products - they're connecting with brands and artists differently. By structuring releases as cohesive collections, LTD/EDN helps artists translate their own stories into physical form, turning products into chapters.
+						</p>
+
+						<p>
+							Our focus is to help artists elevate their visions into the physical world, connect more meaningfully with authentic limited editions that connect with fans and collectors.
 						</p>
 					</div>
 
 					<p class="mt-14 text-xl font-extrabold tracking-wide text-white">
+						Curate. Elevate. Authenticate.
+					</p>
+
+					<p class="mt-8 text-xl font-extrabold tracking-wide text-white">
 						OUR DOWNLOADABLE ARTIST HANDBOOK IS AVAILABLE <span class="lg:hidden">BELOW</span><span class="hidden lg:inline">ABOVE</span>
 					</p>
 				</section>
