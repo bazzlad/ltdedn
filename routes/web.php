@@ -39,8 +39,8 @@ Route::get('dashboard', UserDashboardController::class)->middleware(['auth', 've
 |--------------------------------------------------------------------------
 */
 
-Route::get('/password-gate', [PasswordGateController::class, 'show'])->name('password-gate');
-Route::post('/password-gate', [PasswordGateController::class, 'authenticate'])->name('password-gate.authenticate');
+Route::get('/password-gate', [PasswordGateController::class, 'show'])->name('password-gate.show');
+Route::post('/password-gate', [PasswordGateController::class, 'store'])->name('password-gate.store');
 
 /*
 |--------------------------------------------------------------------------

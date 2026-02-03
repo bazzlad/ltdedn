@@ -47,7 +47,7 @@ class PasswordGateTest extends TestCase
 
     public function test_password_gate_renders_correctly(): void
     {
-        $response = $this->get(route('password-gate', ['intended' => '/artists']));
+        $response = $this->get(route('password-gate.show', ['intended' => '/artists']));
 
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => $page->component('PasswordGate')
@@ -58,7 +58,7 @@ class PasswordGateTest extends TestCase
 
     public function test_authentication_succeeds_with_correct_password(): void
     {
-        $response = $this->post(route('password-gate.authenticate'), [
+        $response = $this->post(route('password-gate.store'), [
             'password' => 'test-password',
             'intended' => '/artists',
         ]);
@@ -69,7 +69,7 @@ class PasswordGateTest extends TestCase
 
     public function test_authentication_fails_with_wrong_password(): void
     {
-        $response = $this->post(route('password-gate.authenticate'), [
+        $response = $this->post(route('password-gate.store'), [
             'password' => 'wrong-password',
             'intended' => '/artists',
         ]);
@@ -81,7 +81,7 @@ class PasswordGateTest extends TestCase
 
     public function test_authentication_requires_password(): void
     {
-        $response = $this->post(route('password-gate.authenticate'), [
+        $response = $this->post(route('password-gate.store'), [
             'intended' => '/artists',
         ]);
 
@@ -90,7 +90,7 @@ class PasswordGateTest extends TestCase
 
     public function test_authentication_requires_intended_url(): void
     {
-        $response = $this->post(route('password-gate.authenticate'), [
+        $response = $this->post(route('password-gate.store'), [
             'password' => 'test-password',
         ]);
 

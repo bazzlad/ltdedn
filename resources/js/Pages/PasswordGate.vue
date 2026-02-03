@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { home } from '@/routes';
-import { authenticate } from '@/routes/password-gate';
+import { store } from '@/routes/password-gate';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -19,7 +19,7 @@ const form = useForm({
 const showPassword = ref(false);
 
 const submit = () => {
-    form.post(authenticate.url(), {
+    form.post(store.url(), {
         preserveState: false,
     });
 };

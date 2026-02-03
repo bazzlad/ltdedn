@@ -31,7 +31,7 @@ class SimplePasswordProtection
         }
 
         // Redirect to password gate with intended URL
-        return redirect()->route('password-gate', [
+        return redirect()->route('password-gate.show', [
             'intended' => $request->fullUrl(),
         ]);
     }

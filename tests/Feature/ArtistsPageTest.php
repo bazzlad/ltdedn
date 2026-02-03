@@ -24,7 +24,7 @@ class ArtistsPageTest extends TestCase
 
     public function test_artists_page_shows_error_with_wrong_password(): void
     {
-        $response = $this->post(route('password-gate.authenticate'), [
+        $response = $this->post(route('password-gate.store'), [
             'password' => 'wrongpassword',
             'intended' => '/artists',
         ]);
@@ -35,7 +35,7 @@ class ArtistsPageTest extends TestCase
 
     public function test_artists_page_allows_access_with_correct_password(): void
     {
-        $response = $this->post(route('password-gate.authenticate'), [
+        $response = $this->post(route('password-gate.store'), [
             'password' => config('password_gate.password'),
             'intended' => '/artists',
         ]);

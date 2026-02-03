@@ -16,7 +16,7 @@ class PasswordGateController extends Controller
         ]);
     }
 
-    public function authenticate(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'password' => 'required|string',
@@ -37,7 +37,7 @@ class PasswordGateController extends Controller
 
         // Store error and redirect back to gate
         return redirect()
-            ->route('password-gate', ['intended' => $intended])
+            ->route('password-gate.show', ['intended' => $intended])
             ->with(config('password_gate.error_session_key'), 'Incorrect password');
     }
 }
