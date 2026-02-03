@@ -6,38 +6,39 @@ use Tests\TestCase;
 
 class ArtistsPageTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Enable password gate for these tests
+        config(['password_gate.enabled_in_tests' => true]);
+    }
+
     public function test_artists_page_requires_password(): void
     {
         $response = $this->get('/artists');
 
-        $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => $page
-            ->component('PasswordProtected')
-            ->has('action')
-            ->where('error', null)
-        );
+        $response->assertRedirectContains('/password-gate');
+        $response->assertRedirectContains('intended=');
     }
 
     public function test_artists_page_shows_error_with_wrong_password(): void
     {
-        $response = $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class)
-            ->post('/artists', ['password' => 'wrongpassword']);
+        $response = $this->post(route('password-gate.authenticate'), [
+            'password' => 'wrongpassword',
+            'intended' => '/artists',
+        ]);
 
-        $response->assertStatus(200);
-        $response->assertInertia(fn ($page) => $page
-            ->component('PasswordProtected')
-            ->has('action')
-            ->where('error', 'Incorrect password')
-        );
+        $response->assertRedirectContains('/password-gate');
+        $response->assertSessionHas(config('password_gate.error_session_key'), 'Incorrect password');
     }
 
     public function test_artists_page_allows_access_with_correct_password(): void
     {
-        // Initialize session first
-        $this->withSession([]);
-
-        $response = $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class)
-            ->post('/artists', ['password' => 'artists123']);
+        $response = $this->post(route('password-gate.authenticate'), [
+            'password' => config('password_gate.password'),
+            'intended' => '/artists',
+        ]);
 
         $response->assertRedirect('/artists');
 

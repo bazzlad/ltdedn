@@ -15,6 +15,11 @@ class SimplePasswordProtection
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Skip protection during tests unless explicitly enabled
+        if (app()->runningUnitTests() && ! config('password_gate.enabled_in_tests')) {
+            return $next($request);
+        }
+
         // Skip protection if no password is configured
         if (! config('password_gate.password')) {
             return $next($request);

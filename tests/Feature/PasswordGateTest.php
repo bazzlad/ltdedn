@@ -13,7 +13,8 @@ class PasswordGateTest extends TestCase
     {
         parent::setUp();
 
-        // Set a test password for password gate
+        // Enable password gate for these tests and set a test password
+        config(['password_gate.enabled_in_tests' => true]);
         config(['password_gate.password' => 'test-password']);
     }
 
