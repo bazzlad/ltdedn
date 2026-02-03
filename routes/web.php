@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\AcceptProductEditionTransferController;
+use App\Http\Controllers\ArtistsController;
 use App\Http\Controllers\CancelProductEditionTransferController;
 use App\Http\Controllers\ClaimQRController;
+use App\Http\Controllers\InvestController;
+use App\Http\Controllers\PasswordGateController;
 use App\Http\Controllers\ProductEditionTransferController;
 use App\Http\Controllers\RejectProductEditionTransferController;
 use App\Http\Controllers\ShowQRController;
@@ -29,6 +32,29 @@ Route::get('/terms', function () {
 })->name('terms');
 
 Route::get('dashboard', UserDashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
+
+/*
+|--------------------------------------------------------------------------
+| Password Gate Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/password-gate', [PasswordGateController::class, 'show'])->name('password-gate.show');
+Route::post('/password-gate', [PasswordGateController::class, 'store'])->name('password-gate.store');
+
+/*
+|--------------------------------------------------------------------------
+| Password Protected Pages
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('password')->group(function () {
+    Route::get('/artists', ArtistsController::class)->name('artists');
+});
+
+Route::middleware('password')->group(function () {
+    Route::get('/invest', InvestController::class)->name('invest');
+});
 
 /*
 |--------------------------------------------------------------------------
