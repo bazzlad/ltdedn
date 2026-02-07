@@ -48,11 +48,11 @@ Route::post('/password-gate', [PasswordGateController::class, 'store'])->name('p
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('password')->group(function () {
+Route::middleware('password:artists')->group(function () {
     Route::get('/artists', ArtistsController::class)->name('artists');
 });
 
-Route::middleware('password')->group(function () {
+Route::middleware('password:invest')->group(function () {
     Route::get('/invest', InvestController::class)->name('invest');
 });
 
