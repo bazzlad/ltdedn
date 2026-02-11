@@ -137,10 +137,13 @@ const downloads = [
 							:key="dl.label"
 							:is="dl.enabled ? 'a' : 'div'"
 							v-bind="dl.enabled ? { href: dl.url, download: true } : {}"
-							class="group block"
+							:class="['group block', { 'cursor-default opacity-50': !dl.enabled }]"
 						>
 							<div
-								class="relative flex aspect-square w-64 items-center justify-center overflow-hidden border border-white/10"
+								:class="[
+									'relative flex aspect-square w-64 items-center justify-center overflow-hidden border border-white/10',
+									{ 'grayscale': !dl.enabled },
+								]"
 							>
 								<img
 									:src="DL_IMG"

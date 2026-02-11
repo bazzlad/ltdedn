@@ -22,16 +22,19 @@ const downloads = [
 		url: ARTIST_LOOKBOOK_URL,
 		label: 'ARTIST LOOK BOOK',
 		subtitle: 'DOWNLOADABLE PDF',
+		enabled: true,
 	},
 	{
 		url: ARTIST_CONTRACT_URL,
 		label: 'ARTIST CONTRACT',
 		subtitle: 'SUPPORT DOCUMENT',
+		enabled: true,
 	},
 	{
 		url: ARTIST_STORYTELLING_URL,
 		label: 'ARTIST STORYTELLING',
 		subtitle: 'AVAILABLE SOON',
+		enabled: false,
 	},
 ];
 </script>
@@ -130,15 +133,18 @@ const downloads = [
 				<!-- Right: downloads -->
 				<aside class="mx-auto w-full max-w-sm lg:mx-0 lg:max-w-none">
 					<div class="flex flex-col items-center gap-6 lg:items-end">
-						<a
+						<component
 							v-for="dl in downloads"
 							:key="dl.label"
-							:href="dl.url"
-							download
-							class="group block"
+							:is="dl.enabled ? 'a' : 'div'"
+							v-bind="dl.enabled ? { href: dl.url, download: true } : {}"
+							:class="['group block', { 'cursor-default opacity-50': !dl.enabled }]"
 						>
 							<div
-								class="relative flex aspect-square w-64 items-center justify-center overflow-hidden border border-white/10"
+								:class="[
+									'relative flex aspect-square w-64 items-center justify-center overflow-hidden border border-white/10',
+									{ 'grayscale': !dl.enabled },
+								]"
 							>
 								<img
 									:src="DL_IMG"
@@ -155,7 +161,7 @@ const downloads = [
 									<div class="font-normal text-white/60">{{ dl.subtitle }}</div>
 								</div>
 							</div>
-						</a>
+						</component>
 					</div>
 				</aside>
 			</div>
