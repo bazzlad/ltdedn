@@ -20,6 +20,7 @@ class ArtistsPageTest extends TestCase
 
         $response->assertRedirectContains('/password-gate');
         $response->assertRedirectContains('intended=');
+        $response->assertRedirectContains('gate=artists');
     }
 
     public function test_artists_page_shows_error_with_wrong_password(): void
@@ -27,6 +28,7 @@ class ArtistsPageTest extends TestCase
         $response = $this->post(route('password-gate.store'), [
             'password' => 'wrongpassword',
             'intended' => '/artists',
+            'gate' => 'artists',
         ]);
 
         $response->assertRedirectContains('/password-gate');
@@ -36,8 +38,9 @@ class ArtistsPageTest extends TestCase
     public function test_artists_page_allows_access_with_correct_password(): void
     {
         $response = $this->post(route('password-gate.store'), [
-            'password' => config('password_gate.password'),
+            'password' => 'ARTIST',
             'intended' => '/artists',
+            'gate' => 'artists',
         ]);
 
         $response->assertRedirect('/artists');

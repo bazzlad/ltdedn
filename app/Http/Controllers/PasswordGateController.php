@@ -12,6 +12,7 @@ class PasswordGateController extends Controller
     {
         return Inertia::render('PasswordGate', [
             'intended' => $request->input('intended', '/'),
+            'gate' => $request->input('gate', 'default'),
             'error' => session(config('password_gate.error_session_key')),
         ]);
     }
@@ -21,23 +22,22 @@ class PasswordGateController extends Controller
         $request->validate([
             'password' => 'required|string',
             'intended' => 'required|string',
+            'gate' => 'required|string',
         ]);
 
         $password = $request->input('password');
         $intended = $request->input('intended');
-        $configuredPassword = config('password_gate.password');
+        $gate = $request->input('gate');
+        $configuredPassword = config("password_gate.passwords.{$gate}");
 
-        if ($password === $configuredPassword) {
-            // Mark as authenticated in session
-            session([config('password_gate.session_key') => true]);
+        if ($configuredPassword && strcasecmp($password, $configuredPassword) === 0) {
+            session(["password_gate_{$gate}_authenticated" => true]);
 
-            // Redirect to intended URL
             return redirect($intended);
         }
 
-        // Store error and redirect back to gate
         return redirect()
-            ->route('password-gate.show', ['intended' => $intended])
+            ->route('password-gate.show', ['intended' => $intended, 'gate' => $gate])
             ->with(config('password_gate.error_session_key'), 'Incorrect password');
     }
 }
