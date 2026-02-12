@@ -121,7 +121,7 @@ const downloads = [
 					</p>
 
 					<h2 class="mt-10 font-sans text-xl font-extrabold uppercase tracking-wide text-white">
-						OUR COMPREHENSIVE INVESTOR GUIDE IS AVAILABLE TO DOWNLOAD , ALONGSIDE FURTHER INVESTOR SUPPORT DOCUMENTS.
+						OUR COMPREHENSIVE INVESTOR GUIDE IS AVAILABLE TO DOWNLOAD, ALONGSIDE FURTHER INVESTOR SUPPORT DOCUMENTS.
 					</h2>
 
 					<h2 class="mt-6 font-sans text-xl font-extrabold uppercase tracking-wide text-white">
