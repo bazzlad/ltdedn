@@ -4,10 +4,11 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 const LOGO_SVG = '/images/logo-sm.svg';
+const DL_IMG = '/images/dl-img.jpg';
 
-// sample download URLs
-const ARTIST_HANDBOOK_URL = '/downloads/Artist-Handbook.pdf';
-const ARTIST_AGREEMENT_URL = '/downloads/Artist-Agreement.pdf';
+const ARTIST_LOOKBOOK_URL = '/downloads/Artist-Handbook.pdf';
+const ARTIST_CONTRACT_URL = '/downloads/Artist-Agreement.pdf';
+const ARTIST_STORYTELLING_URL = '/downloads/Artist-Handbook.pdf';
 
 const page = usePage();
 
@@ -15,6 +16,27 @@ const userName = computed(function () {
 	const p: any = page.props;
 	return (p && p.auth && p.auth.user && p.auth.user.name) ? p.auth.user.name : 'Guest';
 });
+
+const downloads = [
+	{
+		url: ARTIST_LOOKBOOK_URL,
+		label: 'ARTIST LOOK BOOK',
+		subtitle: 'DOWNLOADABLE PDF',
+		enabled: true,
+	},
+	{
+		url: ARTIST_CONTRACT_URL,
+		label: 'ARTIST CONTRACT',
+		subtitle: 'SUPPORT DOCUMENT',
+		enabled: true,
+	},
+	{
+		url: ARTIST_STORYTELLING_URL,
+		label: 'ARTIST STORYTELLING',
+		subtitle: 'AVAILABLE SOON',
+		enabled: false,
+	},
+];
 </script>
 
 <template>
@@ -56,84 +78,90 @@ const userName = computed(function () {
 
 		<!-- Main -->
 		<main class="relative z-10 mx-auto w-full max-w-7xl flex-1 px-6 pb-16 pt-10 lg:px-8 lg:pb-20 lg:pt-14">
-			<div class="grid items-start gap-14 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-20">
+			<div class="grid items-start gap-14 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-20">
 				<!-- Left: copy -->
-				<section class="mx-auto max-w-3xl text-center md:text-left">
-					<h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl">
-						WELCOME TO LTD/EDN
+				<section class="max-w-3xl font-mono text-sm leading-relaxed tracking-wide">
+					<h1 class="font-sans text-3xl font-bold italic tracking-tight text-white sm:text-4xl">
+						WELCOME TO LTD/EDN&hellip;
 					</h1>
 
-					<p class="mt-8 text-lg leading-8 text-white/85">
-						In 2024, the intellectual property and brand ownership of <em>This is a Limited Edition</em> were formally restored to its original founders following a legal resolution.
+					<p class="mt-8 text-white/85">
+						In 2024, the intellectual property and brand ownership of <em>This is a Limited Edition</em> were restored to its original founders, following a legal resolution.
 					</p>
 
-					<p class="mt-10 text-lg leading-8 text-white/75">
-						Since its launch in 2007, the brand became known for producing high-quality, artist-led limited editions that connected creators with collectors around the world.
+					<p class="mt-6 text-white/75">
+						Since its launch in 2007, the brand became known for producing high-quality, artist-led limited editions that connected creators with collectors around the world. Over the years, it collaborated with many of the most respected and loved artists working today, including <strong class="font-bold text-white">Audrey Kawasaki</strong>, <strong class="font-bold text-white">Dan Baldwin</strong>, <strong class="font-bold text-white">INSA</strong>, <strong class="font-bold text-white">James Jean</strong>, <strong class="font-bold text-white">Kozik</strong>, <strong class="font-bold text-white">Mab Graves</strong>, <strong class="font-bold text-white">Mode2</strong>, <strong class="font-bold text-white">Ron English</strong>, <strong class="font-bold text-white">Tara McPherson</strong>, <strong class="font-bold text-white">Tom Lewis</strong>, <strong class="font-bold text-white">tokidoki</strong>, and many more.
 					</p>
 
-					<p class="mt-10 text-lg leading-8 text-white/75">
-						Over the years, it collaborated with many of the most respected and loved artists working today, including Audrey Kawasaki, Dan Baldwin, INSA, James Jean, Kozik, Mab Graves, Tara McPherson, Tom Lewis, tokidoki, and many more.
+					<p class="mt-8 text-base font-bold italic text-white">
+						LTD/EDN is a new chapter.
 					</p>
 
-					<div class="mt-10 space-y-10">
-						<p class="text-xl font-semibold leading-8 text-white">
-							LTD/EDN is a new chapter. Built by the original founders, it carries forward the experience and values of the past while embracing a new era of tools, technologies, and opportunities for artists.
-						</p>
-					</div>
+					<p class="mt-4 text-white/85">
+						Built by the original founders, it carries forward the experience and values of the past while embracing a new era of tools, technologies, and opportunities for artists.
+					</p>
 
-					<div class="mt-12 space-y-10 text-lg leading-8 text-white/85">
-						<p>
-							Over the past five years, the art & design world has undergone rapid & sweeping change. Advances in AI, the rise and fall of NFT, the growth of blockchain, licensing, e-commerce, digital print, social media, print-on-demand & personalisation have all disrupted how art is created, sold & experienced.
-						</p>
+					<p class="mt-6 text-white/75">
+						Over the past decade, the art &amp; design world has undergone rapid &amp; sweeping change. Advances in AI, the rise and fall of NFT, the growth of blockchain, licensing, e-commerce, digital print, social media, print-on-demand &amp; personalisation have all disrupted how art is created, sold &amp; experienced.
+					</p>
 
-						<p>
-							LTD/EDN is embracing this evolution, building a next-generation platform that combines the best of these technologies with artist-first values, exceptional quality with an innovative new authentication system.
-						</p>
+					<p class="mt-6 text-white/75">
+						LTD/EDN is embracing this evolution, building a next-generation platform that combines the best of these technologies with a groundbreaking authentication system.
+					</p>
 
-						<p>
-							Today collectors aren't just buying products - they're connecting with brands and artists differently. By structuring releases as cohesive collections, LTD/EDN helps artists translate their own stories into physical form, turning products into chapters.
-						</p>
+					<p class="mt-6 text-white/75">
+						Also today collectors aren't just buying products, they're connecting with brands and artists differently.
+					</p>
 
-						<p>
-							Our focus is to help artists elevate their visions into the physical world, connect more meaningfully with authentic limited editions that connect with fans and collectors.
-						</p>
-					</div>
+					<p class="mt-6 text-white/75">
+						LTD/EDN will help artists translate their own stories into physical form, turning products into chapters. By structuring releases as cohesive collections, each chapter becomes part of a larger narrative that deepens engagement and builds lasting value for artists and collectors.
+					</p>
 
-					<p class="mt-14 text-xl font-extrabold tracking-wide text-white">
+					<p class="mt-8 text-base font-bold text-white">
 						Curate. Elevate. Authenticate.
 					</p>
 
-					<p class="mt-8 text-xl font-extrabold tracking-wide text-white">
-						OUR DOWNLOADABLE ARTIST HANDBOOK IS AVAILABLE <span class="lg:hidden">BELOW</span><span class="hidden lg:inline">ABOVE</span>
-					</p>
+					<h2 class="mt-10 font-sans text-xl font-extrabold uppercase tracking-wide text-white">
+						OUR COMPREHENSIVE ARTIST LOOK BOOK GUIDE IS AVAILABLE TO DOWNLOAD , ALONGSIDE ARTIST SUPPORT DOCUMENTS.
+					</h2>
+
+					<h2 class="mt-6 font-sans text-xl font-extrabold uppercase tracking-wide text-white">
+						IF YOU REQUIRE FURTHER INFORMATION OR PRINTED VERSIONS OF THESE DOCUMENTS PLEASE REACH OUT AT ARTIST@LTDEDN.COM
+					</h2>
 				</section>
 
 				<!-- Right: downloads -->
 				<aside class="mx-auto w-full max-w-sm lg:mx-0 lg:max-w-none">
-					<div class="flex flex-col items-center space-y-16 lg:items-start">
-						<a :href="ARTIST_HANDBOOK_URL" download class="group block">
-							<div class="aspect-square w-56 bg-emerald-200/90 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] flex items-center justify-center group-hover:bg-emerald-300/90 transition-colors">
-								<svg class="h-16 w-16 text-black/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+					<div class="flex flex-col items-center gap-6 lg:items-end">
+						<component
+							v-for="dl in downloads"
+							:key="dl.label"
+							:is="dl.enabled ? 'a' : 'div'"
+							v-bind="dl.enabled ? { href: dl.url, download: true } : {}"
+							:class="['group block', { 'cursor-default opacity-50': !dl.enabled }]"
+						>
+							<div
+								:class="[
+									'relative flex aspect-square w-64 items-center justify-center overflow-hidden border border-white/10',
+									{ 'grayscale': !dl.enabled },
+								]"
+							>
+								<img
+									:src="DL_IMG"
+									:alt="dl.label"
+									class="absolute inset-0 h-full w-full object-cover"
+								/>
+							</div>
+							<div class="mt-3 flex items-center gap-2 text-xs font-bold tracking-wider text-white">
+								<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
 								</svg>
+								<div>
+									<div>{{ dl.label }}</div>
+									<div class="font-normal text-white/60">{{ dl.subtitle }}</div>
+								</div>
 							</div>
-							<div class="mt-5 text-center text-sm font-extrabold tracking-wide text-white md:text-left">
-								ARTIST<br />HANDBOOK
-							</div>
-						</a>
-
-						<a :href="ARTIST_AGREEMENT_URL" download class="group block">
-							<div class="aspect-square w-56 bg-emerald-200/90 shadow-[0_0_0_1px_rgba(255,255,255,0.08)] flex items-center justify-center group-hover:bg-emerald-300/90 transition-colors">
-								<svg class="h-16 w-16 text-black/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-								</svg>
-							</div>
-							<div class="mt-5 text-center text-sm font-extrabold tracking-wide text-white md:text-left">
-								ARTIST<br />
-								AGREEMENT<br />
-								<span class="font-semibold text-white/80">REFERENCE GUIDE</span>
-							</div>
-						</a>
+						</component>
 					</div>
 				</aside>
 			</div>
@@ -141,13 +169,8 @@ const userName = computed(function () {
 
 		<!-- Footer -->
 		<footer class="relative z-10">
-			<div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-8 text-xs font-semibold tracking-wide text-white/80 lg:px-8">
-				<p>© {{ new Date().getFullYear() }} LTD/EDN ALL RIGHTS RESERVED</p>
-				<div class="flex items-center gap-5">
-					<Link href="/privacy" class="hover:text-white">PRIVACY</Link>
-					<span class="text-white/40">/</span>
-					<Link href="/terms" class="hover:text-white">TERMS</Link>
-				</div>
+			<div class="mx-auto flex max-w-7xl items-center justify-end px-6 py-8 text-xs font-semibold tracking-wide text-white/80 lg:px-8">
+				<p>&copy; {{ new Date().getFullYear() }} LTD/EDN</p>
 			</div>
 		</footer>
 	</div>
