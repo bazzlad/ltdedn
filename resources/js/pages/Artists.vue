@@ -114,7 +114,7 @@ const downloads = [
 					</p>
 
 					<p class="mt-6 text-white/75">
-						LTD/EDN will help artists translate their own stories into physical form, turning products into chapters. By structuring releases as cohesive collections,
+						LTD/EDN will help artists translate their own stories into physical form, turning products into chapters. By structuring releases as cohesive collections, each chapter becomes part of a larger narrative that deepens engagement and builds lasting value for artists and collectors.
 					</p>
 
 					<p class="mt-8 text-base font-bold text-white">
