@@ -20,7 +20,7 @@ interface Props {
 			slug: string;
 			description: string | null;
 			cover_image: string | null;
-			edition_size: number;
+			edition_size?: number | null;
 			artist: {
 				id: number;
 				name: string;
