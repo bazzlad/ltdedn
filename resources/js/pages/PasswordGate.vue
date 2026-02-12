@@ -4,17 +4,13 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 interface Props {
-    intended: string;
-    gate: string;
     error?: string | null;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const form = useForm({
     password: '',
-    intended: props.intended,
-    gate: props.gate,
 });
 
 const showPassword = ref(false);

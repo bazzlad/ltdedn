@@ -30,10 +30,6 @@ class SimplePasswordProtection
             return $next($request);
         }
 
-        // Redirect to password gate with intended URL and gate name
-        return redirect()->route('password-gate.show', [
-            'intended' => $request->fullUrl(),
-            'gate' => $gate,
-        ]);
+        return redirect()->route('home');
     }
 }

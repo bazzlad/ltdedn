@@ -11,17 +11,10 @@ use App\Http\Controllers\RejectProductEditionTransferController;
 use App\Http\Controllers\ShowQRController;
 use App\Http\Controllers\TransferQRController;
 use App\Http\Controllers\UserDashboardController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    if (Auth::check()) {
-        return redirect()->route('dashboard');
-    }
-
-    return Inertia::render('Welcome');
-})->name('home');
+Route::get('/', [PasswordGateController::class, 'show'])->name('home');
 
 Route::get('/privacy', function () {
     return Inertia::render('Privacy');
@@ -39,8 +32,7 @@ Route::get('dashboard', UserDashboardController::class)->middleware(['auth', 've
 |--------------------------------------------------------------------------
 */
 
-Route::get('/password-gate', [PasswordGateController::class, 'show'])->name('password-gate.show');
-Route::post('/password-gate', [PasswordGateController::class, 'store'])->name('password-gate.store');
+Route::post('/', [PasswordGateController::class, 'store'])->name('password-gate.store');
 
 /*
 |--------------------------------------------------------------------------
