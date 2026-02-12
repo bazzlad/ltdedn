@@ -106,7 +106,7 @@ const downloads = [
 					</p>
 
 					<p class="mt-6 text-white/75">
-						LTD/EDN is embracing this evolution, building a next-generation platform that combines the best of these technologies with groundbreaking authentication system.
+						LTD/EDN is embracing this evolution, building a next-generation platform that combines the best of these technologies with a groundbreaking authentication system.
 					</p>
 
 					<p class="mt-6 text-white/75">
