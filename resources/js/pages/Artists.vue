@@ -17,13 +17,14 @@ const userName = computed(function () {
 	return (p && p.auth && p.auth.user && p.auth.user.name) ? p.auth.user.name : 'Guest';
 });
 
-const downloads = [
-	{
-		url: ARTIST_LOOKBOOK_URL,
-		label: 'ARTIST LOOK BOOK',
-		subtitle: 'DOWNLOADABLE PDF',
-		enabled: true,
-	},
+const lookbook = {
+	url: ARTIST_LOOKBOOK_URL,
+	label: 'ARTIST LOOK BOOK',
+	subtitle: 'DOWNLOADABLE PDF',
+	enabled: true,
+};
+
+const otherDownloads = [
 	{
 		url: ARTIST_CONTRACT_URL,
 		label: 'ARTIST CONTRACT',
@@ -52,7 +53,7 @@ const downloads = [
 			<div class="absolute inset-0 bg-gradient-to-b from-black via-black/50 to-black"></div>
 		</div>
 
-		<!-- Top nav -->
+		<!-- Top nav
 		<header class="relative z-10">
 			<nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
 				<Link :href="home()" class="flex items-center gap-3">
@@ -75,9 +76,28 @@ const downloads = [
 				</div>
 			</nav>
 		</header>
+		-->
 
 		<!-- Main -->
-		<main class="relative z-10 mx-auto w-full max-w-7xl flex-1 px-6 pb-16 pt-10 lg:px-8 lg:pb-20 lg:pt-14">
+		<main class="relative z-10 mx-auto w-full max-w-7xl flex-1 px-6 pb-8 pt-10 lg:px-8 lg:pb-20 lg:pt-14">
+			<!-- Lookbook: top on mobile, hidden on lg (shown in sidebar instead) -->
+			<div class="mx-auto mb-8 mt-4 flex w-full max-w-sm justify-center lg:hidden">
+				<a :href="lookbook.url" download class="group block">
+					<div class="relative flex aspect-square w-64 items-center justify-center overflow-hidden border-4 border-white/80">
+						<img :src="DL_IMG" :alt="lookbook.label" class="absolute inset-0 h-full w-full object-cover" />
+					</div>
+					<div class="mt-3 flex items-center gap-2 text-xs font-bold tracking-wider text-white">
+						<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+						</svg>
+						<div>
+							<div>{{ lookbook.label }}</div>
+							<div class="font-normal text-white/60">{{ lookbook.subtitle }}</div>
+						</div>
+					</div>
+				</a>
+			</div>
+
 			<div class="grid items-start gap-14 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-20">
 				<!-- Left: copy -->
 				<section class="max-w-3xl font-mono text-sm leading-relaxed tracking-wide">
@@ -130,11 +150,28 @@ const downloads = [
 					</h2>
 				</section>
 
-				<!-- Right: downloads -->
+				<!-- Right: all downloads on lg, only other downloads on mobile -->
 				<aside class="mx-auto w-full max-w-sm lg:mx-0 lg:max-w-none">
 					<div class="flex flex-col items-center gap-6 lg:items-end">
+						<!-- Lookbook: only visible on lg (mobile version is above) -->
+						<a :href="lookbook.url" download class="group hidden lg:block">
+							<div class="relative flex aspect-square w-64 items-center justify-center overflow-hidden border-4 border-white/80">
+								<img :src="DL_IMG" :alt="lookbook.label" class="absolute inset-0 h-full w-full object-cover" />
+							</div>
+							<div class="mt-3 flex items-center gap-2 text-xs font-bold tracking-wider text-white">
+								<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+								</svg>
+								<div>
+									<div>{{ lookbook.label }}</div>
+									<div class="font-normal text-white/60">{{ lookbook.subtitle }}</div>
+								</div>
+							</div>
+						</a>
+
+						<!-- Other downloads: always visible -->
 						<component
-							v-for="dl in downloads"
+							v-for="dl in otherDownloads"
 							:key="dl.label"
 							:is="dl.enabled ? 'a' : 'div'"
 							v-bind="dl.enabled ? { href: dl.url, download: true } : {}"
@@ -142,7 +179,7 @@ const downloads = [
 						>
 							<div
 								:class="[
-									'relative flex aspect-square w-64 items-center justify-center overflow-hidden border border-white/10',
+									'relative flex aspect-square w-64 items-center justify-center overflow-hidden border-4 border-white/80',
 									{ 'grayscale': !dl.enabled },
 								]"
 							>
@@ -169,7 +206,7 @@ const downloads = [
 
 		<!-- Footer -->
 		<footer class="relative z-10">
-			<div class="mx-auto flex max-w-7xl items-center justify-end px-6 py-8 text-xs font-semibold tracking-wide text-white/80 lg:px-8">
+			<div class="mx-auto flex max-w-7xl items-center justify-center px-6 py-8 text-xs font-semibold tracking-wide text-white/80 lg:px-8 lg:justify-end">
 				<p>&copy; {{ new Date().getFullYear() }} LTD/EDN</p>
 			</div>
 		</footer>
