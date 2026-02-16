@@ -14,9 +14,9 @@ class PasswordGateTest extends TestCase
         parent::setUp();
 
         config(['password_gate.enabled_in_tests' => true]);
-        config(['password_gate.passwords.artists' => 'ARTIST']);
+        config(['password_gate.passwords.artist' => 'ARTIST']);
         config(['password_gate.passwords.invest' => 'INVEST']);
-        config(['password_gate.routes.artists' => 'artists']);
+        config(['password_gate.routes.artist' => 'artist']);
         config(['password_gate.routes.invest' => 'invest']);
     }
 
@@ -32,25 +32,25 @@ class PasswordGateTest extends TestCase
 
     public function test_middleware_redirects_to_home_when_not_authenticated(): void
     {
-        $response = $this->get('/artists');
+        $response = $this->get('/artist');
 
         $response->assertRedirect('/');
     }
 
     public function test_middleware_allows_access_when_authenticated(): void
     {
-        $this->session(['password_gate_artists_authenticated' => true]);
+        $this->session(['password_gate_artist_authenticated' => true]);
 
-        $response = $this->get('/artists');
+        $response = $this->get('/artist');
 
         $response->assertStatus(200);
     }
 
     public function test_middleware_allows_access_when_no_password_configured(): void
     {
-        config(['password_gate.passwords.artists' => null]);
+        config(['password_gate.passwords.artist' => null]);
 
-        $response = $this->get('/artists');
+        $response = $this->get('/artist');
 
         $response->assertStatus(200);
     }
@@ -61,8 +61,8 @@ class PasswordGateTest extends TestCase
             'password' => 'ARTIST',
         ]);
 
-        $response->assertRedirect(route('artists'));
-        $response->assertSessionHas('password_gate_artists_authenticated', true);
+        $response->assertRedirect(route('artist'));
+        $response->assertSessionHas('password_gate_artist_authenticated', true);
     }
 
     public function test_invest_password_redirects_to_invest_page(): void
@@ -81,8 +81,8 @@ class PasswordGateTest extends TestCase
             'password' => 'artist',
         ]);
 
-        $response->assertRedirect(route('artists'));
-        $response->assertSessionHas('password_gate_artists_authenticated', true);
+        $response->assertRedirect(route('artist'));
+        $response->assertSessionHas('password_gate_artist_authenticated', true);
     }
 
     public function test_authentication_fails_with_wrong_password(): void
@@ -104,7 +104,7 @@ class PasswordGateTest extends TestCase
 
     public function test_gates_are_independent(): void
     {
-        $this->session(['password_gate_artists_authenticated' => true]);
+        $this->session(['password_gate_artist_authenticated' => true]);
 
         $response = $this->get('/invest');
 

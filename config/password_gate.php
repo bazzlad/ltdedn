@@ -3,11 +3,11 @@
 return [
     'passwords' => [
         'invest' => 'INVEST',
-        'artists' => 'ARTIST',
+        'artist' => 'ARTIST',
     ],
     'routes' => [
         'invest' => 'invest',
-        'artists' => 'artists',
+        'artist' => 'artist',
     ],
     'error_session_key' => 'password_gate_error',
 ];

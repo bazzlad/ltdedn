@@ -40,8 +40,8 @@ Route::post('/', [PasswordGateController::class, 'store'])->name('password-gate.
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('password:artists')->group(function () {
-    Route::get('/artists', ArtistsController::class)->name('artists');
+Route::middleware('password:artist')->group(function () {
+    Route::get('/artist', ArtistsController::class)->name('artist');
 });
 
 Route::middleware('password:invest')->group(function () {

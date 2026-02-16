@@ -80,7 +80,7 @@ const otherDownloads = [
 		<main class="relative z-10 mx-auto w-full max-w-7xl flex-1 px-6 pb-8 pt-10 lg:px-8 lg:pb-20 lg:pt-14">
 			<!-- Guide: top on mobile, hidden on lg (shown in sidebar instead) -->
 			<div class="mx-auto mb-8 mt-4 flex w-full max-w-sm justify-center lg:hidden">
-				<a :href="guide.url" download class="group block">
+				<a :href="guide.url" target="_blank" class="group block">
 					<div class="relative flex aspect-square w-64 items-center justify-center overflow-hidden border-4 border-white/80">
 						<img :src="DL_IMG" :alt="guide.label" class="absolute inset-0 h-full w-full object-cover" />
 					</div>
@@ -99,7 +99,7 @@ const otherDownloads = [
 			<div class="grid items-start gap-14 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-20">
 				<!-- Left: copy -->
 				<section class="max-w-3xl font-mono text-sm leading-relaxed tracking-wide">
-					<h1 class="font-sans text-3xl font-bold italic tracking-tight text-white sm:text-4xl">
+					<h1 class="font-sans text-3xl font-semibold tracking-tight text-white sm:text-4xl">
 						WELCOME TO LTD/EDN&hellip;
 					</h1>
 
@@ -137,14 +137,14 @@ const otherDownloads = [
 					</p>
 
 					<p class="mt-6 text-white/75">
-						The company is raising an initial £50,000 for 10% equity under SEIS, with Advance Assurance prepared via SeedLegals, to fund platform deployment, initial artist-led launches, and early revenue validation.
+						The company is raising an initial £50,000 for 10% equity under SEIS, with Advance Assurance prepared via <a href="https://seedlegals.com/resources/seis/#seis-introduction" target="_blank" class="font-semibold text-white underline decoration-white/60 underline-offset-2 hover:decoration-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50">SeedLegals</a>, to fund platform deployment, initial artist-led launches, and early revenue validation.
 					</p>
 
-					<h2 class="mt-10 font-sans text-xl font-extrabold uppercase tracking-wide text-white">
+					<h2 class="mt-10 font-sans text-xl font-semibold uppercase tracking-wide text-white">
 						OUR COMPREHENSIVE INVESTOR GUIDE IS AVAILABLE TO DOWNLOAD, ALONGSIDE FURTHER INVESTOR SUPPORT DOCUMENTS.
 					</h2>
 
-					<h2 class="mt-6 font-sans text-xl font-extrabold uppercase tracking-wide text-white">
+					<h2 class="mt-6 font-sans text-xl font-semibold uppercase tracking-wide text-white">
 						IF YOU REQUIRE FURTHER INFORMATION OR PRINTED VERSIONS OF THESE DOCUMENTS PLEASE REACH OUT AT INVEST@LTDEDN.COM
 					</h2>
 				</section>
@@ -153,7 +153,7 @@ const otherDownloads = [
 				<aside class="mx-auto w-full max-w-sm lg:mx-0 lg:max-w-none">
 					<div class="flex flex-col items-center gap-6 lg:items-end">
 						<!-- Guide: only visible on lg (mobile version is above) -->
-						<a :href="guide.url" download class="group hidden lg:block">
+						<a :href="guide.url" target="_blank" class="group hidden lg:block">
 							<div class="relative flex aspect-square w-64 items-center justify-center overflow-hidden border-4 border-white/80">
 								<img :src="DL_IMG" :alt="guide.label" class="absolute inset-0 h-full w-full object-cover" />
 							</div>
@@ -173,7 +173,7 @@ const otherDownloads = [
 							v-for="dl in otherDownloads"
 							:key="dl.label"
 							:is="dl.enabled ? 'a' : 'div'"
-							v-bind="dl.enabled ? { href: dl.url, download: true } : {}"
+							v-bind="dl.enabled ? { href: dl.url, target: '_blank' } : {}"
 							:class="['group block', { 'cursor-default opacity-50': !dl.enabled }]"
 						>
 							<div
