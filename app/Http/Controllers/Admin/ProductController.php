@@ -133,6 +133,8 @@ class ProductController extends Controller
             }
 
             $validated['cover_image'] = $request->file('cover_image')->store('products', 'public');
+        } else {
+            unset($validated['cover_image']);
         }
 
         $product->update($validated);
