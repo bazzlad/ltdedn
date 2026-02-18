@@ -34,7 +34,7 @@ const LOGO_LG = '/images/logo-lg.svg';
         </div>
 
         <!-- Top password bar -->
-        <header class="relative z-10 px-4 pt-4 sm:px-6 sm:pt-6">
+        <header class="relative z-10 shrink-0 px-4 pt-4 sm:px-6 sm:pt-6">
             <form @submit.prevent="submit" class="mx-auto flex max-w-2xl items-center gap-3 rounded bg-neutral-900/80 px-4 py-3 backdrop-blur-sm">
                 <input
                     id="password"
@@ -42,7 +42,7 @@ const LOGO_LG = '/images/logo-lg.svg';
                     :type="showPassword ? 'text' : 'password'"
                     name="password"
                     required
-                    class="flex-1 border-0 bg-transparent text-xs font-bold tracking-widest text-white uppercase placeholder:text-neutral-400 focus:ring-0 focus:outline-none"
+                    class="flex-1 border-0 bg-transparent text-base font-bold tracking-widest text-white uppercase placeholder:text-neutral-400 focus:ring-0 focus:outline-none sm:text-xs"
                     placeholder="ENTER PASSWORD"
                     autofocus
                 />
@@ -78,12 +78,12 @@ const LOGO_LG = '/images/logo-lg.svg';
         </header>
 
         <!-- Centered logo -->
-        <main class="relative z-10 flex flex-1 items-center justify-center px-6">
-            <img :src="LOGO_LG" alt="I AM / LTD EDN" class="w-full max-w-md sm:max-w-lg lg:max-w-xl" />
+        <main class="relative z-10 flex min-h-0 flex-1 items-center justify-center px-6">
+            <img :src="LOGO_LG" alt="I AM / LTD EDN" class="w-full max-w-md object-contain sm:max-w-lg lg:max-w-xl" />
         </main>
 
         <!-- Footer -->
-        <footer class="relative z-10 py-6 text-center text-xs font-bold tracking-wider text-white/60 uppercase">
+        <footer class="relative z-10 shrink-0 py-6 text-center text-xs font-bold tracking-wider text-white/60 uppercase">
             &copy; {{ new Date().getFullYear() }} LTD/EDN
         </footer>
     </div>
