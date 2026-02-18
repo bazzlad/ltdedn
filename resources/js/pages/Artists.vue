@@ -17,6 +17,14 @@ const userName = computed(function () {
 	return (p && p.auth && p.auth.user && p.auth.user.name) ? p.auth.user.name : 'Guest';
 });
 
+const artistEmail = computed(function () {
+	return ['artist', 'ltdedn.com'].join('@');
+});
+
+function openArtistEmail(): void {
+	window.location.href = 'mai' + 'lto:' + artistEmail.value;
+}
+
 const lookbook = {
 	url: ARTIST_LOOKBOOK_URL,
 	label: 'ARTIST LOOK BOOK',
@@ -146,7 +154,7 @@ const otherDownloads = [
 					</h2>
 
 					<h2 class="mt-6 font-sans text-xl font-semibold uppercase tracking-wide text-white">
-						IF YOU REQUIRE FURTHER INFORMATION OR PRINTED VERSIONS OF THESE DOCUMENTS PLEASE REACH OUT AT ARTIST@LTDEDN.COM
+						IF YOU REQUIRE FURTHER INFORMATION OR PRINTED VERSIONS OF THESE DOCUMENTS PLEASE REACH OUT AT <a href="#" class="underline decoration-white/60 underline-offset-2 hover:decoration-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50" @click.prevent="openArtistEmail">{{ artistEmail.toUpperCase() }}</a>
 					</h2>
 				</section>
 

@@ -15,6 +15,14 @@ const userName = computed(function () {
 	return (p && p.auth && p.auth.user && p.auth.user.name) ? p.auth.user.name : 'Guest';
 });
 
+const investEmail = computed(function () {
+	return ['invest', 'ltdedn.com'].join('@');
+});
+
+function openInvestEmail(): void {
+	window.location.href = 'mai' + 'lto:' + investEmail.value;
+}
+
 const guide = {
 	url: INVESTOR_GUIDE_URL,
 	label: 'INVESTOR GUIDE',
@@ -145,7 +153,7 @@ const otherDownloads = [
 					</h2>
 
 					<h2 class="mt-6 font-sans text-xl font-semibold uppercase tracking-wide text-white">
-						IF YOU REQUIRE FURTHER INFORMATION OR PRINTED VERSIONS OF THESE DOCUMENTS PLEASE REACH OUT AT INVEST@LTDEDN.COM
+						IF YOU REQUIRE FURTHER INFORMATION OR PRINTED VERSIONS OF THESE DOCUMENTS PLEASE REACH OUT AT <a href="#" class="underline decoration-white/60 underline-offset-2 hover:decoration-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50" @click.prevent="openInvestEmail">{{ investEmail.toUpperCase() }}</a>
 					</h2>
 				</section>
 
