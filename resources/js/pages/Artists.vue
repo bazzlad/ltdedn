@@ -113,7 +113,7 @@ const otherDownloads = [
 						Since its launch in 2007, the brand became known for producing high-quality, artist-led limited editions that connected creators with collectors around the world. Over the years, it collaborated with many of the most respected and loved artists working today, including <strong class="font-bold text-white">Audrey Kawasaki</strong>, <strong class="font-bold text-white">Dan Baldwin</strong>, <strong class="font-bold text-white">INSA</strong>, <strong class="font-bold text-white">James Jean</strong>, <strong class="font-bold text-white">Kozik</strong>, <strong class="font-bold text-white">Mab Graves</strong>, <strong class="font-bold text-white">Mode2</strong>, <strong class="font-bold text-white">Ron English</strong>, <strong class="font-bold text-white">Tara McPherson</strong>, <strong class="font-bold text-white">Tom Lewis</strong>, <strong class="font-bold text-white">tokidoki</strong>, and many more.
 					</p>
 
-					<p class="mt-8 text-base font-bold italic text-white">
+					<p class="mt-8 text-base font-bold text-white">
 						LTD/EDN is a new chapter.
 					</p>
 
