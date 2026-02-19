@@ -8,7 +8,7 @@ const DL_IMG = '/images/dl-img.jpg';
 
 const ARTIST_LOOKBOOK_URL = '/downloads/Artist-Handbook.pdf';
 const ARTIST_CONTRACT_URL = '/downloads/Artist-Agreement.pdf';
-const ARTIST_STORYTELLING_URL = '/downloads/Artist-Handbook.pdf';
+const ARTIST_STORYTELLING_URL = '/downloads/Artist-Storytelling.pdf';
 
 const page = usePage();
 
@@ -42,8 +42,8 @@ const otherDownloads = [
 	{
 		url: ARTIST_STORYTELLING_URL,
 		label: 'ARTIST STORYTELLING',
-		subtitle: 'AVAILABLE SOON',
-		enabled: false,
+		subtitle: 'SUPPORT DOCUMENT',
+		enabled: true,
 	},
 ];
 </script>

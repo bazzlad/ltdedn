@@ -112,40 +112,31 @@ const otherDownloads = [
 					</h1>
 
 					<p class="mt-8 text-white/85">
-						LTD/EDN is a premium, artist-first creator-commerce platform enabling artists and designers to create and sell authenticated, limited-edition art, apparel, and homeware directly to their audiences.
+						LTD/EDN is building premium infrastructure for the next generation of artist-led commerce.
 					</p>
 
 					<p class="mt-6 text-white/75">
-						The platform solves two structural problems in the creator economy...
-					</p>
-
-					<ul class="mt-6 space-y-4 text-white/85">
-						<li>
-							&bull; <strong class="font-bold text-white">Artists lack scalable, high-margin routes to monetise luxury physical products without operational burden and cost.</strong>
-						</li>
-						<li>
-							&bull; <strong class="font-bold text-white">Collectors increasingly demand authentic, high-quality limited editions rather than mass-produced merchandise.</strong>
-						</li>
-					</ul>
-
-					<p class="mt-6 text-white/75">
-						LTD/EDN combines luxury-grade manufacturing, edition control, and innovative blockchain-backed QR code authentication, allowing artists to retain pricing power, customer ownership, and brand control.
+						The platform enables artists to release authenticated, physical limited-edition capsule collections - from fine art prints to apparel and homeware - with control over production, pricing and distribution. Each edition is supported by an innovative QR-linked digital certification, providing verifiable authenticity, edition transparency and long-term provenance tracking.
 					</p>
 
 					<p class="mt-6 text-white/75">
-						Each edition is produced on a cost-plus basis, ensuring predictable unit economics and strong gross margins (50%+), while limiting inventory risk through capped runs and made-to-order production.
+						As traditional marketplaces prioritise volume over quality, LTD/EDN focuses on scarcity, craftsmanship and sustainable unit economics.
 					</p>
 
 					<p class="mt-6 text-white/75">
-						The business is led by a founding team with over 25 years' experience in premium print, manufacturing, and artist-led editions, including prior execution of artist-led limited editions at scale. This expertise materially reduces execution risk compared to typical early-stage creator platforms.
+						The business operates on a flat 50% gross margin model, providing predictable performance without relying on speculative scale assumptions.
 					</p>
 
 					<p class="mt-6 text-white/75">
-						Launching with 10-15 established artists, scaling through repeatable monthly capsules to 200+ SKUs and £2-3m annual revenue by Year 3.
+						The long-term opportunity extends beyond individual releases. By combining controlled production, QR-based authentication infrastructure and a growing network of curated artists, LTD/EDN is positioning itself as the premium backbone for limited-edition commerce — scalable across categories and collaborators.
 					</p>
 
 					<p class="mt-6 text-white/75">
-						The company is raising an initial £50,000 for 10% equity under SEIS, with Advance Assurance prepared via <a href="https://seedlegals.com/resources/seis/#seis-introduction" target="_blank" class="font-semibold text-white underline decoration-white/60 underline-offset-2 hover:decoration-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50">SeedLegals</a>, to fund platform deployment, initial artist-led launches, and early revenue validation.
+						The model is capital-efficient and profitable from Year 1, with projected revenue exceeding £3.25 million by Year 3 under conservative sell-through assumptions.
+					</p>
+
+					<p class="mt-6 text-white/75">
+						The initial SEIS raise - with <a href="https://seedlegals.com/resources/seis/#seis-introduction" target="_blank" class="font-semibold text-white underline decoration-white/60 underline-offset-2 hover:decoration-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50">Seedlegals.com</a> - supports platform rollout, authentication integration and artist onboarding, establishing the foundation for disciplined growth and long-term strategic value creation.
 					</p>
 
 					<h2 class="mt-10 font-sans text-xl font-semibold uppercase tracking-wide text-white">
