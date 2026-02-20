@@ -3,18 +3,18 @@
 use App\Http\Controllers\AcceptProductEditionTransferController;
 use App\Http\Controllers\ArtistsController;
 use App\Http\Controllers\CancelProductEditionTransferController;
+use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ClaimQRController;
 use App\Http\Controllers\InvestController;
 use App\Http\Controllers\PasswordGateController;
 use App\Http\Controllers\ProductEditionTransferController;
-use App\Http\Controllers\RejectProductEditionTransferController;
 use App\Http\Controllers\RedeemEditionController;
+use App\Http\Controllers\RejectProductEditionTransferController;
 use App\Http\Controllers\ShowQRController;
 use App\Http\Controllers\TokenMetadataController;
 use App\Http\Controllers\TransferQRController;
 use App\Http\Controllers\UserDashboardController;
 use App\Http\Controllers\VerifyEditionController;
-use App\Http\Controllers\CertificateController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 

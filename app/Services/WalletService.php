@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Wallet;
+use Illuminate\Encryption\Encrypter;
+use Illuminate\Support\Str;
 
 class WalletService
 {
@@ -39,9 +41,20 @@ class WalletService
         $masterKey = (string) config('blockchain.wallet_master_key');
 
         if ($masterKey === '') {
-            throw new \RuntimeException('WALLET_MASTER_KEY is not configured.');
+            return encrypt($privateKey);
         }
 
-        return encrypt($privateKey);
+        $normalized = Str::startsWith($masterKey, 'base64:')
+            ? base64_decode(substr($masterKey, 7), true)
+            : $masterKey;
+
+        if (! is_string($normalized) || $normalized === '') {
+            throw new \RuntimeException('Invalid WALLET_MASTER_KEY configuration.');
+        }
+
+        $key = hash('sha256', $normalized, true);
+        $encrypter = new Encrypter($key, config('app.cipher', 'AES-256-CBC'));
+
+        return $encrypter->encryptString($privateKey);
     }
 }
