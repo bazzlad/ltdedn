@@ -1,21 +1,12 @@
 <script setup lang="ts">
-import { home } from '@/routes';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
-const LOGO_SVG = '/images/logo-sm.svg';
 const DL_IMG = '/images/dl-img.jpg';
 
 const ARTIST_LOOKBOOK_URL = '/downloads/Artist-Handbook.pdf';
 const ARTIST_CONTRACT_URL = '/downloads/Artist-Agreement.pdf';
 const ARTIST_STORYTELLING_URL = '/downloads/Artist-Storytelling.pdf';
-
-const page = usePage();
-
-const userName = computed(function () {
-	const p: any = page.props;
-	return (p && p.auth && p.auth.user && p.auth.user.name) ? p.auth.user.name : 'Guest';
-});
 
 const artistEmail = computed(function () {
 	return ['artist', 'ltdedn.com'].join('@');

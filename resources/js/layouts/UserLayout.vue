@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import AppContent from '@/components/AppContent.vue';
 import AppShell from '@/components/AppShell.vue';
 import { dashboard, logout } from '@/routes';
 import { dashboard as adminDashboard } from '@/routes/admin';
