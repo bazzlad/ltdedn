@@ -32,10 +32,8 @@ class ProductEdition extends Model
 
         static::creating(function (ProductEdition $edition) {
             if (empty($edition->qr_code)) {
-                $edition->load('product');
-
                 $qrService = app(QRCodeService::class);
-                $edition->qr_code = $qrService->generateQRCode($edition->product, $edition->number);
+                $edition->qr_code = $qrService->generateQRCode();
             }
         });
     }

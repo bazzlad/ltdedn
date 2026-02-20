@@ -13,8 +13,6 @@ use Endroid\QrCode\Writer\PngWriter;
 
 class QRCodeService
 {
-    private const QR_SALT = 'ltdedn_qr_salt_2025';
-
     private const LOGO_PNG_PATH = 'images/logo-white.png';
 
     private const DEFAULT_QR_SIZE = 1400;
@@ -25,36 +23,44 @@ class QRCodeService
 
     private const DEFAULT_LOGO_HEIGHT = 400;
 
-    public function generateQRCode(Product $product, int $editionNumber): string
+    public function generateQRCode(?Product $product = null, ?int $editionNumber = null): string
     {
-        $baseString = implode('|', [
-            $product->id,
-            $editionNumber,
-            $product->slug,
-            self::QR_SALT,
-        ]);
-
-        return hash('sha256', $baseString);
+        return bin2hex(random_bytes(32));
     }
 
     public function generateQRCodeForEdition(ProductEdition $edition): string
     {
-        $edition->load('product');
+        if (! empty($edition->qr_code)) {
+            return $edition->qr_code;
+        }
 
-        return $this->generateQRCode($edition->product, $edition->number);
+        return $this->generateQRCode();
     }
 
     public function verifyQRCode(Product $product, int $editionNumber, string $qrCode): bool
     {
-        $expectedQRCode = $this->generateQRCode($product, $editionNumber);
+        $edition = ProductEdition::where('product_id', $product->id)
+            ->where('number', $editionNumber)
+            ->first();
 
-        return hash_equals($expectedQRCode, $qrCode);
+        if (! $edition || empty($edition->qr_code)) {
+            return false;
+        }
+
+        return hash_equals($edition->qr_code, $qrCode);
     }
 
     public function generateQRCodeUrl(Product $product, int $editionNumber, ?string $baseUrl = null): string
     {
         $baseUrl = $baseUrl ?? config('app.url');
-        $qrCode = $this->generateQRCode($product, $editionNumber);
+
+        $edition = ProductEdition::where('product_id', $product->id)
+            ->where('number', $editionNumber)
+            ->first();
+
+        $qrCode = $edition && ! empty($edition->qr_code)
+            ? $edition->qr_code
+            : $this->generateQRCode($product, $editionNumber);
 
         return "{$baseUrl}/qr/{$qrCode}";
     }

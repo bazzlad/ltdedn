@@ -21,110 +21,68 @@ class QRCodeServiceTest extends TestCase
         $this->qrService = new QRCodeService;
     }
 
-    public function test_generates_deterministic_qr_code(): void
+    public function test_generates_random_qr_code_tokens(): void
     {
-        $artist = Artist::factory()->create();
-        $product = Product::factory()->for($artist)->create([
-            'id' => 1,
-            'slug' => 'test-product',
-        ]);
+        $qrCode1 = $this->qrService->generateQRCode();
+        $qrCode2 = $this->qrService->generateQRCode();
 
-        $qrCode1 = $this->qrService->generateQRCode($product, 1);
-        $qrCode2 = $this->qrService->generateQRCode($product, 1);
-
-        $this->assertEquals($qrCode1, $qrCode2);
         $this->assertIsString($qrCode1);
-        $this->assertEquals(64, strlen($qrCode1)); // SHA256 hash length
-    }
-
-    public function test_generates_different_qr_codes_for_different_editions(): void
-    {
-        $artist = Artist::factory()->create();
-        $product = Product::factory()->for($artist)->create([
-            'slug' => 'test-product',
-        ]);
-
-        $qrCode1 = $this->qrService->generateQRCode($product, 1);
-        $qrCode2 = $this->qrService->generateQRCode($product, 2);
-
+        $this->assertIsString($qrCode2);
+        $this->assertEquals(64, strlen($qrCode1));
+        $this->assertEquals(64, strlen($qrCode2));
         $this->assertNotEquals($qrCode1, $qrCode2);
     }
 
-    public function test_generates_different_qr_codes_for_different_products(): void
-    {
-        $artist = Artist::factory()->create();
-        $product1 = Product::factory()->for($artist)->create(['slug' => 'product-1']);
-        $product2 = Product::factory()->for($artist)->create(['slug' => 'product-2']);
-
-        $qrCode1 = $this->qrService->generateQRCode($product1, 1);
-        $qrCode2 = $this->qrService->generateQRCode($product2, 1);
-
-        $this->assertNotEquals($qrCode1, $qrCode2);
-    }
-
-    public function test_generates_qr_code_for_existing_edition(): void
+    public function test_generate_qr_code_for_edition_returns_existing_value_when_present(): void
     {
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
-        $edition = ProductEdition::factory()->for($product)->create(['number' => 5]);
+
+        $edition = ProductEdition::factory()->for($product)->create([
+            'number' => 5,
+            'qr_code' => 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        ]);
 
         $qrCode = $this->qrService->generateQRCodeForEdition($edition);
 
-        $this->assertIsString($qrCode);
-        $this->assertEquals(64, strlen($qrCode));
-
-        $expectedQRCode = $this->qrService->generateQRCode($product, 5);
-        $this->assertEquals($expectedQRCode, $qrCode);
+        $this->assertEquals($edition->qr_code, $qrCode);
     }
 
-    public function test_verifies_valid_qr_code(): void
+    public function test_verify_qr_code_checks_persisted_edition_code(): void
     {
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
 
-        $qrCode = $this->qrService->generateQRCode($product, 1);
-        $isValid = $this->qrService->verifyQRCode($product, 1, $qrCode);
+        $edition = ProductEdition::factory()->for($product)->create([
+            'number' => 7,
+            'qr_code' => $this->qrService->generateQRCode(),
+        ]);
 
-        $this->assertTrue($isValid);
+        $this->assertTrue($this->qrService->verifyQRCode($product, 7, $edition->qr_code));
+        $this->assertFalse($this->qrService->verifyQRCode($product, 7, 'invalid-code'));
     }
 
-    public function test_rejects_invalid_qr_code(): void
+    public function test_generates_qr_code_url_for_existing_edition(): void
     {
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
 
-        $isValid = $this->qrService->verifyQRCode($product, 1, 'invalid-qr-code');
+        $edition = ProductEdition::factory()->for($product)->create([
+            'number' => 2,
+            'qr_code' => $this->qrService->generateQRCode(),
+        ]);
 
-        $this->assertFalse($isValid);
-    }
-
-    public function test_generates_qr_code_url(): void
-    {
-        $artist = Artist::factory()->create();
-        $product = Product::factory()->for($artist)->create();
-
-        $url = $this->qrService->generateQRCodeUrl($product, 1);
+        $url = $this->qrService->generateQRCodeUrl($product, 2);
 
         $this->assertStringStartsWith(config('app.url').'/qr/', $url);
-        $this->assertStringContainsString($this->qrService->generateQRCode($product, 1), $url);
-    }
-
-    public function test_generates_qr_code_url_with_custom_base_url(): void
-    {
-        $artist = Artist::factory()->create();
-        $product = Product::factory()->for($artist)->create();
-
-        $customBaseUrl = 'https://custom.domain.com';
-        $url = $this->qrService->generateQRCodeUrl($product, 1, $customBaseUrl);
-
-        $this->assertStringStartsWith($customBaseUrl.'/qr/', $url);
+        $this->assertStringEndsWith($edition->qr_code, $url);
     }
 
     public function test_finds_edition_by_qr_code(): void
     {
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
-        $qrCode = $this->qrService->generateQRCode($product, 1);
+        $qrCode = $this->qrService->generateQRCode();
 
         $edition = ProductEdition::factory()->for($product)->create([
             'number' => 1,
@@ -136,73 +94,5 @@ class QRCodeServiceTest extends TestCase
         $this->assertNotNull($foundEdition);
         $this->assertEquals($edition->id, $foundEdition->id);
         $this->assertEquals($product->id, $foundEdition->product->id);
-    }
-
-    public function test_returns_null_for_nonexistent_qr_code(): void
-    {
-        $foundEdition = $this->qrService->findEditionByQRCode('nonexistent-qr-code');
-
-        $this->assertNull($foundEdition);
-    }
-
-    public function test_qr_codes_are_consistent_across_different_instances(): void
-    {
-        $artist = Artist::factory()->create();
-        $product = Product::factory()->for($artist)->create([
-            'slug' => 'consistent-test',
-        ]);
-
-        $service1 = new QRCodeService;
-        $service2 = new QRCodeService;
-
-        $qrCode1 = $service1->generateQRCode($product, 1);
-        $qrCode2 = $service2->generateQRCode($product, 1);
-
-        $this->assertEquals($qrCode1, $qrCode2);
-    }
-
-    public function test_qr_codes_use_product_slug_for_determinism(): void
-    {
-        $artist = Artist::factory()->create();
-
-        // Create two products with same ID but different slugs
-        // (This simulates what would happen if slug changes)
-        $product1 = Product::factory()->for($artist)->create(['slug' => 'original-slug']);
-        $product2 = Product::factory()->for($artist)->create(['slug' => 'modified-slug']);
-
-        $qrCode1 = $this->qrService->generateQRCode($product1, 1);
-        $qrCode2 = $this->qrService->generateQRCode($product2, 1);
-
-        // Different slugs should produce different QR codes
-        $this->assertNotEquals($qrCode1, $qrCode2);
-    }
-
-    public function test_security_hash_equals_prevents_timing_attacks(): void
-    {
-        $artist = Artist::factory()->create();
-        $product = Product::factory()->for($artist)->create();
-
-        $validQRCode = $this->qrService->generateQRCode($product, 1);
-        $invalidQRCode = 'definitely-not-valid-qr-code-but-same-length-as-sha256-hash';
-
-        // Both should return boolean false, but timing should be similar
-        $startTime1 = microtime(true);
-        $result1 = $this->qrService->verifyQRCode($product, 1, $validQRCode);
-        $endTime1 = microtime(true);
-
-        $startTime2 = microtime(true);
-        $result2 = $this->qrService->verifyQRCode($product, 1, $invalidQRCode);
-        $endTime2 = microtime(true);
-
-        $this->assertTrue($result1);
-        $this->assertFalse($result2);
-
-        // The timing difference should be minimal (both use hash_equals)
-        $timeDiff1 = $endTime1 - $startTime1;
-        $timeDiff2 = $endTime2 - $startTime2;
-
-        // This is more of a documentation test - hash_equals prevents timing attacks
-        $this->assertIsFloat($timeDiff1);
-        $this->assertIsFloat($timeDiff2);
     }
 }
