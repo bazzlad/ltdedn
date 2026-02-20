@@ -8,9 +8,13 @@ use App\Http\Controllers\InvestController;
 use App\Http\Controllers\PasswordGateController;
 use App\Http\Controllers\ProductEditionTransferController;
 use App\Http\Controllers\RejectProductEditionTransferController;
+use App\Http\Controllers\RedeemEditionController;
 use App\Http\Controllers\ShowQRController;
+use App\Http\Controllers\TokenMetadataController;
 use App\Http\Controllers\TransferQRController;
 use App\Http\Controllers\UserDashboardController;
+use App\Http\Controllers\VerifyEditionController;
+use App\Http\Controllers\CertificateController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -61,6 +65,15 @@ Route::post('/qr/{qrCode}/claim', ClaimQRController::class)
 Route::post('/qr/{qrCode}/transfer', TransferQRController::class)
     ->middleware(['auth', 'throttle:5,1'])
     ->name('qr.transfer');
+Route::post('/qr/{qrCode}/redeem', RedeemEditionController::class)
+    ->middleware(['auth', 'throttle:10,1'])
+    ->name('qr.redeem');
+
+Route::get('/verify/{qrCode}', VerifyEditionController::class)->name('verify.qr');
+Route::get('/metadata/{tokenId}.json', TokenMetadataController::class)->name('token.metadata');
+Route::get('/certificate/{edition}.pdf', CertificateController::class)
+    ->middleware('auth')
+    ->name('certificate.pdf');
 
 /*
 |--------------------------------------------------------------------------

@@ -7,6 +7,7 @@ use App\Services\QRCodeService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductEdition extends Model
@@ -61,5 +62,10 @@ class ProductEdition extends Model
     public function isRedeemed(): bool
     {
         return $this->status === ProductEditionStatus::Redeemed;
+    }
+
+    public function chainToken(): HasOne
+    {
+        return $this->hasOne(ChainToken::class, 'edition_id');
     }
 }

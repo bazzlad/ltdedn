@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Enums\ProductEditionStatus;
 use App\Models\ProductEditionTransfer;
 use App\Notifications\ProductEditionTransferAccepted;
+use App\Services\ChainService;
+use App\Services\WalletService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +15,11 @@ use Illuminate\Support\Facades\DB;
 
 class AcceptProductEditionTransferController extends Controller
 {
+    public function __construct(
+        private WalletService $walletService,
+        private ChainService $chainService,
+    ) {}
+
     public function __invoke(Request $request, string $token): RedirectResponse
     {
         if (! Auth::check()) {
@@ -57,6 +64,10 @@ class AcceptProductEditionTransferController extends Controller
 
                 $edition = $transfer->productEdition;
                 $edition->lockForUpdate();
+
+                $fromWallet = $this->walletService->getOrCreateForUser($transfer->sender);
+                $toWallet = $this->walletService->getOrCreateForUser($user);
+                $this->chainService->transferEdition($edition, $fromWallet, $toWallet);
 
                 $edition->update([
                     'owner_id' => $user->id,
