@@ -23,7 +23,16 @@ class StoreBulkProductEditionRequest extends FormRequest
      */
     public function rules(): array
     {
+        $routeProduct = $this->route('product');
+        $productId = $routeProduct instanceof \App\Models\Product ? $routeProduct->id : $routeProduct;
+
         return [
+            'product_sku_id' => [
+                'nullable',
+                Rule::exists('product_skus', 'id')->where(function ($query) use ($productId) {
+                    return $query->where('product_id', $productId);
+                }),
+            ],
             'start_number' => [
                 'required',
                 'integer',
@@ -48,6 +57,7 @@ class StoreBulkProductEditionRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'product_sku_id.exists' => 'Selected SKU is invalid for this product.',
             'start_number.required' => 'Starting number is required.',
             'start_number.integer' => 'Starting number must be a valid number.',
             'start_number.min' => 'Starting number must be at least 1.',

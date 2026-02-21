@@ -5,11 +5,15 @@ use App\Http\Controllers\ArtistsController;
 use App\Http\Controllers\CancelProductEditionTransferController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ClaimQRController;
+use App\Http\Controllers\CreateCheckoutSessionController;
 use App\Http\Controllers\InvestController;
 use App\Http\Controllers\PasswordGateController;
 use App\Http\Controllers\ProductEditionTransferController;
 use App\Http\Controllers\RedeemEditionController;
 use App\Http\Controllers\RejectProductEditionTransferController;
+use App\Http\Controllers\ShopCheckoutResultController;
+use App\Http\Controllers\ShopController;
+use App\Http\Controllers\ShopProductController;
 use App\Http\Controllers\ShowQRController;
 use App\Http\Controllers\TokenMetadataController;
 use App\Http\Controllers\TransferQRController;
@@ -30,19 +34,7 @@ Route::get('/terms', function () {
 
 Route::get('dashboard', UserDashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
-/*
-|--------------------------------------------------------------------------
-| Password Gate Routes
-|--------------------------------------------------------------------------
-*/
-
 Route::post('/', [PasswordGateController::class, 'store'])->name('password-gate.store');
-
-/*
-|--------------------------------------------------------------------------
-| Password Protected Pages
-|--------------------------------------------------------------------------
-*/
 
 Route::middleware('password:artist')->group(function () {
     Route::get('/artist', ArtistsController::class)->name('artist');
@@ -52,11 +44,15 @@ Route::middleware('password:invest')->group(function () {
     Route::get('/invest', InvestController::class)->name('invest');
 });
 
-/*
-|--------------------------------------------------------------------------
-| QR Code Routes
-|--------------------------------------------------------------------------
-*/
+Route::get('/shop', ShopController::class)->name('shop.index');
+Route::get('/shop/{artistId}/{productId}', [ShopProductController::class, 'byId'])->whereNumber('artistId')->whereNumber('productId')->name('shop.product');
+Route::get('/shop/{artistSlug}/{productSlug}', [ShopProductController::class, 'bySlug'])
+    ->where('artistSlug', '.*[A-Za-z].*')
+    ->where('productSlug', '.*[A-Za-z].*')
+    ->name('shop.product.slug');
+Route::post('/shop/checkout', CreateCheckoutSessionController::class)->name('shop.checkout');
+Route::get('/shop/success/{order}', [ShopCheckoutResultController::class, 'success'])->name('shop.success');
+Route::get('/shop/cancel/{order}', [ShopCheckoutResultController::class, 'cancel'])->name('shop.cancel');
 
 Route::get('/qr/{qrCode}', ShowQRController::class)->name('qr.show');
 Route::post('/qr/{qrCode}/claim', ClaimQRController::class)
@@ -75,11 +71,6 @@ Route::get('/certificate/{edition}.pdf', CertificateController::class)
     ->middleware('auth')
     ->name('certificate.pdf');
 
-/*
-|--------------------------------------------------------------------------
-| Transfer Routes
-|--------------------------------------------------------------------------
-*/
 Route::middleware(['auth', 'throttle:10,1'])->group(function () {
     Route::get('/product-edition-transfers/{token}/accept', [ProductEditionTransferController::class, 'show'])->name('transfers.accept');
     Route::post('/product-edition-transfers/{token}/accept', AcceptProductEditionTransferController::class)->name('transfers.accept.post');

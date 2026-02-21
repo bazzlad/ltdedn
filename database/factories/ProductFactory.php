@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Artist;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,10 +18,13 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         return [
+            'artist_id' => Artist::factory(),
             'name' => fake()->sentence(2, false),
             'description' => fake()->optional()->paragraph(),
             'cover_image' => fake()->optional()->imageUrl(400, 400, 'music'),
             'sell_through_ltdedn' => fake()->boolean(30),
+            'is_sellable' => fake()->boolean(20),
+            'sale_status' => 'draft',
             'is_limited' => fake()->boolean(80),
             'edition_size' => fake()->optional(70)->numberBetween(10, 500),
             'base_price' => fake()->optional()->randomFloat(2, 5, 100),

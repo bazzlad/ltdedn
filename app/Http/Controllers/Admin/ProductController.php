@@ -73,6 +73,14 @@ class ProductController extends Controller
 
         $validated = $request->validated();
 
+        if (empty($validated['sale_status'])) {
+            $validated['sale_status'] = 'draft';
+        }
+
+        if (empty($validated['currency'])) {
+            $validated['currency'] = 'gbp';
+        }
+
         if ($request->hasFile('cover_image')) {
             $validated['cover_image'] = $request->file('cover_image')->store('products', 'public');
         }
@@ -113,7 +121,7 @@ class ProductController extends Controller
             ? Artist::orderBy('name')->get()
             : $user->ownedArtists()->orderBy('name')->get();
 
-        $product->load('artist');
+        $product->load('artist')->loadCount('editions');
 
         return Inertia::render('Admin/Products/Edit', [
             'product' => new ProductResource($product),
@@ -126,6 +134,14 @@ class ProductController extends Controller
         $this->authorize('update', $product);
 
         $validated = $request->validated();
+
+        if (empty($validated['sale_status'])) {
+            $validated['sale_status'] = $product->sale_status ? $product->sale_status->value : 'draft';
+        }
+
+        if (empty($validated['currency'])) {
+            $validated['currency'] = $product->currency ?: 'gbp';
+        }
 
         if ($request->hasFile('cover_image')) {
             if ($product->cover_image && Storage::disk('public')->exists($product->cover_image)) {

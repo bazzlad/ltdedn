@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\Artist;
 use App\Models\Product;
 use App\Models\ProductEdition;
+use App\Models\ProductSku;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -45,6 +46,7 @@ class ProductEditionTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
         ProductEdition::factory()->for($product)->create(['number' => 1, 'status' => 'available']);
 
         $response = $this->actingAs($admin)->get("/admin/products/{$product->id}/editions");
@@ -77,6 +79,7 @@ class ProductEditionTest extends TestCase
         $artist = User::factory()->create(['role' => UserRole::Artist]);
         $ownedArtist = Artist::factory()->create(['owner_id' => $artist->id]);
         $product = Product::factory()->for($ownedArtist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
         $edition = ProductEdition::factory()->for($product)->create(['number' => 1]);
 
         $response = $this->actingAs($artist)->get("/admin/products/{$product->id}/editions");
@@ -104,6 +107,7 @@ class ProductEditionTest extends TestCase
         $artist = User::factory()->create(['role' => UserRole::Artist]);
         $otherArtist = Artist::factory()->create();
         $product = Product::factory()->for($otherArtist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
 
         $response = $this->actingAs($artist)->get("/admin/products/{$product->id}/editions");
         $response->assertStatus(403);
@@ -114,6 +118,7 @@ class ProductEditionTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
 
         $response = $this->actingAs($admin)->get("/admin/products/{$product->id}/editions/create");
         $response->assertStatus(200);
@@ -133,6 +138,7 @@ class ProductEditionTest extends TestCase
         $editionData = [
             'number' => 1,
             'status' => 'available',
+            'product_sku_id' => $sku->id,
             'owner_id' => null,
         ];
 
@@ -144,6 +150,7 @@ class ProductEditionTest extends TestCase
             'product_id' => $product->id,
             'number' => 1,
             'status' => 'available',
+            'product_sku_id' => $sku->id,
         ]);
     }
 
@@ -152,10 +159,12 @@ class ProductEditionTest extends TestCase
         $artist = User::factory()->create(['role' => UserRole::Artist]);
         $ownedArtist = Artist::factory()->create(['owner_id' => $artist->id]);
         $product = Product::factory()->for($ownedArtist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
 
         $editionData = [
             'number' => 1,
             'status' => 'available',
+            'product_sku_id' => $sku->id,
         ];
 
         $response = $this->actingAs($artist)->post("/admin/products/{$product->id}/editions", $editionData);
@@ -172,10 +181,12 @@ class ProductEditionTest extends TestCase
         $artist = User::factory()->create(['role' => UserRole::Artist]);
         $otherArtist = Artist::factory()->create();
         $product = Product::factory()->for($otherArtist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
 
         $editionData = [
             'number' => 1,
             'status' => 'available',
+            'product_sku_id' => $sku->id,
         ];
 
         $response = $this->actingAs($artist)->post("/admin/products/{$product->id}/editions", $editionData);
@@ -187,9 +198,11 @@ class ProductEditionTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
         $edition = ProductEdition::factory()->for($product)->create([
             'number' => 1,
             'status' => 'available',
+            'product_sku_id' => $sku->id,
         ]);
 
         $response = $this->actingAs($admin)->get("/admin/products/{$product->id}/editions/{$edition->id}/edit");
@@ -198,6 +211,7 @@ class ProductEditionTest extends TestCase
         $updateData = [
             'number' => 1,
             'status' => 'sold',
+            'product_sku_id' => $sku->id,
             'owner_id' => null,
         ];
 
@@ -207,6 +221,7 @@ class ProductEditionTest extends TestCase
         $this->assertDatabaseHas('product_editions', [
             'id' => $edition->id,
             'status' => 'sold',
+            'product_sku_id' => $sku->id,
         ]);
     }
 
@@ -215,14 +230,17 @@ class ProductEditionTest extends TestCase
         $artist = User::factory()->create(['role' => UserRole::Artist]);
         $ownedArtist = Artist::factory()->create(['owner_id' => $artist->id]);
         $product = Product::factory()->for($ownedArtist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
         $edition = ProductEdition::factory()->for($product)->create([
             'number' => 1,
             'status' => 'available',
+            'product_sku_id' => $sku->id,
         ]);
 
         $updateData = [
             'number' => 1,
             'status' => 'sold',
+            'product_sku_id' => $sku->id,
         ];
 
         $response = $this->actingAs($artist)->put("/admin/products/{$product->id}/editions/{$edition->id}", $updateData);
@@ -231,6 +249,7 @@ class ProductEditionTest extends TestCase
         $this->assertDatabaseHas('product_editions', [
             'id' => $edition->id,
             'status' => 'sold',
+            'product_sku_id' => $sku->id,
         ]);
     }
 
@@ -239,11 +258,13 @@ class ProductEditionTest extends TestCase
         $artist = User::factory()->create(['role' => UserRole::Artist]);
         $otherArtist = Artist::factory()->create();
         $product = Product::factory()->for($otherArtist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
         $edition = ProductEdition::factory()->for($product)->create();
 
         $response = $this->actingAs($artist)->put("/admin/products/{$product->id}/editions/{$edition->id}", [
             'number' => $edition->number,
             'status' => 'sold',
+            'product_sku_id' => $sku->id,
         ]);
         $response->assertStatus(403);
     }
@@ -253,6 +274,7 @@ class ProductEditionTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
         $edition = ProductEdition::factory()->for($product)->create(['number' => 1]);
 
         $response = $this->actingAs($admin)->delete("/admin/products/{$product->id}/editions/{$edition->id}");
@@ -266,6 +288,7 @@ class ProductEditionTest extends TestCase
         $artist = User::factory()->create(['role' => UserRole::Artist]);
         $ownedArtist = Artist::factory()->create(['owner_id' => $artist->id]);
         $product = Product::factory()->for($ownedArtist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
         $edition = ProductEdition::factory()->for($product)->create(['number' => 1]);
 
         $response = $this->actingAs($artist)->delete("/admin/products/{$product->id}/editions/{$edition->id}");
@@ -279,6 +302,7 @@ class ProductEditionTest extends TestCase
         $artist = User::factory()->create(['role' => UserRole::Artist]);
         $otherArtist = Artist::factory()->create();
         $product = Product::factory()->for($otherArtist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
         $edition = ProductEdition::factory()->for($product)->create();
 
         $response = $this->actingAs($artist)->delete("/admin/products/{$product->id}/editions/{$edition->id}");
@@ -292,6 +316,7 @@ class ProductEditionTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
 
         $response = $this->actingAs($admin)->post("/admin/products/{$product->id}/editions", []);
         $response->assertSessionHasErrors(['number', 'status']);
@@ -308,12 +333,14 @@ class ProductEditionTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
 
         ProductEdition::factory()->for($product)->create(['number' => 1]);
 
         $response = $this->actingAs($admin)->post("/admin/products/{$product->id}/editions", [
             'number' => 1,
             'status' => 'available',
+            'product_sku_id' => $sku->id,
         ]);
 
         $response->assertSessionHasErrors(['number']);
@@ -326,12 +353,18 @@ class ProductEditionTest extends TestCase
         $artist = Artist::factory()->create();
         $product1 = Product::factory()->for($artist)->create();
         $product2 = Product::factory()->for($artist)->create();
+        $sku1 = ProductSku::factory()->for($product1)->create();
+        $sku2 = ProductSku::factory()->for($product2)->create();
 
-        ProductEdition::factory()->for($product1)->create(['number' => 1]);
+        ProductEdition::factory()->for($product1)->create([
+            'number' => 1,
+            'product_sku_id' => $sku1->id,
+        ]);
 
         $response = $this->actingAs($admin)->post("/admin/products/{$product2->id}/editions", [
             'number' => 1,
             'status' => 'available',
+            'product_sku_id' => $sku2->id,
         ]);
         $response->assertRedirect("/admin/products/{$product2->id}/editions");
 
@@ -346,10 +379,12 @@ class ProductEditionTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
 
         $response = $this->actingAs($admin)->post("/admin/products/{$product->id}/editions", [
             'number' => 1,
             'status' => 'available',
+            'product_sku_id' => $sku->id,
         ]);
 
         $edition = ProductEdition::where('product_id', $product->id)->first();
@@ -361,15 +396,18 @@ class ProductEditionTest extends TestCase
     {
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
 
         $edition1 = ProductEdition::factory()->for($product)->create([
             'number' => 5,
             'status' => 'available',
+            'product_sku_id' => $sku->id,
         ]);
 
         $edition2 = ProductEdition::factory()->for($product)->create([
             'number' => 6,
             'status' => 'available',
+            'product_sku_id' => $sku->id,
         ]);
 
         $this->assertNotEmpty($edition1->qr_code);

@@ -9,6 +9,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 
 import { edit as productsEdit, index as productsIndex } from '@/routes/admin/products';
 import { index as editionsIndex } from '@/routes/admin/products/editions';
+import shopProductRoute from '@/routes/shop/product';
 import { formatDistanceToNow } from 'date-fns';
 import { ArrowLeft, Edit, Package } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -72,12 +73,19 @@ const formatPrice = (price?: string | number) => {
                     <h2 class="text-3xl font-bold tracking-tight">{{ product.name }}</h2>
                     <p class="text-muted-foreground">Product details and edition management</p>
                 </div>
-                <Button as-child>
-                    <Link :href="productsEdit(product).url">
-                        <Edit class="mr-2 h-4 w-4" />
-                        Edit Product
-                    </Link>
-                </Button>
+                <div class="flex items-center gap-2">
+                    <Button as-child variant="outline">
+                        <a :href="shopProductRoute.slug.url({ artistSlug: product.artist.slug, productSlug: product.slug })" target="_blank" rel="noreferrer">
+                            View Shop Page
+                        </a>
+                    </Button>
+                    <Button as-child>
+                        <Link :href="productsEdit(product).url">
+                            <Edit class="mr-2 h-4 w-4" />
+                            Edit Product
+                        </Link>
+                    </Button>
+                </div>
             </div>
 
             <!-- Product Details -->
@@ -179,12 +187,19 @@ const formatPrice = (price?: string | number) => {
                                 {{ product.editions_count }} total edition{{ product.editions_count === 1 ? '' : 's' }}
                             </p>
                         </div>
-                        <Button as-child>
-                            <Link :href="editionsIndex(product).url">
-                                <Package class="mr-2 h-4 w-4" />
-                                Manage Editions
-                            </Link>
-                        </Button>
+                        <div class="flex gap-2">
+                            <Button as-child variant="outline">
+                                <Link :href="'/admin/products/' + product.id + '/skus'">
+                                    Manage SKUs
+                                </Link>
+                            </Button>
+                            <Button as-child>
+                                <Link :href="editionsIndex(product).url">
+                                    <Package class="mr-2 h-4 w-4" />
+                                    Manage Editions
+                                </Link>
+                            </Button>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>

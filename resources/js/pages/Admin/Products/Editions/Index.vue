@@ -29,6 +29,11 @@ interface Owner {
     name: string;
 }
 
+interface EditionSku {
+    id: number;
+    sku_code: string;
+}
+
 interface Edition {
     id: number;
     product_id: number;
@@ -36,6 +41,7 @@ interface Edition {
     status: string;
     owner_id?: number;
     owner?: Owner;
+    sku?: EditionSku | null;
     qr_code: string;
     qr_short_code?: string;
     created_at: string;
@@ -298,6 +304,7 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                                     <TableRow>
                                         <TableHead>Edition</TableHead>
                                         <TableHead>Status</TableHead>
+                                        <TableHead>SKU</TableHead>
                                         <TableHead>Owner</TableHead>
                                         <TableHead>QR Code</TableHead>
                                         <TableHead>Created</TableHead>
@@ -318,6 +325,10 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                                             <Badge :variant="getStatusBadgeVariant(edition.status)">
                                                 {{ getStatusLabel(edition.status) }}
                                             </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span v-if="edition.sku" class="font-medium">{{ edition.sku.sku_code }}</span>
+                                            <span v-else class="text-muted-foreground">Standard</span>
                                         </TableCell>
                                         <TableCell>
                                             <div v-if="edition.owner" class="flex items-center space-x-2">

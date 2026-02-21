@@ -27,12 +27,18 @@ interface User {
     email?: string;
 }
 
+interface ProductSku {
+    id: number;
+    sku_code: string;
+}
+
 interface Edition {
     id: number;
     number: number;
     status: string;
     owner_id?: number;
     owner?: User;
+    product_sku_id?: number;
     qr_code: string;
     qr_short_code?: string;
 }
@@ -47,6 +53,7 @@ const props = defineProps<{
     edition: Edition;
     users: User[];
     statuses: SelectOption[];
+    skus: ProductSku[];
 }>();
 
 const qrValue = computed(() => {
@@ -85,6 +92,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
 
 const form = useForm({
     number: props.edition.number,
+    product_sku_id: props.edition.product_sku_id?.toString() || '',
     status: props.edition.status,
     owner_id: props.edition.owner_id?.toString() || '',
 });
@@ -125,6 +133,21 @@ const submit = () => {
                                         <Input id="number" v-model="form.number" type="number" min="1" placeholder="Edition number" required />
                                         <div v-if="form.errors.number" class="text-sm text-red-600">
                                             {{ form.errors.number }}
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <Label for="product_sku_id">SKU (optional)</Label>
+                                        <select
+                                            id="product_sku_id"
+                                            v-model="form.product_sku_id"
+                                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                        >
+                                            <option value="">Standard (no SKU)</option>
+                                            <option v-for="sku in skus" :key="sku.id" :value="sku.id">{{ sku.sku_code }}</option>
+                                        </select>
+                                        <div v-if="form.errors.product_sku_id" class="text-sm text-red-600">
+                                            {{ form.errors.product_sku_id }}
                                         </div>
                                     </div>
 

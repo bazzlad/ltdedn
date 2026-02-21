@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProductSaleStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,10 +22,14 @@ class Product extends Model
     {
         return [
             'sell_through_ltdedn' => 'boolean',
+            'is_sellable' => 'boolean',
+            'sale_status' => ProductSaleStatus::class,
             'is_limited' => 'boolean',
             'is_public' => 'boolean',
             'edition_size' => 'integer',
             'base_price' => 'decimal:2',
+            'sale_starts_at' => 'datetime',
+            'sale_ends_at' => 'datetime',
             'variants_schema' => 'array',
             'physical' => 'array',
         ];
@@ -75,4 +80,20 @@ class Product extends Model
     {
         return $this->editions()->where('status', 'sold');
     }
+
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function variantAxes(): HasMany
+    {
+        return $this->hasMany(ProductVariantAxis::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function skus(): HasMany
+    {
+        return $this->hasMany(ProductSku::class);
+    }
 }
+

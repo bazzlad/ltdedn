@@ -20,6 +20,14 @@ interface Product {
     artist: Artist;
 }
 
+interface ProductSku {
+    id: number;
+    sku_code: string;
+    price_amount: number;
+    currency: string;
+    attributes?: Record<string, string>;
+}
+
 interface User {
     id: number;
     name: string;
@@ -36,6 +44,7 @@ const props = defineProps<{
     nextNumber: number;
     users: User[];
     statuses: SelectOption[];
+    skus: ProductSku[];
 }>();
 
 const page = usePage();
@@ -53,6 +62,7 @@ const isLargeQuantity = computed(() => {
     return form.creation_type === 'bulk' && Number(form.quantity) > 100;
 });
 
+
 const breadcrumbs: BreadcrumbItemType[] = [
     { title: 'Admin', href: '/admin' },
     { title: 'Products', href: '/admin/products' },
@@ -66,6 +76,7 @@ const form = useForm({
     number: props.nextNumber,
     quantity: 1,
     start_number: props.nextNumber,
+    product_sku_id: '',
     status: 'available',
     owner_id: '',
 });
@@ -180,13 +191,28 @@ const submit = () => {
                                 </div>
                             </template>
 
+                            <!-- SKU -->
+                            <div class="space-y-2">
+                                <Label for="product_sku_id">SKU (optional)</Label>
+                                <select
+                                    id="product_sku_id"
+                                    v-model="form.product_sku_id"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                >
+                                    <option value="">Standard (no SKU)</option>
+                                    <option v-for="sku in skus" :key="sku.id" :value="sku.id">{{ sku.sku_code }}</option>
+                                </select>
+                                <div v-if="form.errors.product_sku_id" class="text-sm text-red-600">
+                                    {{ form.errors.product_sku_id }}
+                                </div>
+                            </div>
+
                             <!-- Status -->
                             <div class="space-y-2">
                                 <Label for="status">Status *</Label>
                                 <select
                                     id="status"
                                     v-model="form.status"
-                                    required
                                     class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <option v-for="status in statuses" :key="status.value" :value="status.value">

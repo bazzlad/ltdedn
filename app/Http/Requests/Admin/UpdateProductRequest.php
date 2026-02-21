@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -15,6 +16,7 @@ class UpdateProductRequest extends FormRequest
         $this->merge([
             'artist_id' => (int) $this->artist_id,
             'sell_through_ltdedn' => $this->boolean('sell_through_ltdedn'),
+            'is_sellable' => $this->boolean('is_sellable'),
             'is_limited' => $this->boolean('is_limited'),
             'is_public' => $this->boolean('is_public'),
         ]);
@@ -42,6 +44,11 @@ class UpdateProductRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'cover_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:10240'],
             'sell_through_ltdedn' => ['boolean'],
+            'is_sellable' => ['boolean'],
+            'sale_status' => ['nullable', 'in:draft,active,paused,archived'],
+            'currency' => ['nullable', 'string', 'size:3'],
+            'sale_starts_at' => ['nullable', 'date'],
+            'sale_ends_at' => ['nullable', 'date', 'after_or_equal:sale_starts_at'],
             'is_limited' => ['boolean'],
             'edition_size' => ['nullable', 'integer', 'min:1'],
             'base_price' => ['nullable', 'numeric', 'min:0'],
@@ -54,6 +61,17 @@ class UpdateProductRequest extends FormRequest
      *
      * @return array<string, string>
      */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            $product = $this->route('product');
+
+            if ($this->boolean('is_sellable') && $product && ! $product->editions()->exists()) {
+                $validator->errors()->add('is_sellable', 'A product cannot be sellable until at least one edition exists.');
+            }
+        });
+    }
+
     public function messages(): array
     {
         return [

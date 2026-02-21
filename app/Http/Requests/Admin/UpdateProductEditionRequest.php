@@ -31,6 +31,12 @@ class UpdateProductEditionRequest extends FormRequest
                     return $query->where('product_id', $productId)->whereNull('deleted_at');
                 })->ignore($editionId),
             ],
+            'product_sku_id' => [
+                'nullable',
+                Rule::exists('product_skus', 'id')->where(function ($query) use ($productId) {
+                    return $query->where('product_id', $productId);
+                }),
+            ],
             'status' => ['required', Rule::enum(ProductEditionStatus::class)],
             'owner_id' => ['nullable', 'exists:users,id'],
         ];
@@ -48,6 +54,7 @@ class UpdateProductEditionRequest extends FormRequest
             'number.integer' => 'Edition number must be a valid number.',
             'number.min' => 'Edition number must be at least 1.',
             'number.unique' => 'This edition number already exists for this product.',
+            'product_sku_id.exists' => 'Selected SKU is invalid for this product.',
             'status.required' => 'Status is required.',
             'status.enum' => 'Invalid status selected.',
             'owner_id.exists' => 'Selected owner is invalid.',

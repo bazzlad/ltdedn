@@ -31,6 +31,9 @@ const form = useForm({
     description: '',
     cover_image: null as File | null,
     sell_through_ltdedn: false,
+    is_sellable: false,
+    sale_status: 'draft',
+    currency: 'gbp',
     is_limited: true,
     edition_size: undefined as number | undefined,
     base_price: undefined as number | undefined,
@@ -182,6 +185,25 @@ onMounted(() => {
                                 </div>
                             </div>
 
+                            <div class="space-y-2">
+                                <Label for="currency">Currency</Label>
+                                <Input id="currency" v-model="form.currency" type="text" maxlength="3" placeholder="gbp" />
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label for="sale_status">Sale Status</Label>
+                                <select
+                                    id="sale_status"
+                                    v-model="form.sale_status"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                >
+                                    <option value="draft">Draft</option>
+                                    <option value="active">Active</option>
+                                    <option value="paused">Paused</option>
+                                    <option value="archived">Archived</option>
+                                </select>
+                            </div>
+
                             <!-- Edition Size -->
                             <div class="space-y-2">
                                 <Label for="edition_size">Edition Size</Label>
@@ -218,6 +240,15 @@ onMounted(() => {
                                         class="focus:ring-opacity-50 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
                                     />
                                     <Label for="sell_through_ltdedn">Sell through LTDEDN</Label>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <input
+                                        id="is_sellable"
+                                        v-model="form.is_sellable"
+                                        type="checkbox"
+                                        class="focus:ring-opacity-50 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
+                                    />
+                                    <Label for="is_sellable">Sellable in shop</Label>
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <input

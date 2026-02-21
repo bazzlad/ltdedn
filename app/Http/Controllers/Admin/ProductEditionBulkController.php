@@ -24,13 +24,14 @@ class ProductEditionBulkController extends Controller
         $validated = $request->validated();
         $startNumber = $validated['start_number'];
         $quantity = $validated['quantity'];
+        $productSkuId = isset($validated['product_sku_id']) && $validated['product_sku_id'] !== '' ? (int) $validated['product_sku_id'] : null;
         $status = $validated['status'];
         $ownerId = $validated['owner_id'] ?? null;
 
         $endNumber = $startNumber + $quantity - 1;
 
         try {
-            DB::transaction(function () use ($product, $startNumber, $endNumber, $status, $ownerId) {
+            DB::transaction(function () use ($product, $startNumber, $endNumber, $status, $ownerId, $productSkuId) {
                 $existingNumbers = $product->editions()
                     ->whereBetween('number', [$startNumber, $endNumber])
                     ->lockForUpdate()
@@ -45,6 +46,7 @@ class ProductEditionBulkController extends Controller
 
                 $editions = collect(range($startNumber, $endNumber))->map(fn (int $number) => [
                     'number' => $number,
+                    'product_sku_id' => $productSkuId,
                     'status' => $status,
                     'owner_id' => $ownerId,
                 ])->all();

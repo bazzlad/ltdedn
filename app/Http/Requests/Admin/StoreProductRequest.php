@@ -14,6 +14,7 @@ class StoreProductRequest extends FormRequest
         $this->merge([
             'artist_id' => (int) $this->artist_id,
             'sell_through_ltdedn' => $this->boolean('sell_through_ltdedn'),
+            'is_sellable' => $this->boolean('is_sellable'),
             'is_limited' => $this->boolean('is_limited'),
             'is_public' => $this->boolean('is_public'),
         ]);
@@ -33,6 +34,11 @@ class StoreProductRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'cover_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:10240'],
             'sell_through_ltdedn' => ['boolean'],
+            'is_sellable' => ['boolean'],
+            'sale_status' => ['nullable', 'in:draft,active,paused,archived'],
+            'currency' => ['nullable', 'string', 'size:3'],
+            'sale_starts_at' => ['nullable', 'date'],
+            'sale_ends_at' => ['nullable', 'date', 'after_or_equal:sale_starts_at'],
             'is_limited' => ['boolean'],
             'edition_size' => ['nullable', 'integer', 'min:1'],
             'base_price' => ['nullable', 'numeric', 'min:0'],

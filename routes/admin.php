@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductEditionBulkController;
 use App\Http\Controllers\Admin\ProductEditionController;
 use App\Http\Controllers\Admin\ProductEditionQrBatchPdfController;
+use App\Http\Controllers\Admin\ProductSkuController;
+use App\Http\Controllers\Admin\SalesController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -31,9 +33,17 @@ Route::prefix('admin')
         Route::post('products/{product}/editions/bulk', [ProductEditionBulkController::class, 'store'])->name('products.editions.store-bulk');
         Route::get('products/{product}/editions/qr-batch-pdf', ProductEditionQrBatchPdfController::class)->name('products.editions.qr-batch-pdf');
 
+        Route::get('products/{product}/skus', [ProductSkuController::class, 'index'])->name('products.skus.index');
+        Route::post('products/{product}/skus', [ProductSkuController::class, 'store'])->name('products.skus.store');
+        Route::put('products/{product}/skus/{sku}', [ProductSkuController::class, 'update'])->name('products.skus.update');
+        Route::delete('products/{product}/skus/{sku}', [ProductSkuController::class, 'destroy'])->name('products.skus.destroy');
+
         // Admin-only routes
         Route::middleware('role:admin')->group(function () {
             Route::resource('users', UserController::class);
             Route::resource('artists', ArtistController::class);
+            Route::get('sales', [SalesController::class, 'index'])->name('sales.index');
+            Route::get('sales/export/csv', [SalesController::class, 'exportCsv'])->name('sales.export.csv');
+            Route::get('sales/{order}', [SalesController::class, 'show'])->name('sales.show');
         });
     });

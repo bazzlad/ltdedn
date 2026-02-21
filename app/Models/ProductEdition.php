@@ -49,6 +49,11 @@ class ProductEdition extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    public function sku(): BelongsTo
+    {
+        return $this->belongsTo(ProductSku::class, 'product_sku_id');
+    }
+
     public function isAvailable(): bool
     {
         return $this->status === ProductEditionStatus::Available;

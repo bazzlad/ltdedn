@@ -31,7 +31,7 @@ class ProductEditionController extends Controller
         $perPage = in_array($perPage, [20, 50/* , 100, 200 */]) ? $perPage : 20; // Validate allowed values
 
         $editions = $product->editions()
-            ->with('owner')
+            ->with(['owner', 'sku'])
             ->orderBy('number')
             ->paginate($perPage);
 
@@ -60,6 +60,7 @@ class ProductEditionController extends Controller
             'nextNumber' => $nextNumber,
             'users' => $users,
             'statuses' => ProductEditionStatus::options(),
+            'skus' => $product->skus()->orderBy('id')->get(['id', 'sku_code', 'price_amount', 'currency', 'attributes']),
         ]);
     }
 
@@ -86,13 +87,14 @@ class ProductEditionController extends Controller
             : collect();
 
         $product->load('artist');
-        $edition->load('owner');
+        $edition->load(['owner', 'sku']);
 
         return Inertia::render('Admin/Products/Editions/Edit', [
             'product' => $product,
             'edition' => $edition,
             'users' => $users,
             'statuses' => ProductEditionStatus::options(),
+            'skus' => $product->skus()->orderBy('id')->get(['id', 'sku_code', 'price_amount', 'currency', 'attributes']),
         ]);
     }
 

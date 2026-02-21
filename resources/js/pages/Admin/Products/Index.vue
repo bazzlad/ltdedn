@@ -10,6 +10,7 @@ import { Link, router, usePage } from '@inertiajs/vue3';
 import { formatDistanceToNow } from 'date-fns';
 import { Eye, Package, Plus, Search, SquarePen, Trash2, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
+import shopProductRoute from '@/routes/shop/product';
 
 interface Artist {
     id: number;
@@ -283,6 +284,11 @@ const deleteProduct = (productId: number) => {
                                         </TableCell>
                                         <TableCell class="text-right">
                                             <div class="flex items-center justify-end space-x-2">
+                                                <Button as-child size="sm" variant="ghost" title="View Shop Page">
+                                                    <a :href="shopProductRoute.slug.url({ artistSlug: product.artist.slug, productSlug: product.slug })" target="_blank" rel="noreferrer">
+                                                        Shop
+                                                    </a>
+                                                </Button>
                                                 <Button as-child size="sm" variant="ghost" title="View Product">
                                                     <Link :href="`/admin/products/${product.id}`">
                                                         <Eye class="h-3 w-3" />

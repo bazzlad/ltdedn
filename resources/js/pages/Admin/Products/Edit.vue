@@ -12,6 +12,7 @@ import { ref } from 'vue';
 interface Artist {
     id: number;
     name: string;
+    slug: string;
 }
 
 interface Product {
@@ -22,10 +23,14 @@ interface Product {
     description?: string;
     cover_image?: string;
     sell_through_ltdedn: boolean;
+    is_sellable: boolean;
+    sale_status: string;
+    currency: string;
     is_limited: boolean;
     edition_size?: number;
     base_price?: number;
     is_public: boolean;
+    editions_count?: number;
     artist: Artist;
 }
 
@@ -48,6 +53,9 @@ const form = useForm({
     description: props.product.description || '',
     cover_image: null as File | null,
     sell_through_ltdedn: props.product.sell_through_ltdedn,
+    is_sellable: props.product.is_sellable,
+    sale_status: props.product.sale_status || 'draft',
+    currency: props.product.currency || 'gbp',
     is_limited: props.product.is_limited,
     edition_size: props.product.edition_size || null,
     base_price: props.product.base_price || null,
@@ -95,10 +103,13 @@ const submit = () => {
                         Back to Product
                     </a>
                 </Button>
-                <div>
+                <div class="flex-1">
                     <h2 class="text-3xl font-bold tracking-tight">Edit Product</h2>
                     <p class="text-muted-foreground">Update product information</p>
                 </div>
+                <Button variant="outline" size="sm" as-child>
+                    <a :href="`/shop/${product.artist.slug}/${product.slug}`" target="_blank" rel="noreferrer">View Shop Page</a>
+                </Button>
             </div>
 
             <Card>
@@ -197,6 +208,25 @@ const submit = () => {
                                 </div>
                             </div>
 
+                            <div class="space-y-2">
+                                <Label for="currency">Currency</Label>
+                                <Input id="currency" v-model="form.currency" type="text" maxlength="3" placeholder="gbp" />
+                            </div>
+
+                            <div class="space-y-2">
+                                <Label for="sale_status">Sale Status</Label>
+                                <select
+                                    id="sale_status"
+                                    v-model="form.sale_status"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                >
+                                    <option value="draft">Draft</option>
+                                    <option value="active">Active</option>
+                                    <option value="paused">Paused</option>
+                                    <option value="archived">Archived</option>
+                                </select>
+                            </div>
+
                             <!-- Edition Size -->
                             <div class="space-y-2">
                                 <Label for="edition_size">Edition Size</Label>
@@ -233,6 +263,15 @@ const submit = () => {
                                         class="focus:ring-opacity-50 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200"
                                     />
                                     <Label for="sell_through_ltdedn">Sell through LTDEDN</Label>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <input
+                                        id="is_sellable"
+                                        v-model="form.is_sellable"
+                                        type="checkbox"
+                                        class="focus:ring-opacity-50 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-50"
+                                    />
+                                    <Label for="is_sellable">Sellable in shop</Label>
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <input

@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Models\Artist;
 use App\Models\Product;
 use App\Models\ProductEdition;
+use App\Models\ProductSku;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -18,6 +19,7 @@ class ProductEditionBulkCreationTest extends TestCase
         $admin = User::factory()->admin()->create();
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
 
         $this->actingAs($admin);
 
@@ -25,6 +27,7 @@ class ProductEditionBulkCreationTest extends TestCase
             'start_number' => 1,
             'quantity' => 5,
             'status' => 'available',
+            'product_sku_id' => $sku->id,
         ]);
 
         $response->assertRedirect("/admin/products/{$product->id}/editions");
@@ -38,6 +41,7 @@ class ProductEditionBulkCreationTest extends TestCase
                 'product_id' => $product->id,
                 'number' => $i,
                 'status' => 'available',
+            'product_sku_id' => $sku->id,
             ]);
         }
     }
@@ -47,6 +51,7 @@ class ProductEditionBulkCreationTest extends TestCase
         $admin = User::factory()->admin()->create();
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
 
         // Create an existing edition
         ProductEdition::factory()->for($product)->create(['number' => 3]);
@@ -57,6 +62,7 @@ class ProductEditionBulkCreationTest extends TestCase
             'start_number' => 1,
             'quantity' => 5,
             'status' => 'available',
+            'product_sku_id' => $sku->id,
         ]);
 
         $response->assertSessionHasErrors(['start_number']);
@@ -69,6 +75,7 @@ class ProductEditionBulkCreationTest extends TestCase
         $owner = User::factory()->create();
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
 
         $this->actingAs($admin);
 
@@ -76,6 +83,7 @@ class ProductEditionBulkCreationTest extends TestCase
             'start_number' => 1,
             'quantity' => 3,
             'status' => 'sold',
+            'product_sku_id' => $sku->id,
             'owner_id' => $owner->id,
         ]);
 
@@ -88,6 +96,7 @@ class ProductEditionBulkCreationTest extends TestCase
                 'product_id' => $product->id,
                 'number' => $i,
                 'status' => 'sold',
+            'product_sku_id' => $sku->id,
                 'owner_id' => $owner->id,
             ]);
         }
@@ -99,6 +108,7 @@ class ProductEditionBulkCreationTest extends TestCase
         $artist = Artist::factory()->create(['owner_id' => $user->id]); // User owns the artist
 
         $product = Product::factory()->for($artist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
 
         $this->actingAs($user);
 
@@ -106,6 +116,7 @@ class ProductEditionBulkCreationTest extends TestCase
             'start_number' => 1,
             'quantity' => 2,
             'status' => 'available',
+            'product_sku_id' => $sku->id,
         ]);
 
         $response->assertRedirect("/admin/products/{$product->id}/editions");
@@ -117,6 +128,7 @@ class ProductEditionBulkCreationTest extends TestCase
         $admin = User::factory()->admin()->create();
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
+        $sku = ProductSku::factory()->for($product)->create();
 
         $this->actingAs($admin);
 
@@ -124,6 +136,7 @@ class ProductEditionBulkCreationTest extends TestCase
             'start_number' => 1,
             'quantity' => 1001, // Exceeds limit
             'status' => 'available',
+            'product_sku_id' => $sku->id,
         ]);
 
         $response->assertSessionHasErrors(['quantity']);
