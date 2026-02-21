@@ -75,4 +75,9 @@ class Product extends Model
     {
         return $this->editions()->where('status', 'sold');
     }
+
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }
