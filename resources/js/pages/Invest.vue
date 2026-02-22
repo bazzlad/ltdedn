@@ -1,19 +1,10 @@
 <script setup lang="ts">
-import { home } from '@/routes';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
-const LOGO_SVG = '/images/logo-sm.svg';
 const DL_IMG = '/images/dl-img.jpg';
 
 const INVESTOR_GUIDE_URL = '/downloads/Investor-Guide.pdf';
-
-const page = usePage();
-
-const userName = computed(function () {
-	const p: any = page.props;
-	return (p && p.auth && p.auth.user && p.auth.user.name) ? p.auth.user.name : 'Guest';
-});
 
 const investEmail = computed(function () {
 	return ['invest', 'ltdedn.com'].join('@');

@@ -332,8 +332,8 @@ class QRClaimTest extends TestCase
             'status' => ProductEditionStatus::Available,
         ]);
 
-        $expectedQRCode = $this->qrService->generateQRCode($product, 5);
-        $this->assertEquals($expectedQRCode, $edition->qr_code);
+        $this->assertNotEmpty($edition->qr_code);
+        $this->assertEquals(64, strlen($edition->qr_code));
 
         $response1 = $this->get(route('qr.show', $edition->qr_code));
         $response1->assertStatus(200);

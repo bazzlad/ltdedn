@@ -216,7 +216,7 @@ class ProductSeeder extends Seeder
                     ]);
 
                 if (empty($edition->qr_code)) {
-                    $edition->qr_code = $qrService->generateQRCode($product, $i);
+                    $edition->qr_code = $qrService->generateQRCode();
                     $edition->save();
                 }
 

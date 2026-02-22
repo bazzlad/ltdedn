@@ -357,20 +357,25 @@ class ProductEditionTest extends TestCase
         $this->assertEquals(64, strlen($edition->qr_code));
     }
 
-    public function test_edition_qr_codes_are_deterministic_using_service(): void
+    public function test_edition_qr_codes_are_random_and_present(): void
     {
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
 
-        // Create an edition
-        $edition = ProductEdition::factory()->for($product)->create([
+        $edition1 = ProductEdition::factory()->for($product)->create([
             'number' => 5,
             'status' => 'available',
         ]);
 
-        $qrService = app(\App\Services\QRCodeService::class);
-        $expectedQRCode = $qrService->generateQRCode($product, 5);
+        $edition2 = ProductEdition::factory()->for($product)->create([
+            'number' => 6,
+            'status' => 'available',
+        ]);
 
-        $this->assertEquals($expectedQRCode, $edition->qr_code);
+        $this->assertNotEmpty($edition1->qr_code);
+        $this->assertNotEmpty($edition2->qr_code);
+        $this->assertEquals(64, strlen($edition1->qr_code));
+        $this->assertEquals(64, strlen($edition2->qr_code));
+        $this->assertNotEquals($edition1->qr_code, $edition2->qr_code);
     }
 }
