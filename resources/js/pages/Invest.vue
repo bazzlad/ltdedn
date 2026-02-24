@@ -34,7 +34,7 @@ const otherDownloads = [
 	{
 		url: '#',
 		label: 'FULL FINANCIAL SUMMARY',
-		subtitle: 'AVAILABLE SOON',
+		subtitle: 'AVAILABLE ON REQUEST',
 		enabled: false,
 	},
 	{
