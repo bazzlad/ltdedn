@@ -83,15 +83,17 @@ class ProductSku extends Model
             return false;
         }
 
+        $updated = self::query()
+            ->where('id', $this->id)
+            ->where('stock_reserved', '>=', $quantity)
+            ->where('stock_on_hand', '>=', $quantity)
+            ->update([
+                'stock_reserved' => \Illuminate\Support\Facades\DB::raw('stock_reserved - '.(int) $quantity),
+                'stock_on_hand' => \Illuminate\Support\Facades\DB::raw('stock_on_hand - '.(int) $quantity),
+            ]);
+
         $this->refresh();
 
-        if ((int) $this->stock_reserved < $quantity || (int) $this->stock_on_hand < $quantity) {
-            return false;
-        }
-
-        $this->stock_reserved = (int) $this->stock_reserved - $quantity;
-        $this->stock_on_hand = (int) $this->stock_on_hand - $quantity;
-
-        return $this->save();
+        return $updated > 0;
     }
 }

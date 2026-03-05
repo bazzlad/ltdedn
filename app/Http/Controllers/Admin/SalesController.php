@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SalesController extends Controller
 {
@@ -18,39 +18,8 @@ class SalesController extends Controller
     {
         $this->authorize('viewAny', Order::class);
 
-        $validated = $request->validate([
-            'q' => ['nullable', 'string', 'max:100'],
-            'status' => ['nullable', 'in:pending,paid,failed,cancelled'],
-            'from' => ['nullable', 'date'],
-            'to' => ['nullable', 'date'],
-        ]);
-
-        $query = Order::query()->with(['user:id,name,email'])->latest('id');
-
-        if (! empty($validated['q'])) {
-            $q = (string) $validated['q'];
-            $query->where(function ($builder) use ($q) {
-                $builder->where('customer_email', 'like', '%'.$q.'%')
-                    ->orWhere('stripe_checkout_session_id', 'like', '%'.$q.'%')
-                    ->orWhere('stripe_payment_intent_id', 'like', '%'.$q.'%')
-                    ->orWhereHas('user', function ($userQ) use ($q) {
-                        $userQ->where('name', 'like', '%'.$q.'%')
-                            ->orWhere('email', 'like', '%'.$q.'%');
-                    });
-            });
-        }
-
-        if (! empty($validated['status'])) {
-            $query->where('status', $validated['status']);
-        }
-
-        if (! empty($validated['from'])) {
-            $query->whereDate('created_at', '>=', $validated['from']);
-        }
-
-        if (! empty($validated['to'])) {
-            $query->whereDate('created_at', '<=', $validated['to']);
-        }
+        $validated = $this->validateFilters($request);
+        $query = $this->buildFilteredQuery($validated);
 
         $orders = $query->paginate(25)->withQueryString()->through(function (Order $order) {
             return [
@@ -99,39 +68,8 @@ class SalesController extends Controller
     {
         $this->authorize('viewAny', Order::class);
 
-        $validated = $request->validate([
-            'q' => ['nullable', 'string', 'max:100'],
-            'status' => ['nullable', 'in:pending,paid,failed,cancelled'],
-            'from' => ['nullable', 'date'],
-            'to' => ['nullable', 'date'],
-        ]);
-
-        $query = Order::query()->with(['user:id,name,email'])->latest('id');
-
-        if (! empty($validated['q'])) {
-            $q = (string) $validated['q'];
-            $query->where(function ($builder) use ($q) {
-                $builder->where('customer_email', 'like', '%'.$q.'%')
-                    ->orWhere('stripe_checkout_session_id', 'like', '%'.$q.'%')
-                    ->orWhere('stripe_payment_intent_id', 'like', '%'.$q.'%')
-                    ->orWhereHas('user', function ($userQ) use ($q) {
-                        $userQ->where('name', 'like', '%'.$q.'%')
-                            ->orWhere('email', 'like', '%'.$q.'%');
-                    });
-            });
-        }
-
-        if (! empty($validated['status'])) {
-            $query->where('status', $validated['status']);
-        }
-
-        if (! empty($validated['from'])) {
-            $query->whereDate('created_at', '>=', $validated['from']);
-        }
-
-        if (! empty($validated['to'])) {
-            $query->whereDate('created_at', '<=', $validated['to']);
-        }
+        $validated = $this->validateFilters($request);
+        $query = $this->buildFilteredQuery($validated);
 
         $filename = 'sales-'.now()->format('Ymd-His').'.csv';
 
@@ -196,5 +134,53 @@ class SalesController extends Controller
                 })->values(),
             ],
         ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function validateFilters(Request $request): array
+    {
+        return $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'in:pending,paid,failed,cancelled'],
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date'],
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    private function buildFilteredQuery(array $filters): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = Order::query()->with(['user:id,name,email'])->latest('id');
+
+        if (! empty($filters['q'])) {
+            $q = (string) $filters['q'];
+            $query->where(function ($builder) use ($q) {
+                $builder->where('customer_email', 'like', '%'.$q.'%')
+                    ->orWhere('stripe_checkout_session_id', 'like', '%'.$q.'%')
+                    ->orWhere('stripe_payment_intent_id', 'like', '%'.$q.'%')
+                    ->orWhereHas('user', function ($userQ) use ($q) {
+                        $userQ->where('name', 'like', '%'.$q.'%')
+                            ->orWhere('email', 'like', '%'.$q.'%');
+                    });
+            });
+        }
+
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (! empty($filters['from'])) {
+            $query->whereDate('created_at', '>=', $filters['from']);
+        }
+
+        if (! empty($filters['to'])) {
+            $query->whereDate('created_at', '<=', $filters['to']);
+        }
+
+        return $query;
     }
 }

@@ -133,7 +133,7 @@ class ShopCheckoutTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_non_public_product_returns_404_for_guests(): void
+    public function test_non_public_product_redirects_guests_to_login(): void
     {
         $artist = Artist::factory()->create();
 
@@ -158,7 +158,7 @@ class ShopCheckoutTest extends TestCase
 
         $response = $this->get(route('shop.product', ['artistId' => $artist->id, 'productId' => $product->id]));
 
-        $response->assertNotFound();
+        $response->assertRedirect(route('login'));
     }
 
     public function test_non_public_product_loads_for_authenticated_users(): void
@@ -553,7 +553,7 @@ class ShopCheckoutTest extends TestCase
 
         $this->assertDatabaseHas('inventory_reservations', [
             'order_id' => $order->id,
-            'status' => 'expired',
+            'status' => 'released',
             'release_reason' => 'checkout.session.expired',
         ]);
 

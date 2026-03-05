@@ -5,6 +5,7 @@ namespace Tests\Feature\Admin;
 use App\Enums\UserRole;
 use App\Models\Artist;
 use App\Models\Product;
+use App\Models\ProductEdition;
 use App\Models\ProductSku;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -70,6 +71,25 @@ class ProductSkuTest extends TestCase
             'source' => 'admin',
         ]);
 
+        // SKU with stock adjustment history cannot be deleted (restrict FK)
+        $delete = $this->actingAs($admin)->delete('/admin/products/'.$product->id.'/skus/'.$sku->id);
+        $delete->assertSessionHasErrors('sku');
+
+        $this->assertDatabaseHas('product_skus', ['id' => $sku->id]);
+    }
+
+    public function test_admin_can_delete_sku_without_history(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $artist = Artist::factory()->create();
+        $product = Product::factory()->create(['artist_id' => $artist->id]);
+
+        $sku = ProductSku::factory()->create([
+            'product_id' => $product->id,
+            'stock_on_hand' => 0,
+            'stock_reserved' => 0,
+        ]);
+
         $delete = $this->actingAs($admin)->delete('/admin/products/'.$product->id.'/skus/'.$sku->id);
         $delete->assertRedirect('/admin/products/'.$product->id.'/skus');
 
@@ -111,6 +131,12 @@ class ProductSkuTest extends TestCase
             'is_sellable' => false,
             'sale_status' => 'draft',
             'currency' => 'gbp',
+        ]);
+
+        // Product needs at least one edition to be sellable
+        ProductEdition::factory()->create([
+            'product_id' => $product->id,
+            'status' => 'available',
         ]);
 
         $response = $this->actingAs($admin)->put('/admin/products/'.$product->id, [

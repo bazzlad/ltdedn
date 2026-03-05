@@ -50,7 +50,7 @@ Route::get('/shop/{artistSlug}/{productSlug}', [ShopProductController::class, 'b
     ->where('artistSlug', '.*[A-Za-z].*')
     ->where('productSlug', '.*[A-Za-z].*')
     ->name('shop.product.slug');
-Route::post('/shop/checkout', CreateCheckoutSessionController::class)->name('shop.checkout');
+Route::post('/shop/checkout', CreateCheckoutSessionController::class)->middleware('throttle:10,1')->name('shop.checkout');
 Route::get('/shop/success/{order}', [ShopCheckoutResultController::class, 'success'])->name('shop.success');
 Route::get('/shop/cancel/{order}', [ShopCheckoutResultController::class, 'cancel'])->name('shop.cancel');
 

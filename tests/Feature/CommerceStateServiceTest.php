@@ -174,7 +174,7 @@ class CommerceStateServiceTest extends TestCase
 
         $this->assertDatabaseHas('inventory_reservations', [
             'id' => $data['reservation']->id,
-            'status' => 'expired',
+            'status' => 'released',
             'release_reason' => 'reconciliation_expired',
         ]);
 
@@ -204,7 +204,7 @@ class CommerceStateServiceTest extends TestCase
     public function test_fail_pending_order_succeeds_even_without_reservation(): void
     {
         $data = $this->createPendingOrderWithReservation();
-        $data['reservation']->update(['status' => 'expired', 'released_at' => now()]);
+        $data['reservation']->update(['status' => 'released', 'released_at' => now()]);
 
         $service = app(CommerceStateService::class);
 

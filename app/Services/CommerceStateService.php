@@ -96,7 +96,7 @@ class CommerceStateService
             }
 
             $reservation->update([
-                'status' => 'expired',
+                'status' => 'released',
                 'released_at' => now(),
                 'release_reason' => $releaseReason,
             ]);

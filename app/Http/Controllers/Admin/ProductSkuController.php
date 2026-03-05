@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\SkuStockAdjustment;
 use App\Http\Requests\Admin\StoreProductSkuRequest;
 use App\Http\Requests\Admin\UpdateProductSkuRequest;
 use App\Models\Product;
 use App\Models\ProductSku;
+use App\Models\SkuStockAdjustment;
 use App\Services\StockAdjustmentService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -184,6 +184,12 @@ class ProductSkuController extends Controller
         if ((int) $sku->stock_reserved > 0) {
             return back()->withErrors([
                 'sku' => 'Cannot delete SKU with reserved stock.',
+            ]);
+        }
+
+        if ($sku->orderItems()->exists() || SkuStockAdjustment::where('product_sku_id', $sku->id)->exists()) {
+            return back()->withErrors([
+                'sku' => 'Cannot delete SKU with order or stock adjustment history. Deactivate it instead.',
             ]);
         }
 

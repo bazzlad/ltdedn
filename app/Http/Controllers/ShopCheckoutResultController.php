@@ -3,13 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ShopCheckoutResultController extends Controller
 {
-    public function success(Order $order): Response
+    public function success(Request $request, Order $order): Response
     {
+        $this->authorizeAccess($request, $order);
+
         return Inertia::render('ShopResult', [
             'status' => 'success',
             'order' => [
@@ -19,8 +23,10 @@ class ShopCheckoutResultController extends Controller
         ]);
     }
 
-    public function cancel(Order $order): Response
+    public function cancel(Request $request, Order $order): Response
     {
+        $this->authorizeAccess($request, $order);
+
         return Inertia::render('ShopResult', [
             'status' => 'cancel',
             'order' => [
@@ -28,5 +34,25 @@ class ShopCheckoutResultController extends Controller
                 'status' => $order->status->value,
             ],
         ]);
+    }
+
+    /**
+     * Ensure only the order owner (or the Stripe redirect with session_id) can view the result.
+     */
+    private function authorizeAccess(Request $request, Order $order): void
+    {
+        if ($request->user() && $order->user_id === $request->user()->id) {
+            return;
+        }
+
+        if ($request->query('session_id') && $order->stripe_checkout_session_id === $request->query('session_id')) {
+            return;
+        }
+
+        if ($order->order_creation_key && $request->query('key') === $order->order_creation_key) {
+            return;
+        }
+
+        throw new NotFoundHttpException;
     }
 }

@@ -49,6 +49,9 @@ class ShopProductController extends Controller
             ->where('sell_through_ltdedn', true)
             ->where('is_sellable', true)
             ->where('sale_status', ProductSaleStatus::Active)
+            ->when(! Auth::check(), function (Builder $query) {
+                $query->where('is_public', true);
+            })
             ->whereHas('editions')
             ->with(['artist:id,name,slug', 'skus' => function ($query) {
                 $query->where('is_active', true)
@@ -119,11 +122,14 @@ class ShopProductController extends Controller
                 ->where('expires_at', '>', now());
         };
 
-        $standardAvailable = $product->editions()
-            ->whereNull('product_sku_id')
+        $editionCounts = $product->editions()
             ->where('status', ProductEditionStatus::Available)
             ->whereNotIn('id', $reservedEditionIdsQuery)
-            ->count();
+            ->selectRaw('product_sku_id, COUNT(*) as available_count')
+            ->groupBy('product_sku_id')
+            ->pluck('available_count', 'product_sku_id');
+
+        $standardAvailable = (int) ($editionCounts[null] ?? $editionCounts[''] ?? 0);
 
         return Inertia::render('ShopProduct', [
             'product' => [
@@ -136,20 +142,14 @@ class ShopProductController extends Controller
                 'image' => $product->cover_image ? '/storage/'.$product->cover_image : null,
                 'base_price' => $product->base_price,
                 'standard_available' => $standardAvailable,
-                'skus' => $product->skus->map(function ($sku) use ($reservedEditionIdsQuery, $product) {
-                    $skuEditionAvailable = $product->editions()
-                        ->where('product_sku_id', $sku->id)
-                        ->where('status', ProductEditionStatus::Available)
-                        ->whereNotIn('id', $reservedEditionIdsQuery)
-                        ->count();
-
+                'skus' => $product->skus->map(function ($sku) use ($editionCounts) {
                     return [
                         'id' => $sku->id,
                         'sku_code' => $sku->sku_code,
                         'price_amount' => (int) $sku->price_amount,
                         'price' => number_format(((int) $sku->price_amount) / 100, 2, '.', ''),
                         'currency' => $sku->currency,
-                        'stock_available' => $skuEditionAvailable,
+                        'stock_available' => (int) ($editionCounts[$sku->id] ?? 0),
                         'attributes' => $sku->attributes ?: [],
                     ];
                 })->values(),
