@@ -6,6 +6,7 @@ use App\Models\Artist;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Models\ProductEdition;
 use App\Models\ProductSku;
 use App\Models\User;
 use App\Services\CartService;
@@ -334,6 +335,80 @@ class CartTest extends TestCase
             'id' => $sku->id,
             'stock_reserved' => 0,
             'stock_on_hand' => 5,
+        ]);
+    }
+
+    public function test_standard_product_add_clamps_to_available_edition_count(): void
+    {
+        $artist = Artist::factory()->create();
+        $product = Product::factory()->create([
+            'artist_id' => $artist->id,
+            'is_public' => true,
+            'sell_through_ltdedn' => true,
+            'is_sellable' => true,
+            'sale_status' => 'active',
+            'base_price' => 50.00,
+        ]);
+        ProductEdition::factory()->count(5)->create([
+            'product_id' => $product->id,
+            'product_sku_id' => null,
+            'status' => 'available',
+        ]);
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $this->post(route('cart.items.store'), [
+            'product_id' => $product->id,
+            'quantity' => 3,
+        ])->assertRedirect();
+
+        $this->post(route('cart.items.store'), [
+            'product_id' => $product->id,
+            'quantity' => 10,
+        ])->assertRedirect();
+
+        $this->assertDatabaseCount('cart_items', 1);
+        $this->assertDatabaseHas('cart_items', [
+            'product_id' => $product->id,
+            'product_sku_id' => null,
+            'quantity' => 5,
+        ]);
+    }
+
+    public function test_standard_product_update_quantity_clamps_to_editions(): void
+    {
+        $artist = Artist::factory()->create();
+        $product = Product::factory()->create([
+            'artist_id' => $artist->id,
+            'is_public' => true,
+            'sell_through_ltdedn' => true,
+            'is_sellable' => true,
+            'sale_status' => 'active',
+            'base_price' => 50.00,
+        ]);
+        ProductEdition::factory()->count(4)->create([
+            'product_id' => $product->id,
+            'product_sku_id' => null,
+            'status' => 'available',
+        ]);
+
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $this->post(route('cart.items.store'), [
+            'product_id' => $product->id,
+            'quantity' => 1,
+        ]);
+
+        $item = CartItem::query()->firstOrFail();
+
+        $this->patch(route('cart.items.update', $item), ['quantity' => 99])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('cart_items', [
+            'id' => $item->id,
+            'quantity' => 4,
         ]);
     }
 

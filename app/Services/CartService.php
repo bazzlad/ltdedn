@@ -96,17 +96,14 @@ class CartService
             $desiredQty = ($item ? (int) $item->quantity : 0) + $quantity;
             $clamped = false;
 
-            if ($sku) {
-                $fresh = ProductSku::query()->find($sku->id);
-                $available = $fresh ? (int) $fresh->stock_available : 0;
-                if ($available <= 0) {
-                    return ['ok' => false, 'error' => 'This item is sold out.'];
-                }
+            $available = $this->availableForLine($product, $sku);
+            if ($available <= 0) {
+                return ['ok' => false, 'error' => 'This item is sold out.'];
+            }
 
-                if ($desiredQty > $available) {
-                    $desiredQty = $available;
-                    $clamped = true;
-                }
+            if ($desiredQty > $available) {
+                $desiredQty = $available;
+                $clamped = true;
             }
 
             $unitAmount = ProductAvailability::resolvePrice($product, $sku);
@@ -145,10 +142,12 @@ class CartService
                 return ['ok' => false, 'error' => 'Item not found.'];
             }
 
+            $product = $locked->product()->first();
+            $sku = $locked->product_sku_id ? ProductSku::query()->find($locked->product_sku_id) : null;
             $clamped = false;
-            if ($locked->product_sku_id) {
-                $sku = ProductSku::query()->find($locked->product_sku_id);
-                $available = $sku ? (int) $sku->stock_available : 0;
+
+            if ($product) {
+                $available = $this->availableForLine($product, $sku);
                 if ($quantity > $available) {
                     $quantity = max($available, 0);
                     $clamped = true;
@@ -179,6 +178,25 @@ class CartService
     public function clear(Cart $cart): void
     {
         $cart->items()->delete();
+    }
+
+    /**
+     * Upper bound for a cart line's quantity.
+     *
+     * SKU lines are gated by the SKU's stock_available (already subtracts
+     * live reservations via stock_reserved). Standard lines (no SKU) have
+     * no SKU-level stock counter, so they're gated by the count of
+     * available edition rows not already held by a live reservation —
+     * which is exactly what checkout enforces and what the product page
+     * displays.
+     */
+    private function availableForLine(Product $product, ?ProductSku $sku): int
+    {
+        if ($sku) {
+            return (int) ($sku->fresh()?->stock_available ?? 0);
+        }
+
+        return ProductAvailability::availableForLine($product, null);
     }
 
     /**
@@ -215,9 +233,10 @@ class CartService
 
                 $combined = (int) $gi->quantity + (int) ($existing->quantity ?? 0);
 
-                if ($gi->product_sku_id) {
-                    $sku = ProductSku::query()->find($gi->product_sku_id);
-                    $available = $sku ? (int) $sku->stock_available : 0;
+                $product = $gi->product()->first();
+                $sku = $gi->product_sku_id ? ProductSku::query()->find($gi->product_sku_id) : null;
+                if ($product) {
+                    $available = $this->availableForLine($product, $sku);
                     if ($combined > $available) {
                         $combined = $available;
                     }
@@ -310,7 +329,7 @@ class CartService
                 $currency = ProductAvailability::resolveCurrency($product, $sku);
             }
 
-            $available = $sku ? (int) $sku->stock_available : null;
+            $available = $product ? $this->availableForLine($product, $sku) : null;
             $quantity = (int) $item->quantity;
             if ($available !== null && $quantity > $available) {
                 $ok = false;

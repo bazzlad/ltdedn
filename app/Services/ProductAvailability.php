@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ProductEditionStatus;
 use App\Enums\ProductSaleStatus;
 use App\Models\Product;
 use App\Models\ProductSku;
@@ -52,5 +53,33 @@ class ProductAvailability
         }
 
         return (string) ($product->currency ?: 'gbp');
+    }
+
+    /**
+     * Count editions currently available to sell for this product/SKU combo.
+     *
+     * Matches the figure shown on the product page and the cap enforced by
+     * CheckoutService: available editions, minus any held by a live (not
+     * yet expired) reservation — regardless of which cart placed them.
+     */
+    public static function availableForLine(Product $product, ?ProductSku $sku): int
+    {
+        $query = $product->editions()
+            ->where('status', ProductEditionStatus::Available)
+            ->whereNotIn('id', function ($q) {
+                $q->select('product_edition_id')
+                    ->from('inventory_reservations')
+                    ->where('status', 'active')
+                    ->whereNotNull('product_edition_id')
+                    ->where('expires_at', '>', now());
+            });
+
+        if ($sku) {
+            $query->where('product_sku_id', $sku->id);
+        } else {
+            $query->whereNull('product_sku_id');
+        }
+
+        return (int) $query->count();
     }
 }
