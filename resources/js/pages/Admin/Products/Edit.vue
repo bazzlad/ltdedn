@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ProductVariantPanel from '@/components/admin/ProductVariantPanel.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -34,9 +35,23 @@ interface Product {
     artist: Artist;
 }
 
+interface VariantAxisValueProp {
+    id: number;
+    value: string;
+    sort_order: number;
+}
+
+interface VariantAxisProp {
+    id: number;
+    name: string;
+    sort_order: number;
+    values: VariantAxisValueProp[];
+}
+
 const props = defineProps<{
     product: Product;
     artists: Artist[];
+    variantAxes?: VariantAxisProp[];
 }>();
 
 const breadcrumbs: BreadcrumbItemType[] = [
@@ -311,6 +326,13 @@ const submit = () => {
                     </form>
                 </CardContent>
             </Card>
+
+            <ProductVariantPanel
+                :product-id="props.product.id"
+                :initial-axes="props.variantAxes ?? []"
+                :default-price="props.product.base_price ?? null"
+                :currency="props.product.currency || 'gbp'"
+            />
         </div>
     </AdminLayout>
 </template>

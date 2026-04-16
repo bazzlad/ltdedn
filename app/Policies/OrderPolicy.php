@@ -16,4 +16,14 @@ class OrderPolicy
     {
         return $user->isAdmin();
     }
+
+    public function ship(User $user, Order $order): bool
+    {
+        return $user->isAdmin();
+    }
+
+    public function refund(User $user, Order $order): bool
+    {
+        return $user->isAdmin();
+    }
 }

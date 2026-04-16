@@ -19,6 +19,13 @@ class Order extends Model
             'paid_at' => 'datetime',
             'checkout_expires_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'shipped_at' => 'datetime',
+            'last_refunded_at' => 'datetime',
+            'subtotal_amount' => 'integer',
+            'shipping_amount' => 'integer',
+            'tax_amount' => 'integer',
+            'total_amount' => 'integer',
+            'refunded_amount' => 'integer',
         ];
     }
 
@@ -35,5 +42,10 @@ class Order extends Model
     public function reservations(): HasMany
     {
         return $this->hasMany(InventoryReservation::class);
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(OrderEvent::class);
     }
 }

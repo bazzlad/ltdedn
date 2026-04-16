@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\CartService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -46,6 +47,28 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'cartSummary' => fn () => $this->cartSummary($request),
+        ];
+    }
+
+    /**
+     * @return array{item_count: int, subtotal: int, currency: string}
+     */
+    private function cartSummary(Request $request): array
+    {
+        if (! $request->user() && ! $request->hasCookie(CartService::COOKIE_NAME)) {
+            return ['item_count' => 0, 'subtotal' => 0, 'currency' => 'gbp'];
+        }
+
+        /** @var CartService $service */
+        $service = app(CartService::class);
+        $cart = $service->resolveForRequest($request);
+        $snapshot = $service->pricingSnapshot($cart);
+
+        return [
+            'item_count' => $snapshot['item_count'],
+            'subtotal' => $snapshot['subtotal'],
+            'currency' => $snapshot['currency'],
         ];
     }
 }

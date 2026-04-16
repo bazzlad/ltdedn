@@ -3,8 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\MarkOrderShippedRequest;
+use App\Http\Requests\Admin\RefundOrderRequest;
 use App\Models\Order;
+use App\Services\OrderFulfillmentService;
+use App\Services\OrderRefundService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -104,7 +109,12 @@ class SalesController extends Controller
     {
         $this->authorize('view', $order);
 
-        $order->load(['user:id,name,email', 'items.sku:id,sku_code']);
+        $order->load([
+            'user:id,name,email',
+            'items.sku:id,sku_code',
+            'events' => fn ($q) => $q->latest('id'),
+            'events.actor:id,name,email',
+        ]);
 
         return Inertia::render('Admin/Sales/Show', [
             'order' => [
@@ -113,7 +123,19 @@ class SalesController extends Controller
                 'currency' => $order->currency,
                 'subtotal_amount' => (int) $order->subtotal_amount,
                 'shipping_amount' => (int) $order->shipping_amount,
+                'tax_amount' => (int) $order->tax_amount,
                 'total_amount' => (int) $order->total_amount,
+                'refunded_amount' => (int) $order->refunded_amount,
+                'last_refunded_at' => $order->last_refunded_at ? (string) $order->last_refunded_at : null,
+                'shipping_carrier' => $order->shipping_carrier,
+                'shipping_tracking_number' => $order->shipping_tracking_number,
+                'shipped_at' => $order->shipped_at ? (string) $order->shipped_at : null,
+                'shipping_name' => $order->shipping_name,
+                'shipping_line1' => $order->shipping_line1,
+                'shipping_line2' => $order->shipping_line2,
+                'shipping_city' => $order->shipping_city,
+                'shipping_postal_code' => $order->shipping_postal_code,
+                'shipping_country' => $order->shipping_country,
                 'customer_email' => $order->customer_email,
                 'user' => $order->user,
                 'stripe_checkout_session_id' => $order->stripe_checkout_session_id,
@@ -132,8 +154,53 @@ class SalesController extends Controller
                         'attributes_snapshot' => $item->attributes_snapshot,
                     ];
                 })->values(),
+                'events' => $order->events->map(function ($event) {
+                    return [
+                        'id' => $event->id,
+                        'type' => $event->type,
+                        'payload' => $event->payload,
+                        'actor' => $event->actor ? ['id' => $event->actor->id, 'name' => $event->actor->name] : null,
+                        'created_at' => (string) $event->created_at,
+                    ];
+                })->values(),
             ],
         ]);
+    }
+
+    public function markShipped(MarkOrderShippedRequest $request, Order $order, OrderFulfillmentService $service): RedirectResponse
+    {
+        $this->authorize('ship', $order);
+
+        $result = $service->markShipped(
+            $order,
+            (string) $request->string('carrier'),
+            (string) $request->string('tracking'),
+            $request->user(),
+        );
+
+        if (! $result['ok']) {
+            return back()->withErrors(['shipping' => (string) $result['error']]);
+        }
+
+        return back()->with('status', 'Order marked as shipped.');
+    }
+
+    public function refund(RefundOrderRequest $request, Order $order, OrderRefundService $service): RedirectResponse
+    {
+        $this->authorize('refund', $order);
+
+        $result = $service->refund(
+            $order,
+            $request->amountMinor(),
+            (string) $request->string('reason'),
+            $request->user(),
+        );
+
+        if (! $result['ok']) {
+            return back()->withErrors(['refund' => (string) $result['error']]);
+        }
+
+        return back()->with('status', 'Refund issued.');
     }
 
     /**

@@ -2,63 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Models\ProductSku;
+use App\Http\Requests\Shop\CreateCheckoutSessionRequest;
+use App\Services\CartService;
 use App\Services\CheckoutService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class CreateCheckoutSessionController extends Controller
 {
-    public function __construct(private CheckoutService $checkoutService) {}
+    public function __construct(
+        private CheckoutService $checkoutService,
+        private CartService $cartService,
+    ) {}
 
-    public function __invoke(Request $request): RedirectResponse
+    public function __invoke(CreateCheckoutSessionRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'artist_id' => ['required', 'integer', 'exists:artists,id'],
-            'product_id' => ['required', 'integer', 'exists:products,id'],
-            'product_sku_id' => ['nullable', 'integer', 'exists:product_skus,id'],
-        ]);
+        $cart = $this->cartService->resolveForRequest($request);
+        $cart->loadMissing(['items.product', 'items.sku']);
 
-        $product = Product::query()->findOrFail($validated['product_id']);
-
-        if ((int) $product->artist_id !== (int) $validated['artist_id']) {
-            return back()->withErrors(['product_id' => 'Invalid product selection.'])->withInput();
-        }
-
-        if (! $product->is_public && ! $request->user()) {
-            return redirect()->guest(route('login'))
-                ->with('status', 'You must be logged in to purchase this product.');
-        }
-
-        $sku = null;
-        if (! empty($validated['product_sku_id'])) {
-            $sku = ProductSku::query()->findOrFail($validated['product_sku_id']);
-
-            if ((int) $sku->product_id !== (int) $product->id) {
-                return back()->withErrors(['product_sku_id' => 'Invalid product selection.'])->withInput();
-            }
-        }
-
-        if ($product->editions()->count() < 1) {
-            return back()->withErrors(['product_id' => 'This product cannot be sold until editions are created.'])->withInput();
+        if ($cart->items->isEmpty()) {
+            return redirect()->route('cart.show')->withErrors(['cart' => 'Your cart is empty.']);
         }
 
         $orderCreationKey = (string) ($request->header('Idempotency-Key') ?: Str::uuid());
 
-        $customerEmail = $request->user() ? $request->user()->email : null;
+        $user = $request->user();
+        $customerEmail = $user
+            ? (string) $user->email
+            : ($request->input('email') ? (string) $request->input('email') : null);
 
-        $result = $this->checkoutService->createCheckout(
-            product: $product,
-            sku: $sku,
+        $result = $this->checkoutService->createCheckoutFromCart(
+            cart: $cart,
             customerEmail: $customerEmail,
             orderCreationKey: $orderCreationKey,
-            userId: $request->user() ? $request->user()->id : null,
+            userId: $user?->id,
         );
 
         if (! $result['ok']) {
-            return back()->with('error', (string) $result['error']);
+            return redirect()->route('cart.show')->withErrors(['cart' => (string) $result['error']]);
         }
 
         return redirect()->away((string) $result['redirect']);

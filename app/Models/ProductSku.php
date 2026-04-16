@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProductSku extends Model
@@ -36,6 +37,16 @@ class ProductSku extends Model
     public function editions(): HasMany
     {
         return $this->hasMany(ProductEdition::class, 'product_sku_id');
+    }
+
+    public function variantValues(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            ProductVariantValue::class,
+            'product_sku_variant_values',
+            'product_sku_id',
+            'product_variant_value_id',
+        )->withPivot('product_variant_axis_id')->withTimestamps();
     }
 
     public function getStockAvailableAttribute(): int

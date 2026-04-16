@@ -53,13 +53,18 @@ class ShopProductController extends Controller
                 $query->where('is_public', true);
             })
             ->whereHas('editions')
-            ->with(['artist:id,name,slug', 'skus' => function ($query) {
-                $query->where('is_active', true)
-                    ->whereHas('editions', function ($editionQuery) {
-                        $editionQuery->where('status', ProductEditionStatus::Available);
-                    })
-                    ->orderBy('id');
-            }]);
+            ->with([
+                'artist:id,name,slug',
+                'variantAxes.values',
+                'skus' => function ($query) {
+                    $query->where('is_active', true)
+                        ->whereHas('editions', function ($editionQuery) {
+                            $editionQuery->where('status', ProductEditionStatus::Available);
+                        })
+                        ->with('variantValues:id')
+                        ->orderBy('id');
+                },
+            ]);
     }
 
     private function loginOrFail(int $artistId, int $productId): Response|RedirectResponse
@@ -142,6 +147,14 @@ class ShopProductController extends Controller
                 'image' => $product->cover_image ? '/storage/'.$product->cover_image : null,
                 'base_price' => $product->base_price,
                 'standard_available' => $standardAvailable,
+                'variant_axes' => $product->variantAxes->map(fn ($axis) => [
+                    'id' => $axis->id,
+                    'name' => $axis->name,
+                    'values' => $axis->values->map(fn ($v) => [
+                        'id' => $v->id,
+                        'value' => $v->value,
+                    ])->values(),
+                ])->values(),
                 'skus' => $product->skus->map(function ($sku) use ($editionCounts) {
                     return [
                         'id' => $sku->id,
@@ -151,6 +164,7 @@ class ShopProductController extends Controller
                         'currency' => $sku->currency,
                         'stock_available' => (int) ($editionCounts[$sku->id] ?? 0),
                         'attributes' => $sku->attributes ?: [],
+                        'variant_value_ids' => $sku->variantValues->pluck('id')->values(),
                     ];
                 })->values(),
             ],

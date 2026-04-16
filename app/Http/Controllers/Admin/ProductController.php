@@ -121,11 +121,21 @@ class ProductController extends Controller
             ? Artist::orderBy('name')->get()
             : $user->ownedArtists()->orderBy('name')->get();
 
-        $product->load('artist')->loadCount('editions');
+        $product->load(['artist', 'variantAxes.values'])->loadCount('editions');
 
         return Inertia::render('Admin/Products/Edit', [
             'product' => new ProductResource($product),
             'artists' => $artists,
+            'variantAxes' => $product->variantAxes->map(fn ($axis) => [
+                'id' => $axis->id,
+                'name' => $axis->name,
+                'sort_order' => (int) $axis->sort_order,
+                'values' => $axis->values->map(fn ($v) => [
+                    'id' => $v->id,
+                    'value' => $v->value,
+                    'sort_order' => (int) $v->sort_order,
+                ])->values(),
+            ])->values(),
         ]);
     }
 

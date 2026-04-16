@@ -3,6 +3,8 @@
 use App\Http\Controllers\AcceptProductEditionTransferController;
 use App\Http\Controllers\ArtistsController;
 use App\Http\Controllers\CancelProductEditionTransferController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CartItemController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ClaimQRController;
 use App\Http\Controllers\CreateCheckoutSessionController;
@@ -53,6 +55,14 @@ Route::get('/shop/{artistSlug}/{productSlug}', [ShopProductController::class, 'b
 Route::post('/shop/checkout', CreateCheckoutSessionController::class)->middleware('throttle:10,1')->name('shop.checkout');
 Route::get('/shop/success/{order}', [ShopCheckoutResultController::class, 'success'])->name('shop.success');
 Route::get('/shop/cancel/{order}', [ShopCheckoutResultController::class, 'cancel'])->name('shop.cancel');
+
+Route::middleware('throttle:30,1')->group(function () {
+    Route::get('/cart', [CartController::class, 'show'])->name('cart.show');
+    Route::delete('/cart', [CartController::class, 'destroy'])->name('cart.destroy');
+    Route::post('/cart/items', [CartItemController::class, 'store'])->name('cart.items.store');
+    Route::patch('/cart/items/{cartItem}', [CartItemController::class, 'update'])->name('cart.items.update');
+    Route::delete('/cart/items/{cartItem}', [CartItemController::class, 'destroy'])->name('cart.items.destroy');
+});
 
 Route::get('/qr/{qrCode}', ShowQRController::class)->name('qr.show');
 Route::post('/qr/{qrCode}/claim', ClaimQRController::class)

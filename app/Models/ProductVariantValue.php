@@ -9,6 +9,13 @@ class ProductVariantValue extends Model
 {
     protected $guarded = ['id'];
 
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
+    }
+
     public function axis(): BelongsTo
     {
         return $this->belongsTo(ProductVariantAxis::class, 'product_variant_axis_id');

@@ -19,6 +19,7 @@ class ShopCheckoutTest extends TestCase
     {
         config()->set('services.stripe.secret', 'sk_test_123');
 
+        $user = User::factory()->create();
         $artist = Artist::factory()->create();
 
         $product = Product::factory()->create([
@@ -52,11 +53,14 @@ class ShopCheckoutTest extends TestCase
             ], 200),
         ]);
 
-        $response = $this->post(route('shop.checkout'), [
-            'artist_id' => $artist->id,
+        $this->actingAs($user);
+        $this->post(route('cart.items.store'), [
             'product_id' => $product->id,
             'product_sku_id' => $sku->id,
+            'quantity' => 1,
         ]);
+
+        $response = $this->post(route('shop.checkout'));
 
         $response->assertRedirect('https://checkout.stripe.com/c/pay/cs_test_123');
 
@@ -196,6 +200,7 @@ class ShopCheckoutTest extends TestCase
     {
         config()->set('services.stripe.secret', 'sk_test_123');
 
+        $user = User::factory()->create();
         $artist = Artist::factory()->create();
 
         $product = Product::factory()->create([
@@ -222,10 +227,13 @@ class ShopCheckoutTest extends TestCase
             ], 200),
         ]);
 
-        $response = $this->post(route('shop.checkout'), [
-            'artist_id' => $artist->id,
+        $this->actingAs($user);
+        $this->post(route('cart.items.store'), [
             'product_id' => $product->id,
+            'quantity' => 1,
         ]);
+
+        $response = $this->post(route('shop.checkout'));
 
         $response->assertRedirect('https://checkout.stripe.com/c/pay/cs_test_standard');
 
@@ -247,6 +255,7 @@ class ShopCheckoutTest extends TestCase
     {
         config()->set('services.stripe.secret', 'sk_test_123');
 
+        $user = User::factory()->create();
         $artist = Artist::factory()->create();
 
         $product = Product::factory()->create([
@@ -268,15 +277,17 @@ class ShopCheckoutTest extends TestCase
 
         Http::fake();
 
-        $response = $this->from(route('shop.product', ['artistId' => $artist->id, 'productId' => $product->id]))
-            ->post(route('shop.checkout'), [
-                'artist_id' => $artist->id,
-                'product_id' => $product->id,
-                'product_sku_id' => $sku->id,
-            ]);
+        $this->actingAs($user);
+        $this->post(route('cart.items.store'), [
+            'product_id' => $product->id,
+            'product_sku_id' => $sku->id,
+            'quantity' => 1,
+        ]);
 
-        $response->assertRedirect(route('shop.product', ['artistId' => $artist->id, 'productId' => $product->id]));
-        $response->assertSessionHasErrors('product_id');
+        $response = $this->post(route('shop.checkout'));
+
+        $response->assertRedirect(route('cart.show'));
+        $response->assertSessionHasErrors('cart');
 
         Http::assertNothingSent();
 
@@ -395,6 +406,7 @@ class ShopCheckoutTest extends TestCase
     {
         config()->set('services.stripe.secret', 'sk_test_123');
 
+        $user = User::factory()->create();
         $artist = Artist::factory()->create();
 
         $product = Product::factory()->create([
@@ -443,11 +455,14 @@ class ShopCheckoutTest extends TestCase
             ], 200),
         ]);
 
-        $response = $this->post(route('shop.checkout'), [
-            'artist_id' => $artist->id,
+        $this->actingAs($user);
+        $this->post(route('cart.items.store'), [
             'product_id' => $product->id,
             'product_sku_id' => $largeSku->id,
+            'quantity' => 1,
         ]);
+
+        $response = $this->post(route('shop.checkout'));
 
         $response->assertRedirect('https://checkout.stripe.com/c/pay/cs_test_456');
 

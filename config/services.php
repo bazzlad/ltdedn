@@ -38,6 +38,8 @@ return [
     'stripe' => [
         'secret' => env('STRIPE_SECRET'),
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'tax_enabled' => env('STRIPE_TAX_ENABLED', true),
+        'api_version' => env('STRIPE_API_VERSION', '2024-10-28.acacia'),
     ],
 
 ];
