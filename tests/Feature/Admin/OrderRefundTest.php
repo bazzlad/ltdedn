@@ -19,6 +19,23 @@ class OrderRefundTest extends TestCase
         config()->set('services.stripe.secret', 'sk_test_123');
     }
 
+    private function fakeStripe(?array $refundResponse, int $stripeAlreadyRefundedMinor = 0, int $refundStatus = 200): void
+    {
+        Http::fake([
+            'https://api.stripe.com/v1/payment_intents/*' => Http::response([
+                'id' => 'pi_test_refund',
+                'latest_charge' => [
+                    'id' => 'ch_test',
+                    'amount_refunded' => $stripeAlreadyRefundedMinor,
+                    'refunds' => ['data' => []],
+                ],
+            ], 200),
+            'https://api.stripe.com/v1/refunds' => $refundResponse === null
+                ? Http::response(['error' => ['message' => 'card_declined']], $refundStatus)
+                : Http::response($refundResponse, $refundStatus),
+        ]);
+    }
+
     private function paidOrder(array $overrides = []): Order
     {
         return Order::create(array_merge([
@@ -40,12 +57,10 @@ class OrderRefundTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $order = $this->paidOrder();
 
-        Http::fake([
-            'https://api.stripe.com/v1/refunds' => Http::response([
-                'id' => 're_test_1',
-                'amount' => 2500,
-                'status' => 'succeeded',
-            ], 200),
+        $this->fakeStripe([
+            'id' => 're_test_1',
+            'amount' => 2500,
+            'status' => 'succeeded',
         ]);
 
         $response = $this->actingAs($admin)->post(route('admin.sales.refund', $order), [
@@ -69,12 +84,10 @@ class OrderRefundTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $order = $this->paidOrder();
 
-        Http::fake([
-            'https://api.stripe.com/v1/refunds' => Http::response([
-                'id' => 're_test_2',
-                'amount' => 10000,
-                'status' => 'succeeded',
-            ], 200),
+        $this->fakeStripe([
+            'id' => 're_test_2',
+            'amount' => 10000,
+            'status' => 'succeeded',
         ]);
 
         $this->actingAs($admin)->post(route('admin.sales.refund', $order), [
@@ -95,7 +108,7 @@ class OrderRefundTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $order = $this->paidOrder(['refunded_amount' => 8000]);
 
-        Http::fake();
+        $this->fakeStripe(null, 8000);
 
         $response = $this->actingAs($admin)->post(route('admin.sales.refund', $order), [
             'amount_minor' => 5000,
@@ -103,7 +116,9 @@ class OrderRefundTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors('refund');
-        Http::assertNothingSent();
+        Http::assertNotSent(function ($request) {
+            return str_contains((string) $request->url(), '/v1/refunds');
+        });
 
         $order->refresh();
         $this->assertSame(8000, (int) $order->refunded_amount);
@@ -114,9 +129,7 @@ class OrderRefundTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $order = $this->paidOrder();
 
-        Http::fake([
-            'https://api.stripe.com/v1/refunds' => Http::response(['error' => ['message' => 'card_declined']], 400),
-        ]);
+        $this->fakeStripe(null, 0, 400);
 
         $response = $this->actingAs($admin)->post(route('admin.sales.refund', $order), [
             'amount_minor' => 2500,
@@ -144,5 +157,85 @@ class OrderRefundTest extends TestCase
         ]);
 
         $response->assertForbidden();
+    }
+
+    public function test_refund_sends_idempotency_key_header_on_stripe_call(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $order = $this->paidOrder();
+
+        $this->fakeStripe([
+            'id' => 're_test_idem',
+            'amount' => 1000,
+            'status' => 'succeeded',
+        ]);
+
+        $this->actingAs($admin)->post(route('admin.sales.refund', $order), [
+            'amount_minor' => 1000,
+            'reason' => 'Damaged',
+        ]);
+
+        Http::assertSent(function ($request) use ($order) {
+            if (! str_contains((string) $request->url(), '/v1/refunds')) {
+                return false;
+            }
+            $key = $request->header('Idempotency-Key')[0] ?? '';
+
+            return str_starts_with($key, 'refund_'.$order->id.'_');
+        });
+
+        $this->assertDatabaseHas('order_events', [
+            'order_id' => $order->id,
+            'type' => 'refund_attempt',
+        ]);
+    }
+
+    public function test_refund_reconciles_against_stripe_when_local_state_is_stale(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        // Local state says 0 refunded, but Stripe has already refunded £30
+        // (e.g. a previous attempt succeeded at Stripe but lost its DB
+        // update window and no webhook has landed yet).
+        $order = $this->paidOrder(['refunded_amount' => 0]);
+
+        $this->fakeStripe([
+            'id' => 're_after_reconcile',
+            'amount' => 2000,
+            'status' => 'succeeded',
+        ], stripeAlreadyRefundedMinor: 3000);
+
+        $this->actingAs($admin)->post(route('admin.sales.refund', $order), [
+            'amount_minor' => 2000,
+            'reason' => 'Top-up refund',
+        ]);
+
+        $order->refresh();
+        // 3000 reconciled from Stripe + 2000 admin refund = 5000.
+        $this->assertSame(5000, (int) $order->refunded_amount);
+        $this->assertDatabaseHas('order_events', [
+            'order_id' => $order->id,
+            'type' => 'refund_reconciled_pre_admin',
+        ]);
+    }
+
+    public function test_refund_blocks_when_stripe_reports_already_fully_refunded(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $order = $this->paidOrder(['refunded_amount' => 0]);
+
+        $this->fakeStripe(null, stripeAlreadyRefundedMinor: 10000);
+
+        $response = $this->actingAs($admin)->post(route('admin.sales.refund', $order), [
+            'amount_minor' => 500,
+            'reason' => 'Already refunded',
+        ]);
+
+        $response->assertSessionHasErrors('refund');
+        Http::assertNotSent(function ($request) {
+            return str_contains((string) $request->url(), '/v1/refunds');
+        });
+
+        $order->refresh();
+        $this->assertSame(10000, (int) $order->refunded_amount);
     }
 }

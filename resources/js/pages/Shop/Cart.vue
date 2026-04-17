@@ -34,7 +34,23 @@ const isAuthed = computed(() => {
     return auth?.user != null;
 });
 
-const busy = ref<number | null>(null);
+const busyLines = ref<Set<number>>(new Set());
+
+function isBusy(lineId: number): boolean {
+    return busyLines.value.has(lineId);
+}
+
+function markBusy(lineId: number): void {
+    const next = new Set(busyLines.value);
+    next.add(lineId);
+    busyLines.value = next;
+}
+
+function clearBusy(lineId: number): void {
+    const next = new Set(busyLines.value);
+    next.delete(lineId);
+    busyLines.value = next;
+}
 
 function formatMoney(minor: number, currency: string): string {
     const v = (minor / 100).toFixed(2);
@@ -42,27 +58,27 @@ function formatMoney(minor: number, currency: string): string {
 }
 
 function updateQty(line: CartLine, qty: number): void {
-    if (busy.value !== null) return;
-    busy.value = line.id;
+    if (isBusy(line.id)) return;
+    markBusy(line.id);
     router.patch(
         `/cart/items/${line.id}`,
         { quantity: qty },
         {
             preserveScroll: true,
             onFinish: () => {
-                busy.value = null;
+                clearBusy(line.id);
             },
         },
     );
 }
 
 function removeLine(line: CartLine): void {
-    if (busy.value !== null) return;
-    busy.value = line.id;
+    if (isBusy(line.id)) return;
+    markBusy(line.id);
     router.delete(`/cart/items/${line.id}`, {
         preserveScroll: true,
         onFinish: () => {
-            busy.value = null;
+            clearBusy(line.id);
         },
     });
 }
@@ -146,7 +162,7 @@ function startCheckout(): void {
                             <button
                                 type="button"
                                 class="flex h-9 w-9 items-center justify-center text-white transition-colors hover:bg-white/10 disabled:opacity-30"
-                                :disabled="busy === line.id || line.quantity <= 1"
+                                :disabled="isBusy(line.id) || line.quantity <= 1"
                                 @click="updateQty(line, line.quantity - 1)"
                                 aria-label="Decrease quantity"
                             >
@@ -156,7 +172,7 @@ function startCheckout(): void {
                             <button
                                 type="button"
                                 class="flex h-9 w-9 items-center justify-center text-white transition-colors hover:bg-white/10 disabled:opacity-30"
-                                :disabled="busy === line.id || (line.available !== null && line.quantity >= line.available)"
+                                :disabled="isBusy(line.id) || (line.available !== null && line.quantity >= line.available)"
                                 @click="updateQty(line, line.quantity + 1)"
                                 aria-label="Increase quantity"
                             >
@@ -166,7 +182,7 @@ function startCheckout(): void {
                         <button
                             type="button"
                             class="text-[0.625rem] font-bold tracking-widest text-white/60 underline decoration-white/40 underline-offset-2 hover:text-white hover:decoration-white disabled:opacity-40"
-                            :disabled="busy === line.id"
+                            :disabled="isBusy(line.id)"
                             @click="removeLine(line)"
                         >
                             REMOVE

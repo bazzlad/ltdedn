@@ -6,11 +6,12 @@ use App\Models\Cart;
 use App\Models\User;
 use App\Services\CartService;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Container\Container;
 use Illuminate\Http\Request;
 
 class MergeGuestCartOnLogin
 {
-    public function __construct(private CartService $cartService, private Request $request) {}
+    public function __construct(private CartService $cartService) {}
 
     public function handle(Login $event): void
     {
@@ -20,7 +21,20 @@ class MergeGuestCartOnLogin
             return;
         }
 
-        $token = (string) $this->request->cookie(CartService::COOKIE_NAME, '');
+        // Resolve the request lazily — the listener may run under a console
+        // or queued context where no HTTP request is in scope. Without a
+        // request there's no guest-cart cookie to merge, so exit quietly.
+        $container = Container::getInstance();
+        if (! $container->bound('request')) {
+            return;
+        }
+
+        $request = $container->make('request');
+        if (! $request instanceof Request) {
+            return;
+        }
+
+        $token = (string) $request->cookie(CartService::COOKIE_NAME, '');
         if ($token === '') {
             return;
         }

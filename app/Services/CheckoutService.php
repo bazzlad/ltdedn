@@ -194,23 +194,43 @@ class CheckoutService
     }
 
     /**
-     * Lock every SKU row referenced by any line, in ascending ID order, so
-     * two concurrent checkouts that share SKUs acquire locks in the same
-     * sequence and never deadlock.
+     * Lock every SKU row and every standard (no-SKU) product row referenced
+     * by any line, in ascending ID order so two concurrent checkouts that
+     * share rows acquire locks in the same sequence and never deadlock.
+     *
+     * Locking the product row protects standard (no-SKU) lines, which have
+     * no SKU-level stock counter: the only remaining correctness guarantee
+     * is edition-row locking, and without a product-level lock two
+     * concurrent checkouts could each `lockForUpdate()->limit($qty)` on
+     * disjoint edition rows and both succeed when inventory doesn't
+     * actually support it.
      *
      * @param  list<array{product: Product, sku: ?ProductSku, quantity: int}>  $lines
      */
     private function lockSkusInDeterministicOrder(array $lines): void
     {
-        $ids = (new Collection($lines))
+        $lineCollection = new Collection($lines);
+
+        $skuIds = $lineCollection
             ->map(fn ($line) => $line['sku']?->id)
             ->filter()
             ->unique()
             ->sort()
             ->values();
 
-        foreach ($ids as $id) {
+        $standardProductIds = $lineCollection
+            ->filter(fn ($line) => $line['sku'] === null)
+            ->map(fn ($line) => $line['product']->id)
+            ->unique()
+            ->sort()
+            ->values();
+
+        foreach ($skuIds as $id) {
             ProductSku::query()->lockForUpdate()->find($id);
+        }
+
+        foreach ($standardProductIds as $id) {
+            Product::query()->lockForUpdate()->find($id);
         }
     }
 
@@ -339,20 +359,22 @@ class CheckoutService
             $params["shipping_address_collection[allowed_countries][$i]"] = (string) $code;
         }
 
-        $rate = $this->shippingRateService->resolveForCart(
-            $this->throwawayCartFromOrder($order),
-            $order->shipping_country,
-        );
-
-        if ($rate) {
+        // Pass every active rate as its own shipping option. Stripe shows
+        // the buyer all of them and whichever they select is the one
+        // applied — unlike a single pre-selected rate, which Stripe does
+        // NOT swap when the buyer picks a different country.
+        $rates = $this->shippingRateService->activeRates();
+        foreach ($rates->values() as $i => $rate) {
             if ($rate->stripe_rate_id) {
-                $params['shipping_options[0][shipping_rate]'] = (string) $rate->stripe_rate_id;
-            } else {
-                $params['shipping_options[0][shipping_rate_data][type]'] = 'fixed_amount';
-                $params['shipping_options[0][shipping_rate_data][display_name]'] = (string) $rate->label;
-                $params['shipping_options[0][shipping_rate_data][fixed_amount][amount]'] = (string) $rate->amount_minor;
-                $params['shipping_options[0][shipping_rate_data][fixed_amount][currency]'] = (string) ($rate->currency ?: $order->currency);
+                $params["shipping_options[$i][shipping_rate]"] = (string) $rate->stripe_rate_id;
+
+                continue;
             }
+
+            $params["shipping_options[$i][shipping_rate_data][type]"] = 'fixed_amount';
+            $params["shipping_options[$i][shipping_rate_data][display_name]"] = (string) $rate->label;
+            $params["shipping_options[$i][shipping_rate_data][fixed_amount][amount]"] = (string) $rate->amount_minor;
+            $params["shipping_options[$i][shipping_rate_data][fixed_amount][currency]"] = (string) ($rate->currency ?: $order->currency);
         }
 
         return $params;
@@ -386,16 +408,6 @@ class CheckoutService
 
             $this->orderStateService->markFailed($order);
         });
-    }
-
-    private function throwawayCartFromOrder(Order $order): Cart
-    {
-        $cart = new Cart;
-        $cart->id = $order->id;
-        $cart->user_id = $order->user_id;
-        $cart->currency = (string) $order->currency;
-
-        return $cart;
     }
 
     public function shippingRateService(): ShippingRateService

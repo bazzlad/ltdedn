@@ -105,6 +105,91 @@ class StripeRefundWebhookTest extends TestCase
         );
     }
 
+    public function test_charge_refunded_does_not_downgrade_locally_committed_refund_amount(): void
+    {
+        $order = Order::create([
+            'status' => 'paid',
+            'currency' => 'gbp',
+            'subtotal_amount' => 10000,
+            'shipping_amount' => 0,
+            'tax_amount' => 0,
+            'total_amount' => 10000,
+            // Admin just committed a £70 refund locally; webhook arrives
+            // reporting only £50 (stale snapshot from Stripe mid-flight).
+            'refunded_amount' => 7000,
+            'stripe_payment_intent_id' => 'pi_wh_race',
+            'customer_email' => 'b@example.com',
+            'paid_at' => now(),
+        ]);
+
+        $response = $this->postWebhook([
+            'id' => 'evt_charge_refunded_race',
+            'type' => 'charge.refunded',
+            'data' => [
+                'object' => [
+                    'id' => 'ch_race',
+                    'payment_intent' => 'pi_wh_race',
+                    'amount_refunded' => 5000,
+                    'refunds' => ['data' => []],
+                ],
+            ],
+        ]);
+
+        $response->assertOk();
+        $order->refresh();
+
+        // refunded_amount must ratchet MAX(local, stripe) — not drop.
+        $this->assertSame(7000, (int) $order->refunded_amount);
+    }
+
+    public function test_charge_refunded_ratchets_upward_when_stripe_is_higher(): void
+    {
+        $order = Order::create([
+            'status' => 'paid',
+            'currency' => 'gbp',
+            'subtotal_amount' => 10000,
+            'shipping_amount' => 0,
+            'tax_amount' => 0,
+            'total_amount' => 10000,
+            'refunded_amount' => 2500,
+            'stripe_payment_intent_id' => 'pi_wh_ratchet',
+            'customer_email' => 'b@example.com',
+            'paid_at' => now(),
+        ]);
+
+        $this->postWebhook([
+            'id' => 'evt_charge_refunded_ratchet',
+            'type' => 'charge.refunded',
+            'data' => [
+                'object' => [
+                    'id' => 'ch_ratchet',
+                    'payment_intent' => 'pi_wh_ratchet',
+                    'amount_refunded' => 7500,
+                    'refunds' => ['data' => []],
+                ],
+            ],
+        ])->assertOk();
+
+        $order->refresh();
+        $this->assertSame(7500, (int) $order->refunded_amount);
+    }
+
+    public function test_webhook_rejects_bad_signature_and_does_not_write_stripe_event(): void
+    {
+        $payload = [
+            'id' => 'evt_bad_sig',
+            'type' => 'charge.refunded',
+            'data' => ['object' => ['id' => 'ch_x']],
+        ];
+
+        $response = $this->withHeaders([
+            'Stripe-Signature' => 't='.time().',v1=deadbeef',
+        ])->postJson(route('webhooks.stripe'), $payload);
+
+        $response->assertStatus(400);
+        $this->assertDatabaseMissing('stripe_events', ['event_id' => 'evt_bad_sig']);
+    }
+
     public function test_charge_dispute_created_logs_event_only(): void
     {
         $order = Order::create([

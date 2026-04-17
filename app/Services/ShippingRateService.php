@@ -2,25 +2,35 @@
 
 namespace App\Services;
 
-use App\Models\Cart;
 use App\Models\ShippingRate;
+use Illuminate\Support\Collection;
 
 class ShippingRateService
 {
     /**
-     * Resolve the applicable shipping rate for a cart. If `$country` is
-     * provided, prefer an active rate covering that country; otherwise fall
-     * back to the default code from config, then any active rate with no
-     * country filter (global fallback).
+     * Every active shipping rate, ordered deterministically, for surfacing
+     * to the buyer at checkout. Stripe shows them all and the buyer picks
+     * whichever applies to their address.
+     *
+     * @return Collection<int, ShippingRate>
      */
-    public function resolveForCart(Cart $cart, ?string $country = null): ?ShippingRate
+    public function activeRates(): Collection
     {
-        $rates = ShippingRate::query()
+        return ShippingRate::query()
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->orderBy('id')
             ->get();
+    }
 
+    /**
+     * Pick the single best-fit rate for a given country, preferring a rate
+     * that explicitly covers that country, then the configured default,
+     * then any global-fallback rate (country_codes IS NULL).
+     */
+    public function resolveForCountry(?string $country): ?ShippingRate
+    {
+        $rates = $this->activeRates();
         if ($rates->isEmpty()) {
             return null;
         }

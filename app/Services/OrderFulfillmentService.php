@@ -23,6 +23,10 @@ class OrderFulfillmentService
             return ['ok' => false, 'error' => 'Order must be paid before it can be shipped.'];
         }
 
+        if ((int) $order->refunded_amount >= (int) $order->total_amount && (int) $order->total_amount > 0) {
+            return ['ok' => false, 'error' => 'Order has been fully refunded and cannot be shipped.'];
+        }
+
         DB::transaction(function () use ($order, $carrier, $tracking, $actor) {
             $locked = Order::query()->lockForUpdate()->find($order->id);
             if (! $locked) {

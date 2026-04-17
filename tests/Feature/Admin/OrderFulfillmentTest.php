@@ -89,6 +89,24 @@ class OrderFulfillmentTest extends TestCase
         $this->assertDatabaseMissing('order_events', ['order_id' => $order->id, 'type' => 'shipped']);
     }
 
+    public function test_fully_refunded_order_cannot_be_shipped(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $order = $this->paidOrder();
+        $order->update(['refunded_amount' => (int) $order->total_amount]);
+
+        $response = $this->actingAs($admin)->post(route('admin.sales.ship', $order), [
+            'carrier' => 'Royal Mail',
+            'tracking' => 'RM1234GB',
+        ]);
+
+        $response->assertSessionHasErrors('shipping');
+        $this->assertDatabaseMissing('order_events', [
+            'order_id' => $order->id,
+            'type' => 'shipped',
+        ]);
+    }
+
     public function test_non_admin_cannot_ship(): void
     {
         $user = User::factory()->create(['role' => UserRole::User]);

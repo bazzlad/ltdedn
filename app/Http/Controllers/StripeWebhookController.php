@@ -205,7 +205,12 @@ class StripeWebhookController extends Controller
     /**
      * Reconcile Stripe's authoritative `amount_refunded` back onto the order.
      * Handles both admin-UI refunds (already recorded) and Stripe-dashboard
-     * refunds by staff (never seen before) — we always trust Stripe's total.
+     * refunds by staff (never seen before).
+     *
+     * Locks the order row and only ratchets `refunded_amount` upwards —
+     * `MAX(local, stripe)` — so that a webhook arriving mid-way through an
+     * in-flight admin refund can't overwrite a locally-committed increment
+     * to a smaller value.
      */
     private function handleChargeRefunded(array $charge): void
     {
@@ -214,28 +219,43 @@ class StripeWebhookController extends Controller
             return;
         }
 
-        $order = Order::where('stripe_payment_intent_id', $paymentIntentId)->first();
-        if (! $order) {
-            return;
-        }
+        $stripeRefunded = (int) data_get($charge, 'amount_refunded', 0);
+        $chargeId = (string) data_get($charge, 'id', '');
+        $refundsData = data_get($charge, 'refunds.data', []);
 
-        $amountRefunded = (int) data_get($charge, 'amount_refunded', 0);
+        DB::transaction(function () use ($paymentIntentId, $stripeRefunded, $chargeId, $refundsData) {
+            $order = Order::query()
+                ->where('stripe_payment_intent_id', $paymentIntentId)
+                ->lockForUpdate()
+                ->first();
 
-        $order->update([
-            'refunded_amount' => $amountRefunded,
-            'last_refunded_at' => now(),
-        ]);
+            if (! $order) {
+                return;
+            }
 
-        OrderEvent::create([
-            'order_id' => $order->id,
-            'user_id' => null,
-            'type' => 'stripe_refund_webhook',
-            'payload' => [
-                'amount_refunded' => $amountRefunded,
-                'charge_id' => (string) data_get($charge, 'id', ''),
-                'refunds' => data_get($charge, 'refunds.data', []),
-            ],
-        ]);
+            $priorLocal = (int) $order->refunded_amount;
+            $reconciled = max($priorLocal, $stripeRefunded);
+
+            if ($reconciled !== $priorLocal) {
+                $order->update([
+                    'refunded_amount' => $reconciled,
+                    'last_refunded_at' => now(),
+                ]);
+            }
+
+            OrderEvent::create([
+                'order_id' => $order->id,
+                'user_id' => null,
+                'type' => 'stripe_refund_webhook',
+                'payload' => [
+                    'amount_refunded' => $stripeRefunded,
+                    'prior_local_refunded_amount' => $priorLocal,
+                    'reconciled_refunded_amount' => $reconciled,
+                    'charge_id' => $chargeId,
+                    'refunds' => $refundsData,
+                ],
+            ]);
+        });
     }
 
     /**
