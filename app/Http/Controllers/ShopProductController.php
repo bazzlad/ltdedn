@@ -7,7 +7,6 @@ use App\Enums\ProductSaleStatus;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,7 +20,7 @@ class ShopProductController extends Controller
             ->first(['id', 'artist_id', 'name', 'slug', 'cover_image', 'base_price', 'currency', 'is_public']);
 
         if (! $product) {
-            return $this->loginOrFail($artistId, $productId);
+            abort(404);
         }
 
         return $this->renderProduct($product);
@@ -37,7 +36,7 @@ class ShopProductController extends Controller
             ->first(['id', 'artist_id', 'name', 'slug', 'cover_image', 'base_price', 'currency', 'is_public']);
 
         if (! $product) {
-            return $this->loginOrFailBySlug($artistSlug, $productSlug);
+            abort(404);
         }
 
         return $this->renderProduct($product);
@@ -46,13 +45,21 @@ class ShopProductController extends Controller
     private function baseQuery(): Builder
     {
         return Product::query()
+            ->where('is_public', true)
             ->where('sell_through_ltdedn', true)
             ->where('is_sellable', true)
             ->where('sale_status', ProductSaleStatus::Active)
-            ->when(! Auth::check(), function (Builder $query) {
-                $query->where('is_public', true);
+            ->where(function ($query) {
+                $query->whereHas('editions', function ($editionQuery) {
+                    $editionQuery->whereNull('product_sku_id')
+                        ->where('status', ProductEditionStatus::Available);
+                })->orWhereHas('skus', function ($skuQuery) {
+                    $skuQuery->where('is_active', true)
+                        ->whereHas('editions', function ($editionQuery) {
+                            $editionQuery->where('status', ProductEditionStatus::Available);
+                        });
+                });
             })
-            ->whereHas('editions')
             ->with([
                 'artist:id,name,slug',
                 'variantAxes.values',
@@ -65,56 +72,6 @@ class ShopProductController extends Controller
                         ->orderBy('id');
                 },
             ]);
-    }
-
-    private function loginOrFail(int $artistId, int $productId): Response|RedirectResponse
-    {
-        if (Auth::check()) {
-            abort(404);
-        }
-
-        $exists = Product::query()
-            ->where('id', $productId)
-            ->where('artist_id', $artistId)
-            ->where('is_public', false)
-            ->where('sell_through_ltdedn', true)
-            ->where('is_sellable', true)
-            ->where('sale_status', ProductSaleStatus::Active)
-            ->whereHas('editions')
-            ->exists();
-
-        if (! $exists) {
-            abort(404);
-        }
-
-        return redirect()->guest(route('login'))
-            ->with('status', 'You must be logged in to view this product.');
-    }
-
-    private function loginOrFailBySlug(string $artistSlug, string $productSlug): Response|RedirectResponse
-    {
-        if (Auth::check()) {
-            abort(404);
-        }
-
-        $exists = Product::query()
-            ->where('slug', $productSlug)
-            ->where('is_public', false)
-            ->where('sell_through_ltdedn', true)
-            ->where('is_sellable', true)
-            ->where('sale_status', ProductSaleStatus::Active)
-            ->whereHas('editions')
-            ->whereHas('artist', function (Builder $query) use ($artistSlug) {
-                $query->where('slug', $artistSlug);
-            })
-            ->exists();
-
-        if (! $exists) {
-            abort(404);
-        }
-
-        return redirect()->guest(route('login'))
-            ->with('status', 'You must be logged in to view this product.');
     }
 
     private function renderProduct(Product $product): Response

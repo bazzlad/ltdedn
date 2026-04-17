@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\ProductSaleStatus;
 use App\Models\Product;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -13,13 +12,21 @@ class ShopController extends Controller
     public function __invoke(): Response
     {
         $products = Product::query()
-            ->when(! Auth::check(), function ($query) {
-                $query->where('is_public', true);
-            })
+            ->where('is_public', true)
             ->where('sell_through_ltdedn', true)
             ->where('is_sellable', true)
             ->where('sale_status', ProductSaleStatus::Active)
-            ->whereHas('editions')
+            ->where(function ($query) {
+                $query->whereHas('editions', function ($editionQuery) {
+                    $editionQuery->whereNull('product_sku_id')
+                        ->where('status', 'available');
+                })->orWhereHas('skus', function ($skuQuery) {
+                    $skuQuery->where('is_active', true)
+                        ->whereHas('editions', function ($editionQuery) {
+                            $editionQuery->where('status', 'available');
+                        });
+                });
+            })
             ->with(['artist:id,slug', 'skus' => function ($query) {
                 $query->where('is_active', true)
                     ->whereHas('editions', function ($editionQuery) {

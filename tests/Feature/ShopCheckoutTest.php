@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductEdition;
 use App\Models\ProductSku;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -165,7 +166,7 @@ class ShopCheckoutTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    public function test_non_public_product_loads_for_authenticated_users(): void
+    public function test_non_public_product_returns_404_for_authenticated_users(): void
     {
         $user = User::factory()->create();
 
@@ -193,7 +194,160 @@ class ShopCheckoutTest extends TestCase
         $response = $this->actingAs($user)
             ->get(route('shop.product', ['artistId' => $artist->id, 'productId' => $product->id]));
 
+        $response->assertNotFound();
+    }
+
+    public function test_non_public_product_slug_returns_404_for_guests(): void
+    {
+        $artist = Artist::factory()->create();
+
+        $product = Product::factory()->create([
+            'artist_id' => $artist->id,
+            'is_public' => false,
+            'sell_through_ltdedn' => true,
+            'is_sellable' => true,
+            'sale_status' => 'active',
+        ]);
+
+        $sku = ProductSku::factory()->create([
+            'product_id' => $product->id,
+            'is_active' => true,
+        ]);
+
+        ProductEdition::factory()->create([
+            'product_id' => $product->id,
+            'product_sku_id' => $sku->id,
+            'status' => 'available',
+        ]);
+
+        $response = $this->get(route('shop.product.slug', ['artistSlug' => $artist->slug, 'productSlug' => $product->slug]));
+
+        $response->assertNotFound();
+    }
+
+    public function test_checkout_rejects_non_public_product_for_authenticated_users(): void
+    {
+        $user = User::factory()->create();
+        $artist = Artist::factory()->create();
+
+        $product = Product::factory()->create([
+            'artist_id' => $artist->id,
+            'is_public' => false,
+            'sell_through_ltdedn' => true,
+            'is_sellable' => true,
+            'sale_status' => 'active',
+            'is_limited' => true,
+        ]);
+
+        $sku = ProductSku::factory()->create([
+            'product_id' => $product->id,
+            'price_amount' => 9900,
+            'stock_on_hand' => 3,
+            'stock_reserved' => 0,
+            'is_active' => true,
+        ]);
+
+        ProductEdition::factory()->create([
+            'product_id' => $product->id,
+            'product_sku_id' => $sku->id,
+            'status' => 'available',
+        ]);
+
+        Http::fake();
+
+        $response = $this->actingAs($user)
+            ->from(route('shop.product', ['artistId' => $artist->id, 'productId' => $product->id]))
+            ->post(route('shop.checkout'), [
+                'artist_id' => $artist->id,
+                'product_id' => $product->id,
+                'product_sku_id' => $sku->id,
+            ]);
+
+        $response->assertRedirect(route('shop.product', ['artistId' => $artist->id, 'productId' => $product->id]));
+        $response->assertSessionHasErrors('product_id');
+        Http::assertNothingSent();
+    }
+
+    public function test_shop_index_excludes_sold_out_and_non_public_products(): void
+    {
+        $artist = Artist::factory()->create();
+
+        $visibleProduct = Product::factory()->create([
+            'artist_id' => $artist->id,
+            'is_public' => true,
+            'sell_through_ltdedn' => true,
+            'is_sellable' => true,
+            'sale_status' => 'active',
+            'name' => 'Visible Product',
+        ]);
+
+        ProductEdition::factory()->create([
+            'product_id' => $visibleProduct->id,
+            'product_sku_id' => null,
+            'status' => 'available',
+        ]);
+
+        $nonPublicProduct = Product::factory()->create([
+            'artist_id' => $artist->id,
+            'is_public' => false,
+            'sell_through_ltdedn' => true,
+            'is_sellable' => true,
+            'sale_status' => 'active',
+            'name' => 'Private Product',
+        ]);
+
+        ProductEdition::factory()->create([
+            'product_id' => $nonPublicProduct->id,
+            'product_sku_id' => null,
+            'status' => 'available',
+        ]);
+
+        $soldOutProduct = Product::factory()->create([
+            'artist_id' => $artist->id,
+            'is_public' => true,
+            'sell_through_ltdedn' => true,
+            'is_sellable' => true,
+            'sale_status' => 'active',
+            'name' => 'Sold Out Product',
+        ]);
+
+        ProductEdition::factory()->create([
+            'product_id' => $soldOutProduct->id,
+            'product_sku_id' => null,
+            'status' => 'sold',
+        ]);
+
+        $response = $this->get('/shop');
+
         $response->assertOk();
+        $response->assertInertia(function (AssertableInertia $page) {
+            $page->component('Shop')
+                ->has('products', 1)
+                ->where('products.0.name', 'Visible Product');
+        });
+    }
+
+    public function test_sold_out_product_route_returns_404(): void
+    {
+        $artist = Artist::factory()->create();
+
+        $product = Product::factory()->create([
+            'artist_id' => $artist->id,
+            'is_public' => true,
+            'sell_through_ltdedn' => true,
+            'is_sellable' => true,
+            'sale_status' => 'active',
+        ]);
+
+        ProductEdition::factory()->create([
+            'product_id' => $product->id,
+            'product_sku_id' => null,
+            'status' => 'sold',
+        ]);
+
+        $response = $this->get(route('shop.product', ['artistId' => $artist->id, 'productId' => $product->id]));
+
+        $response->assertNotFound();
     }
 
     public function test_checkout_uses_standard_price_when_edition_has_no_sku(): void
