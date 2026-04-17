@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ProductSaleStatus;
 use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -12,7 +13,9 @@ class ShopController extends Controller
     public function __invoke(): Response
     {
         $products = Product::query()
-            ->where('is_public', true)
+            ->when(! Auth::check(), function ($query) {
+                $query->where('is_public', true);
+            })
             ->where('sell_through_ltdedn', true)
             ->where('is_sellable', true)
             ->where('sale_status', ProductSaleStatus::Active)

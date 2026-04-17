@@ -18,7 +18,7 @@ class ProductAvailability
             return ['ok' => false, 'error' => 'This product is not currently available for purchase.'];
         }
 
-        if (! $product->is_public) {
+        if (! $product->is_public && ! $userId) {
             return ['ok' => false, 'error' => 'This product is not currently available for purchase.'];
         }
 
