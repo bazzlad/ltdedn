@@ -47,7 +47,7 @@ const breadcrumbs = [
                     <CardDescription> Enter the details for the new artist profile </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Form action="/admin/artists" method="post" #default="{ errors, processing }">
+                    <Form action="/admin/artists" method="post" enctype="multipart/form-data" #default="{ errors, processing }">
                         <div class="grid gap-6">
                             <div class="grid gap-2">
                                 <Label for="name">Artist Name</Label>
@@ -83,6 +83,29 @@ const breadcrumbs = [
                                 <p class="text-sm text-muted-foreground">The user who will own and manage this artist profile.</p>
                                 <div v-if="errors.owner_id" class="text-sm text-red-600">
                                     {{ errors.owner_id }}
+                                </div>
+                            </div>
+
+                            <div class="grid gap-2">
+                                <Label for="bio">Bio</Label>
+                                <textarea
+                                    id="bio"
+                                    name="bio"
+                                    rows="5"
+                                    placeholder="Short biography shown on the artist's public landing page."
+                                    class="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                ></textarea>
+                                <div v-if="errors.bio" class="text-sm text-red-600">
+                                    {{ errors.bio }}
+                                </div>
+                            </div>
+
+                            <div class="grid gap-2">
+                                <Label for="hero_image">Hero Image</Label>
+                                <Input id="hero_image" name="hero_image" type="file" accept="image/*" />
+                                <p class="text-sm text-muted-foreground">Optional. Shown at the top of the public artist page. Max 8 MB.</p>
+                                <div v-if="errors.hero_image" class="text-sm text-red-600">
+                                    {{ errors.hero_image }}
                                 </div>
                             </div>
 

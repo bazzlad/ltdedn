@@ -13,6 +13,7 @@ use App\Http\Controllers\PasswordGateController;
 use App\Http\Controllers\ProductEditionTransferController;
 use App\Http\Controllers\RedeemEditionController;
 use App\Http\Controllers\RejectProductEditionTransferController;
+use App\Http\Controllers\ShopArtistController;
 use App\Http\Controllers\ShopCheckoutResultController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\ShopProductController;
@@ -55,6 +56,9 @@ Route::get('/shop/{artistSlug}/{productSlug}', [ShopProductController::class, 'b
 Route::post('/shop/checkout', CreateCheckoutSessionController::class)->middleware('throttle:10,1')->name('shop.checkout');
 Route::get('/shop/success/{order}', [ShopCheckoutResultController::class, 'success'])->name('shop.success');
 Route::get('/shop/cancel/{order}', [ShopCheckoutResultController::class, 'cancel'])->name('shop.cancel');
+Route::get('/shop/{artistSlug}', [ShopArtistController::class, 'show'])
+    ->where('artistSlug', '[a-z0-9](?:[a-z0-9-]*[a-z0-9])?')
+    ->name('shop.artist');
 
 Route::middleware('throttle:30,1')->group(function () {
     Route::get('/cart', [CartController::class, 'show'])->name('cart.show');

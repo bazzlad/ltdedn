@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 
 import { Link, useForm } from '@inertiajs/vue3';
-import { ArrowLeft } from 'lucide-vue-next';
+import { ArrowLeft, Upload, X } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 interface User {
     id: number;
@@ -19,6 +20,8 @@ interface Artist {
     name: string;
     slug: string;
     owner_id: number;
+    bio: string | null;
+    hero_image: string | null;
 }
 
 const props = defineProps<{
@@ -27,10 +30,32 @@ const props = defineProps<{
 }>();
 
 const form = useForm({
+    _method: 'PUT',
     name: props.artist.name,
     slug: props.artist.slug,
     owner_id: props.artist.owner_id.toString(),
+    bio: props.artist.bio ?? '',
+    hero_image: null as File | null,
 });
+
+const heroPreview = ref<string | null>(props.artist.hero_image || null);
+
+function handleHeroUpload(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    if (!file) return;
+    form.hero_image = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        heroPreview.value = (e.target?.result as string) ?? null;
+    };
+    reader.readAsDataURL(file);
+}
+
+function clearHero(): void {
+    form.hero_image = null;
+    heroPreview.value = null;
+}
 
 const breadcrumbs = [
     { title: 'Admin', href: '/admin' },
@@ -61,7 +86,7 @@ const breadcrumbs = [
                     <CardDescription> Update the artist profile information </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form @submit.prevent="form.put(`/admin/artists/${props.artist.id}`)">
+                    <form @submit.prevent="form.post(`/admin/artists/${props.artist.id}`)" enctype="multipart/form-data">
                         <div class="grid gap-6">
                             <div class="grid gap-2">
                                 <Label for="name">Artist Name</Label>
@@ -98,6 +123,48 @@ const breadcrumbs = [
                                 <p class="text-sm text-muted-foreground">The user who will own and manage this artist profile.</p>
                                 <div v-if="form.errors.owner_id" class="text-sm text-red-600">
                                     {{ form.errors.owner_id }}
+                                </div>
+                            </div>
+
+                            <div class="grid gap-2">
+                                <Label for="bio">Bio</Label>
+                                <textarea
+                                    id="bio"
+                                    name="bio"
+                                    rows="5"
+                                    v-model="form.bio"
+                                    placeholder="Short biography shown on the artist's public landing page."
+                                    class="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                                ></textarea>
+                                <div v-if="form.errors.bio" class="text-sm text-red-600">
+                                    {{ form.errors.bio }}
+                                </div>
+                            </div>
+
+                            <div class="grid gap-2">
+                                <Label for="hero_image">Hero Image</Label>
+                                <div v-if="heroPreview" class="relative">
+                                    <img :src="heroPreview" alt="Hero preview" class="h-48 w-full rounded border object-cover" />
+                                    <button
+                                        type="button"
+                                        class="absolute top-2 right-2 rounded-full bg-black/70 p-1 text-white hover:bg-black"
+                                        @click="clearHero"
+                                        aria-label="Remove hero image"
+                                    >
+                                        <X class="h-4 w-4" />
+                                    </button>
+                                </div>
+                                <label
+                                    v-else
+                                    class="flex h-48 cursor-pointer flex-col items-center justify-center gap-2 rounded border border-dashed border-input bg-background text-sm text-muted-foreground hover:border-primary"
+                                >
+                                    <Upload class="h-5 w-5" />
+                                    <span>Click to upload</span>
+                                    <input id="hero_image" name="hero_image" type="file" accept="image/*" class="hidden" @change="handleHeroUpload" />
+                                </label>
+                                <p class="text-sm text-muted-foreground">Optional. Shown at the top of the public artist page. Max 8 MB.</p>
+                                <div v-if="form.errors.hero_image" class="text-sm text-red-600">
+                                    {{ form.errors.hero_image }}
                                 </div>
                             </div>
 

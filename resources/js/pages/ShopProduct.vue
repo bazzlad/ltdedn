@@ -25,6 +25,7 @@ type ShopProduct = {
     skus: ShopSku[];
     image: string | null;
     artist_name: string | null;
+    artist_slug: string | null;
     base_price: string | number | null;
     standard_available: number;
     variant_axes: VariantAxis[];
@@ -107,7 +108,13 @@ const legacySkus = computed<ShopSku[]>(() => (hasAxes.value ? [] : props.product
                     <p v-if="props.product.artist_name">
                         <span class="text-neutral-500">ARTIST</span>
                         <span class="mx-1 text-neutral-600">/</span>
-                        <span class="font-bold text-white">{{ props.product.artist_name.toUpperCase() }}</span>
+                        <Link
+                            v-if="props.product.artist_slug"
+                            :href="`/shop/${props.product.artist_slug}`"
+                            class="font-bold text-white underline decoration-white/40 underline-offset-2 hover:decoration-white"
+                            >{{ props.product.artist_name.toUpperCase() }}</Link
+                        >
+                        <span v-else class="font-bold text-white">{{ props.product.artist_name.toUpperCase() }}</span>
                     </p>
                 </div>
 

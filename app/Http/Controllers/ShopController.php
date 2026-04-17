@@ -30,7 +30,7 @@ class ShopController extends Controller
                         });
                 });
             })
-            ->with(['artist:id,slug', 'skus' => function ($query) {
+            ->with(['artist:id,name,slug', 'skus' => function ($query) {
                 $query->where('is_active', true)
                     ->whereHas('editions', function ($editionQuery) {
                         $editionQuery->where('status', 'available');
@@ -46,6 +46,9 @@ class ShopController extends Controller
                     'name' => $product->name,
                     'slug' => $product->slug,
                     'artist_id' => $product->artist_id,
+                    'artist_name' => $product->artist?->name,
+                    'artist_slug' => $product->artist?->slug,
+                    'artist_url' => $product->artist ? route('shop.artist', ['artistSlug' => $product->artist->slug]) : null,
                     'image' => $product->cover_image ? '/storage/'.$product->cover_image : null,
                     'shop_url' => route('shop.product.slug', ['artistSlug' => $product->artist->slug, 'productSlug' => $product->slug]),
                     'skus' => $product->skus->map(function ($sku) {

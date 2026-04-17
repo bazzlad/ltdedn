@@ -18,6 +18,8 @@ class UpdateArtistRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('artists')->ignore($this->artist)],
             'owner_id' => ['required', 'exists:users,id'],
+            'bio' => ['nullable', 'string', 'max:5000'],
+            'hero_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
         ];
     }
 
