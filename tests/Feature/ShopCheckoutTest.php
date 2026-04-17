@@ -138,7 +138,7 @@ class ShopCheckoutTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_non_public_product_redirects_guests_to_login(): void
+    public function test_non_public_product_returns_404_for_guests(): void
     {
         $artist = Artist::factory()->create();
 
@@ -163,7 +163,7 @@ class ShopCheckoutTest extends TestCase
 
         $response = $this->get(route('shop.product', ['artistId' => $artist->id, 'productId' => $product->id]));
 
-        $response->assertRedirect(route('login'));
+        $response->assertNotFound();
     }
 
     public function test_non_public_product_returns_404_for_authenticated_users(): void
@@ -255,16 +255,17 @@ class ShopCheckoutTest extends TestCase
 
         Http::fake();
 
-        $response = $this->actingAs($user)
-            ->from(route('shop.product', ['artistId' => $artist->id, 'productId' => $product->id]))
-            ->post(route('shop.checkout'), [
-                'artist_id' => $artist->id,
-                'product_id' => $product->id,
-                'product_sku_id' => $sku->id,
-            ]);
+        $cart = app(\App\Services\CartService::class)->resolveForRequest(request()->setUserResolver(function () use ($user) {
+            return $user;
+        }));
+        app(\App\Services\CartService::class)->addItem($cart, $product, $sku, 1);
 
-        $response->assertRedirect(route('shop.product', ['artistId' => $artist->id, 'productId' => $product->id]));
-        $response->assertSessionHasErrors('product_id');
+        $response = $this->actingAs($user)
+            ->from(route('cart.show'))
+            ->post(route('shop.checkout'), []);
+
+        $response->assertRedirect(route('cart.show'));
+        $response->assertSessionHasErrors('cart');
         Http::assertNothingSent();
     }
 
