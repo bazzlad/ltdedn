@@ -191,7 +191,7 @@ async function handleSubmit(): Promise<void> {
         </header>
 
         <form
-            class="grid gap-6 border border-white/10 bg-neutral-950/95 p-6 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] ring-1 ring-white/5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10 lg:p-10"
+            class="grid gap-6 border border-white/10 bg-neutral-950 p-6 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] ring-1 ring-white/5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10 lg:p-10"
             @submit.prevent="handleSubmit"
         >
             <div class="space-y-6">
