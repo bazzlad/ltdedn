@@ -190,7 +190,10 @@ async function handleSubmit(): Promise<void> {
             <Link href="/shop/cart" class="text-[0.625rem] font-bold tracking-widest text-white/60 hover:text-white">← BACK TO CART</Link>
         </header>
 
-        <form class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10" @submit.prevent="handleSubmit">
+        <form
+            class="grid gap-6 border border-white/10 bg-neutral-950/95 p-6 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.8)] ring-1 ring-white/5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10 lg:p-10"
+            @submit.prevent="handleSubmit"
+        >
             <div class="space-y-6">
                 <section>
                     <h2 class="mb-4 border-b border-white/10 pb-2 text-xs font-bold tracking-widest text-white/80">
