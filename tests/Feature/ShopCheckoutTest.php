@@ -82,6 +82,65 @@ class ShopCheckoutTest extends TestCase
         ]);
     }
 
+    public function test_inertia_xhr_checkout_returns_409_with_x_inertia_location_header(): void
+    {
+        config()->set('services.stripe.secret', 'sk_test_123');
+
+        $user = User::factory()->create();
+        $artist = Artist::factory()->create();
+
+        $product = Product::factory()->create([
+            'artist_id' => $artist->id,
+            'is_public' => true,
+            'sell_through_ltdedn' => true,
+            'is_sellable' => true,
+            'sale_status' => 'active',
+            'is_limited' => true,
+        ]);
+
+        $sku = ProductSku::factory()->create([
+            'product_id' => $product->id,
+            'price_amount' => 9900,
+            'stock_on_hand' => 3,
+            'stock_reserved' => 0,
+            'is_active' => true,
+            'attributes' => ['size' => 'M'],
+        ]);
+
+        ProductEdition::factory()->create([
+            'product_id' => $product->id,
+            'product_sku_id' => $sku->id,
+            'status' => 'available',
+        ]);
+
+        Http::fake([
+            'https://api.stripe.com/v1/checkout/sessions' => Http::response([
+                'id' => 'cs_test_456',
+                'url' => 'https://checkout.stripe.com/c/pay/cs_test_456',
+            ], 200),
+        ]);
+
+        $this->actingAs($user);
+        $this->post(route('cart.items.store'), [
+            'product_id' => $product->id,
+            'product_sku_id' => $sku->id,
+            'quantity' => 1,
+        ]);
+
+        // Plain redirect()->away() would 302 here, and the Inertia JS client
+        // (Axios) would follow it cross-origin to Stripe and fail CORS. The
+        // controller must use Inertia::location() to hand the URL back via
+        // the 409 + X-Inertia-Location header so the client can navigate
+        // with window.location instead.
+        $response = $this->withHeaders([
+            'X-Inertia' => 'true',
+            'X-Inertia-Version' => '1',
+        ])->post(route('shop.checkout'));
+
+        $response->assertStatus(409);
+        $response->assertHeader('X-Inertia-Location', 'https://checkout.stripe.com/c/pay/cs_test_456');
+    }
+
     public function test_shop_product_route_loads_for_sellable_edition_product(): void
     {
         $artist = Artist::factory()->create();

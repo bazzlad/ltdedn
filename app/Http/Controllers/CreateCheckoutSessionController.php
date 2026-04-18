@@ -7,6 +7,8 @@ use App\Services\CartService;
 use App\Services\CheckoutService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 
 class CreateCheckoutSessionController extends Controller
 {
@@ -15,7 +17,7 @@ class CreateCheckoutSessionController extends Controller
         private CartService $cartService,
     ) {}
 
-    public function __invoke(CreateCheckoutSessionRequest $request): RedirectResponse
+    public function __invoke(CreateCheckoutSessionRequest $request): RedirectResponse|Response
     {
         $cart = $this->cartService->resolveForRequest($request);
         $cart->loadMissing(['items.product', 'items.sku']);
@@ -42,6 +44,12 @@ class CreateCheckoutSessionController extends Controller
             return redirect()->route('cart.show')->withErrors(['cart' => (string) $result['error']]);
         }
 
-        return redirect()->away((string) $result['redirect']);
+        // Inertia::location returns a 409 + X-Inertia-Location header for XHR
+        // clients (which the Inertia JS client intercepts and does a real
+        // full-page navigate); falls back to a 302 for plain requests. We
+        // need this instead of redirect()->away() because the frontend
+        // submits via router.post() — Axios would otherwise try to follow
+        // the 302 cross-origin to checkout.stripe.com and trip CORS.
+        return Inertia::location((string) $result['redirect']);
     }
 }
