@@ -61,10 +61,40 @@ onMounted(async () => {
                     theme: 'night',
                     variables: {
                         colorPrimary: '#ffffff',
-                        colorBackground: '#0a0a0a',
+                        colorBackground: '#000000',
                         colorText: '#ffffff',
+                        colorTextSecondary: 'rgba(255,255,255,0.65)',
                         fontFamily: 'Instrument Sans, system-ui, sans-serif',
+                        fontSizeBase: '15px',
                         borderRadius: '0px',
+                    },
+                    rules: {
+                        '.Label': {
+                            fontSize: '13px',
+                            fontWeight: '500',
+                            letterSpacing: '0.01em',
+                            color: '#ffffff',
+                            marginBottom: '6px',
+                        },
+                        '.Input': {
+                            fontSize: '15px',
+                            padding: '12px 14px',
+                            border: '1px solid rgba(255,255,255,0.15)',
+                            backgroundColor: '#000000',
+                        },
+                        '.Input:focus': {
+                            border: '1px solid rgba(255,255,255,0.45)',
+                            boxShadow: 'none',
+                        },
+                        '.Tab': {
+                            padding: '12px 14px',
+                            fontSize: '14px',
+                            backgroundColor: '#000000',
+                            border: '1px solid rgba(255,255,255,0.15)',
+                        },
+                        '.Tab--selected': {
+                            border: '1px solid rgba(255,255,255,0.55)',
+                        },
                     },
                 },
             },
@@ -163,37 +193,37 @@ async function handleSubmit(): Promise<void> {
         <form class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10" @submit.prevent="handleSubmit">
             <div class="space-y-6">
                 <section>
-                    <h2 class="mb-3 text-[0.625rem] font-bold tracking-widest text-white/60">
-                        CONTACT <span class="text-red-400" aria-hidden="true">*</span>
+                    <h2 class="mb-4 border-b border-white/10 pb-2 text-xs font-bold tracking-widest text-white/80">
+                        CONTACT <span class="ml-0.5 text-red-400" aria-hidden="true">*</span>
                     </h2>
                     <label class="block">
-                        <span class="sr-only">Email (required)</span>
+                        <span class="mb-1.5 block text-[0.8125rem] font-medium tracking-[0.01em] text-white">Email</span>
                         <input
                             ref="emailField"
                             v-model="emailInput"
                             type="email"
                             required
                             autocomplete="email"
-                            placeholder="your@email.com (required)"
+                            placeholder="your@email.com"
                             :class="[
-                                'h-11 w-full border bg-neutral-950 px-3 font-mono text-sm text-white placeholder:text-white/30 focus:outline-none',
-                                emailError ? 'border-red-500/70 focus:border-red-400' : 'border-white/15 focus:border-white/40',
+                                'h-[46px] w-full border bg-black px-3.5 font-sans text-[15px] text-white placeholder:text-white/30 focus:outline-none',
+                                emailError ? 'border-red-500/70 focus:border-red-400' : 'border-white/15 focus:border-white/45',
                             ]"
                             @blur="handleEmailBlur"
                             @input="emailError = null"
                         />
                     </label>
-                    <p v-if="emailError" class="mt-2 font-mono text-[0.6875rem] tracking-wide text-red-300">
+                    <p v-if="emailError" class="mt-2 text-xs tracking-wide text-red-300">
                         {{ emailError }}
                     </p>
-                    <p v-else class="mt-2 font-mono text-[0.6875rem] tracking-wide text-white/40">
+                    <p v-else class="mt-2 text-xs tracking-wide text-white/50">
                         We'll send your receipt and tracking link here.
                     </p>
                 </section>
 
                 <section>
-                    <h2 class="mb-3 text-[0.625rem] font-bold tracking-widest text-white/60">
-                        SHIPPING <span class="text-red-400" aria-hidden="true">*</span>
+                    <h2 class="mb-4 border-b border-white/10 pb-2 text-xs font-bold tracking-widest text-white/80">
+                        SHIPPING <span class="ml-0.5 text-red-400" aria-hidden="true">*</span>
                     </h2>
                     <div ref="shippingSlot" class="min-h-[160px]"></div>
                 </section>
@@ -201,11 +231,11 @@ async function handleSubmit(): Promise<void> {
 
             <div class="space-y-6">
                 <section>
-                    <h2 class="mb-3 text-[0.625rem] font-bold tracking-widest text-white/60">
-                        PAYMENT <span class="text-red-400" aria-hidden="true">*</span>
+                    <h2 class="mb-4 border-b border-white/10 pb-2 text-xs font-bold tracking-widest text-white/80">
+                        PAYMENT <span class="ml-0.5 text-red-400" aria-hidden="true">*</span>
                     </h2>
                     <div v-if="loading" class="flex items-center py-8">
-                        <p class="animate-pulse font-mono text-xs tracking-widest text-white/50">LOADING SECURE CHECKOUT…</p>
+                        <p class="animate-pulse text-xs tracking-widest text-white/50">LOADING SECURE CHECKOUT…</p>
                     </div>
                     <div ref="paymentSlot" class="min-h-[220px]"></div>
                 </section>
@@ -227,7 +257,7 @@ async function handleSubmit(): Promise<void> {
                         'h-12 w-full border px-5 text-sm font-extrabold tracking-wider transition-all active:scale-[0.98]',
                         canConfirm && !emailMissing
                             ? 'border-white bg-white text-black hover:bg-neutral-100'
-                            : 'border-white/30 bg-white/10 text-white/70 hover:border-white/50 hover:bg-white/15',
+                            : 'border-white/40 bg-black text-white/80 hover:border-white/60',
                         submitting ? 'cursor-not-allowed opacity-60' : '',
                     ]"
                 >
@@ -235,11 +265,11 @@ async function handleSubmit(): Promise<void> {
                 </button>
                 <p
                     v-if="!canConfirm || emailMissing"
-                    class="text-center font-mono text-[0.6875rem] tracking-wide text-white/50"
+                    class="text-center text-xs tracking-wide text-white/55"
                 >
                     Finish your email, shipping address, and card details to complete checkout.
                 </p>
-                <p class="text-center text-[0.625rem] font-bold tracking-widest text-white/40">
+                <p class="text-center text-[0.6875rem] font-bold tracking-widest text-white/40">
                     SECURE PAYMENT PROCESSING VIA STRIPE
                 </p>
             </div>
