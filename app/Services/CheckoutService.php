@@ -332,10 +332,13 @@ class CheckoutService
 
         $params = [
             'mode' => 'payment',
-            'ui_mode' => 'embedded',
-            // Stripe replaces `{CHECKOUT_SESSION_ID}` inside the iframe when it
-            // navigates the parent page back to us after successful payment.
-            // Embedded mode has a single return_url, not separate success/cancel.
+            // `elements` renders via Stripe.js Payment Element + our own
+            // layout around it. Gives us appearance.theme: 'night' for the
+            // dark payment form that `embedded` can't do.
+            'ui_mode' => 'elements',
+            // Stripe replaces `{CHECKOUT_SESSION_ID}` at confirm time when it
+            // navigates the browser back to us after successful payment.
+            // Elements mode has a single return_url, not separate success/cancel.
             'return_url' => route('shop.success', $order).'?session_id={CHECKOUT_SESSION_ID}',
             'metadata[order_id]' => (string) $order->id,
         ];
