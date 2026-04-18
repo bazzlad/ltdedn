@@ -34,7 +34,7 @@ onMounted(async () => {
             throw new Error('Stripe.js failed to load.');
         }
 
-        checkout = await stripe.initEmbeddedCheckout({ clientSecret: props.clientSecret });
+        checkout = await stripe.createEmbeddedCheckoutPage({ clientSecret: props.clientSecret });
 
         if (mountEl.value) {
             checkout.mount(mountEl.value);
