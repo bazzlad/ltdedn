@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Services\CartService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -10,9 +11,18 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ShopCheckoutResultController extends Controller
 {
+    public function __construct(private CartService $cartService) {}
+
     public function success(Request $request, Order $order): Response
     {
         $this->authorizeAccess($request, $order);
+
+        // Fresh arrival from Stripe (query param `session_id` is only appended
+        // on the return redirect). Clear the cart so the user doesn't see the
+        // items they just paid for sitting there waiting to be bought again.
+        if ($request->query('session_id') === $order->stripe_checkout_session_id) {
+            $this->cartService->clear($this->cartService->resolveForRequest($request));
+        }
 
         return Inertia::render('ShopResult', [
             'status' => 'success',

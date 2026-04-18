@@ -3,6 +3,9 @@
 namespace Tests\Feature;
 
 use App\Models\Artist;
+use App\Models\Cart;
+use App\Models\CartItem;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductEdition;
 use App\Models\ProductSku;
@@ -139,6 +142,86 @@ class ShopCheckoutTest extends TestCase
 
         $response->assertStatus(409);
         $response->assertHeader('X-Inertia-Location', 'https://checkout.stripe.com/c/pay/cs_test_456');
+    }
+
+    public function test_success_page_clears_cart_when_returning_from_stripe(): void
+    {
+        $user = User::factory()->create();
+        $artist = Artist::factory()->create();
+        $product = Product::factory()->create(['artist_id' => $artist->id]);
+        $sku = ProductSku::factory()->create(['product_id' => $product->id]);
+
+        $cart = Cart::query()->create([
+            'user_id' => $user->id,
+            'currency' => 'gbp',
+        ]);
+        CartItem::query()->create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'product_sku_id' => $sku->id,
+            'quantity' => 1,
+            'unit_amount_snapshot' => 9900,
+        ]);
+
+        $order = Order::create([
+            'user_id' => $user->id,
+            'status' => 'paid',
+            'currency' => 'gbp',
+            'subtotal_amount' => 9900,
+            'shipping_amount' => 0,
+            'tax_amount' => 0,
+            'total_amount' => 9900,
+            'customer_email' => $user->email,
+            'order_creation_key' => 'key-success-clear',
+            'stripe_checkout_session_id' => 'cs_test_success',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('shop.success', $order).'?session_id=cs_test_success')
+            ->assertOk();
+
+        $this->assertSame(0, $cart->fresh()->items()->count());
+    }
+
+    public function test_success_page_does_not_clear_cart_on_stale_revisit(): void
+    {
+        // A later visit (no session_id query, or mismatched session_id) must not
+        // wipe a cart that the user has started building for a new purchase.
+        $user = User::factory()->create();
+        $artist = Artist::factory()->create();
+        $product = Product::factory()->create(['artist_id' => $artist->id]);
+        $sku = ProductSku::factory()->create(['product_id' => $product->id]);
+
+        $cart = Cart::query()->create([
+            'user_id' => $user->id,
+            'currency' => 'gbp',
+        ]);
+        CartItem::query()->create([
+            'cart_id' => $cart->id,
+            'product_id' => $product->id,
+            'product_sku_id' => $sku->id,
+            'quantity' => 2,
+            'unit_amount_snapshot' => 9900,
+        ]);
+
+        $order = Order::create([
+            'user_id' => $user->id,
+            'status' => 'paid',
+            'currency' => 'gbp',
+            'subtotal_amount' => 9900,
+            'shipping_amount' => 0,
+            'tax_amount' => 0,
+            'total_amount' => 9900,
+            'customer_email' => $user->email,
+            'order_creation_key' => 'key-revisit',
+            'stripe_checkout_session_id' => 'cs_test_revisit',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('shop.success', $order))
+            ->assertOk();
+
+        $this->assertSame(1, $cart->fresh()->items()->count());
     }
 
     public function test_shop_product_route_loads_for_sellable_edition_product(): void
