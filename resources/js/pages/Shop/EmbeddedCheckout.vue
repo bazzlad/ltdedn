@@ -188,7 +188,7 @@ async function handleSubmit(): Promise<void> {
                 <h1 class="mt-1 font-sans text-3xl font-semibold tracking-tight text-white sm:text-4xl">CHECKOUT</h1>
                 <p class="mt-2 font-mono text-sm tracking-wide text-white/60">Total {{ formattedTotal }}</p>
             </div>
-            <Link href="/shop/cart" class="text-[0.625rem] font-bold tracking-widest text-white/60 hover:text-white">← BACK TO CART</Link>
+            <Link href="/cart" class="text-[0.625rem] font-bold tracking-widest text-white/60 hover:text-white">← BACK TO CART</Link>
         </header>
 
         <form
