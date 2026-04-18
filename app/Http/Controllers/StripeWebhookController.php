@@ -49,6 +49,9 @@ class StripeWebhookController extends Controller
         $alreadyProcessed = false;
         $payloadMismatch = false;
 
+        // Stripe delivers 5+ sibling events (PI, charge, session) near-simultaneously;
+        // the `lockForUpdate()->first()` + insert pattern on the stripe_events unique
+        // index can deadlock under gap-lock contention. Retry up to 3 times.
         DB::transaction(function () use (&$alreadyProcessed, &$payloadMismatch, $eventId, $type, $payloadHash, $session) {
             $existing = StripeEvent::where('event_id', $eventId)->lockForUpdate()->first();
             if ($existing) {
@@ -90,7 +93,7 @@ class StripeWebhookController extends Controller
             $stripeEvent->update([
                 'processed_at' => now(),
             ]);
-        });
+        }, 3);
 
         if ($payloadMismatch) {
             return response()->json(['message' => 'Conflicting event payload'], 409);
