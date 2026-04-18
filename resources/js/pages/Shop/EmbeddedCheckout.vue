@@ -2,7 +2,7 @@
 import ShopLayout from '@/layouts/ShopLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { loadStripe, type Stripe } from '@stripe/stripe-js';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
 const props = defineProps<{
     clientSecret: string;
@@ -16,7 +16,9 @@ const props = defineProps<{
 
 const paymentSlot = ref<HTMLDivElement | null>(null);
 const shippingSlot = ref<HTMLDivElement | null>(null);
+const emailField = ref<HTMLInputElement | null>(null);
 const emailInput = ref('');
+const emailError = ref<string | null>(null);
 const loading = ref(true);
 const submitting = ref(false);
 const errorMsg = ref<string | null>(null);
@@ -35,6 +37,8 @@ const formattedTotal = new Intl.NumberFormat('en-GB', {
     style: 'currency',
     currency: props.order.currency.toUpperCase(),
 }).format(props.order.total_amount / 100);
+
+const emailMissing = computed(() => emailInput.value.trim() === '');
 
 onMounted(async () => {
     if (!props.publishableKey) {
@@ -96,19 +100,43 @@ onBeforeUnmount(() => {
 });
 
 async function handleEmailBlur(): Promise<void> {
-    if (!emailInput.value || !actions) return;
-    const result = await actions.updateEmail(emailInput.value);
+    const value = emailInput.value.trim();
+
+    if (value === '') {
+        emailError.value = 'Please enter your email so we can send your receipt.';
+        return;
+    }
+
+    if (!actions) {
+        emailError.value = null;
+        return;
+    }
+
+    const result = await actions.updateEmail(value);
     if (result?.type === 'error') {
-        errorMsg.value = result.error?.message ?? 'Please enter a valid email.';
+        emailError.value = result.error?.message ?? 'That email does not look right.';
     } else {
-        errorMsg.value = null;
+        emailError.value = null;
     }
 }
 
 async function handleSubmit(): Promise<void> {
-    if (!actions || submitting.value) return;
-    submitting.value = true;
+    if (submitting.value) return;
     errorMsg.value = null;
+
+    // Validate email ourselves before handing off — Stripe would refuse to
+    // confirm without it, but silently (canConfirm stays false, button stays
+    // disabled, user has no idea why).
+    if (emailMissing.value) {
+        emailError.value = 'Please enter your email so we can send your receipt.';
+        emailField.value?.focus();
+        emailField.value?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    if (!actions) return;
+
+    submitting.value = true;
 
     const result = await actions.confirm();
     if (result?.type === 'error') {
@@ -135,29 +163,47 @@ async function handleSubmit(): Promise<void> {
         <form class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10" @submit.prevent="handleSubmit">
             <div class="space-y-6">
                 <section>
-                    <h2 class="mb-3 text-[0.625rem] font-bold tracking-widest text-white/60">CONTACT</h2>
+                    <h2 class="mb-3 text-[0.625rem] font-bold tracking-widest text-white/60">
+                        CONTACT <span class="text-red-400" aria-hidden="true">*</span>
+                    </h2>
                     <label class="block">
-                        <span class="sr-only">Email</span>
+                        <span class="sr-only">Email (required)</span>
                         <input
+                            ref="emailField"
                             v-model="emailInput"
                             type="email"
                             required
-                            placeholder="your@email.com"
-                            class="h-11 w-full border border-white/15 bg-neutral-950 px-3 font-mono text-sm text-white placeholder:text-white/30 focus:border-white/40 focus:outline-none"
+                            autocomplete="email"
+                            placeholder="your@email.com (required)"
+                            :class="[
+                                'h-11 w-full border bg-neutral-950 px-3 font-mono text-sm text-white placeholder:text-white/30 focus:outline-none',
+                                emailError ? 'border-red-500/70 focus:border-red-400' : 'border-white/15 focus:border-white/40',
+                            ]"
                             @blur="handleEmailBlur"
+                            @input="emailError = null"
                         />
                     </label>
+                    <p v-if="emailError" class="mt-2 font-mono text-[0.6875rem] tracking-wide text-red-300">
+                        {{ emailError }}
+                    </p>
+                    <p v-else class="mt-2 font-mono text-[0.6875rem] tracking-wide text-white/40">
+                        We'll send your receipt and tracking link here.
+                    </p>
                 </section>
 
                 <section>
-                    <h2 class="mb-3 text-[0.625rem] font-bold tracking-widest text-white/60">SHIPPING</h2>
+                    <h2 class="mb-3 text-[0.625rem] font-bold tracking-widest text-white/60">
+                        SHIPPING <span class="text-red-400" aria-hidden="true">*</span>
+                    </h2>
                     <div ref="shippingSlot" class="min-h-[160px]"></div>
                 </section>
             </div>
 
             <div class="space-y-6">
                 <section>
-                    <h2 class="mb-3 text-[0.625rem] font-bold tracking-widest text-white/60">PAYMENT</h2>
+                    <h2 class="mb-3 text-[0.625rem] font-bold tracking-widest text-white/60">
+                        PAYMENT <span class="text-red-400" aria-hidden="true">*</span>
+                    </h2>
                     <div v-if="loading" class="flex items-center py-8">
                         <p class="animate-pulse font-mono text-xs tracking-widest text-white/50">LOADING SECURE CHECKOUT…</p>
                     </div>
@@ -168,14 +214,34 @@ async function handleSubmit(): Promise<void> {
                     {{ errorMsg }}
                 </div>
 
+                <!--
+                  Button stays clickable even when Stripe's canConfirm is false —
+                  if the user pushes it without filling in required fields we can
+                  point at what's missing. The disabled greyed-out button we had
+                  before told them nothing.
+                -->
                 <button
                     type="submit"
-                    :disabled="!canConfirm || submitting"
-                    class="h-12 w-full border border-white bg-white px-5 text-sm font-extrabold tracking-wider text-black transition-all hover:bg-neutral-100 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+                    :disabled="submitting"
+                    :class="[
+                        'h-12 w-full border px-5 text-sm font-extrabold tracking-wider transition-all active:scale-[0.98]',
+                        canConfirm && !emailMissing
+                            ? 'border-white bg-white text-black hover:bg-neutral-100'
+                            : 'border-white/30 bg-white/10 text-white/70 hover:border-white/50 hover:bg-white/15',
+                        submitting ? 'cursor-not-allowed opacity-60' : '',
+                    ]"
                 >
                     {{ submitting ? 'PROCESSING…' : `PAY ${formattedTotal}` }}
                 </button>
-                <p class="text-center text-[0.625rem] font-bold tracking-widest text-white/40">SECURE PAYMENT PROCESSING VIA STRIPE</p>
+                <p
+                    v-if="!canConfirm || emailMissing"
+                    class="text-center font-mono text-[0.6875rem] tracking-wide text-white/50"
+                >
+                    Finish your email, shipping address, and card details to complete checkout.
+                </p>
+                <p class="text-center text-[0.625rem] font-bold tracking-widest text-white/40">
+                    SECURE PAYMENT PROCESSING VIA STRIPE
+                </p>
             </div>
         </form>
     </ShopLayout>
