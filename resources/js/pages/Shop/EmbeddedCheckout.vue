@@ -61,7 +61,7 @@ onMounted(async () => {
                     theme: 'night',
                     variables: {
                         colorPrimary: '#ffffff',
-                        colorBackground: '#000000',
+                        colorBackground: '#171717',
                         colorText: '#ffffff',
                         colorTextSecondary: 'rgba(255,255,255,0.65)',
                         fontFamily: 'Instrument Sans, system-ui, sans-serif',
@@ -79,21 +79,22 @@ onMounted(async () => {
                         '.Input': {
                             fontSize: '15px',
                             padding: '12px 14px',
-                            border: '1px solid rgba(255,255,255,0.15)',
-                            backgroundColor: '#000000',
+                            border: '1px solid rgba(255,255,255,0.22)',
+                            backgroundColor: '#171717',
                         },
                         '.Input:focus': {
-                            border: '1px solid rgba(255,255,255,0.45)',
+                            border: '1px solid rgba(255,255,255,0.6)',
                             boxShadow: 'none',
                         },
                         '.Tab': {
                             padding: '12px 14px',
                             fontSize: '14px',
-                            backgroundColor: '#000000',
-                            border: '1px solid rgba(255,255,255,0.15)',
+                            backgroundColor: '#171717',
+                            border: '1px solid rgba(255,255,255,0.22)',
                         },
                         '.Tab--selected': {
-                            border: '1px solid rgba(255,255,255,0.55)',
+                            border: '1px solid rgba(255,255,255,0.65)',
+                            backgroundColor: '#1f1f1f',
                         },
                     },
                 },
@@ -209,8 +210,8 @@ async function handleSubmit(): Promise<void> {
                             autocomplete="email"
                             placeholder="your@email.com"
                             :class="[
-                                'h-[46px] w-full border bg-black px-3.5 font-sans text-[15px] text-white placeholder:text-white/30 focus:outline-none',
-                                emailError ? 'border-red-500/70 focus:border-red-400' : 'border-white/15 focus:border-white/45',
+                                'h-[46px] w-full border bg-neutral-900 px-3.5 font-sans text-[15px] text-white placeholder:text-white/35 focus:outline-none',
+                                emailError ? 'border-red-500/70 focus:border-red-400' : 'border-white/20 focus:border-white/60',
                             ]"
                             @blur="handleEmailBlur"
                             @input="emailError = null"
@@ -260,7 +261,7 @@ async function handleSubmit(): Promise<void> {
                         'h-12 w-full border px-5 text-sm font-extrabold tracking-wider transition-all active:scale-[0.98]',
                         canConfirm && !emailMissing
                             ? 'border-white bg-white text-black hover:bg-neutral-100'
-                            : 'border-white/40 bg-black text-white/80 hover:border-white/60',
+                            : 'border-white/50 bg-neutral-900 text-white/85 hover:border-white/75',
                         submitting ? 'cursor-not-allowed opacity-60' : '',
                     ]"
                 >
