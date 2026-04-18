@@ -263,4 +263,60 @@ class MultiItemCheckoutTest extends TestCase
         $this->assertDatabaseHas('orders', ['status' => 'failed']);
         $this->assertDatabaseHas('product_skus', ['id' => $skuA->id, 'stock_reserved' => 0]);
     }
+
+    public function test_reconcile_enriches_paid_order_with_customer_and_shipping_from_session(): void
+    {
+        [$productA, $skuA] = $this->makeSellableProductWithEditions(1, 3);
+
+        $user = User::factory()->create();
+
+        Http::fake([
+            'https://api.stripe.com/v1/checkout/sessions' => Http::sequence()
+                ->push(['id' => 'cs_recon_1', 'client_secret' => 'cs_recon_1_secret'], 200),
+            'https://api.stripe.com/v1/checkout/sessions/cs_recon_1' => Http::response([
+                'id' => 'cs_recon_1',
+                'status' => 'complete',
+                'payment_status' => 'paid',
+                'payment_intent' => 'pi_recon_1',
+                'amount_subtotal' => 10000,
+                'amount_total' => 10495,
+                'total_details' => ['amount_tax' => 0],
+                'shipping_cost' => ['amount_total' => 495, 'shipping_rate' => 'shr_uk_std'],
+                'customer_details' => ['email' => 'real-buyer@example.com', 'phone' => '+447700900000'],
+                'shipping_details' => [
+                    'name' => 'Real Buyer',
+                    'address' => [
+                        'line1' => '1 Bond St', 'line2' => 'Flat 2', 'city' => 'London',
+                        'state' => '', 'postal_code' => 'W1S 1AA', 'country' => 'GB',
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $this->actingAs($user);
+        $this->post(route('cart.items.store'), ['product_id' => $productA->id, 'product_sku_id' => $skuA->id, 'quantity' => 1]);
+        $this->post(route('shop.checkout'));
+
+        // Simulate the realistic case: ui_mode: elements doesn't collect
+        // email on our side — the buyer types it into the Stripe Elements
+        // form, and it only lands on the order via session enrichment.
+        // Force the order past the 2-minute grace window, and blank the
+        // pre-filled email so we assert the enrichment path fills it.
+        \App\Models\Order::query()->update([
+            'checkout_expires_at' => now()->subHour(),
+            'customer_email' => null,
+        ]);
+
+        $this->artisan('shop:reconcile-pending-orders')->assertExitCode(0);
+
+        $order = \App\Models\Order::firstOrFail();
+        $this->assertSame('paid', $order->status->value);
+        $this->assertSame('real-buyer@example.com', $order->customer_email);
+        $this->assertSame('Real Buyer', $order->shipping_name);
+        $this->assertSame('GB', $order->shipping_country);
+        $this->assertSame('1 Bond St', $order->shipping_line1);
+        $this->assertSame(10495, (int) $order->total_amount);
+        $this->assertSame(495, (int) $order->shipping_amount);
+        $this->assertSame('pi_recon_1', $order->stripe_payment_intent_id);
+    }
 }
