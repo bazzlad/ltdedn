@@ -53,7 +53,7 @@ class ShopCheckoutTest extends TestCase
         Http::fake([
             'https://api.stripe.com/v1/checkout/sessions' => Http::response([
                 'id' => 'cs_test_123',
-                'url' => 'https://checkout.stripe.com/c/pay/cs_test_123',
+                'client_secret' => 'cs_test_123_secret_abc',
             ], 200),
         ]);
 
@@ -66,7 +66,9 @@ class ShopCheckoutTest extends TestCase
 
         $response = $this->post(route('shop.checkout'));
 
-        $response->assertRedirect('https://checkout.stripe.com/c/pay/cs_test_123');
+        $order = \App\Models\Order::where('stripe_checkout_session_id', 'cs_test_123')->firstOrFail();
+        $response->assertRedirect(route('shop.checkout.pay', ['order' => $order->id, 'key' => $order->order_creation_key]));
+        $this->assertSame('cs_test_123_secret_abc', $order->meta['client_secret'] ?? null);
 
         $this->assertDatabaseHas('inventory_reservations', [
             'product_edition_id' => $edition->id,
@@ -85,7 +87,7 @@ class ShopCheckoutTest extends TestCase
         ]);
     }
 
-    public function test_inertia_xhr_checkout_returns_409_with_x_inertia_location_header(): void
+    public function test_checkout_post_redirects_to_embedded_pay_page(): void
     {
         config()->set('services.stripe.secret', 'sk_test_123');
 
@@ -118,8 +120,8 @@ class ShopCheckoutTest extends TestCase
 
         Http::fake([
             'https://api.stripe.com/v1/checkout/sessions' => Http::response([
-                'id' => 'cs_test_456',
-                'url' => 'https://checkout.stripe.com/c/pay/cs_test_456',
+                'id' => 'cs_test_pay_page',
+                'client_secret' => 'cs_test_pay_page_secret',
             ], 200),
         ]);
 
@@ -130,18 +132,24 @@ class ShopCheckoutTest extends TestCase
             'quantity' => 1,
         ]);
 
-        // Plain redirect()->away() would 302 here, and the Inertia JS client
-        // (Axios) would follow it cross-origin to Stripe and fail CORS. The
-        // controller must use Inertia::location() to hand the URL back via
-        // the 409 + X-Inertia-Location header so the client can navigate
-        // with window.location instead.
-        $response = $this->withHeaders([
-            'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
-        ])->post(route('shop.checkout'));
+        $response = $this->post(route('shop.checkout'));
 
-        $response->assertStatus(409);
-        $response->assertHeader('X-Inertia-Location', 'https://checkout.stripe.com/c/pay/cs_test_456');
+        $order = \App\Models\Order::where('stripe_checkout_session_id', 'cs_test_pay_page')->firstOrFail();
+
+        $response->assertRedirect(route('shop.checkout.pay', ['order' => $order->id, 'key' => $order->order_creation_key]));
+
+        // The pay page should render the EmbeddedCheckout Inertia component
+        // with the client_secret we stashed on the order so Stripe.js can
+        // mount its iframe.
+        $this->get(route('shop.checkout.pay', ['order' => $order->id, 'key' => $order->order_creation_key]))
+            ->assertOk()
+            ->assertInertia(
+                fn (AssertableInertia $page) => $page
+                    ->component('Shop/EmbeddedCheckout')
+                    ->where('clientSecret', 'cs_test_pay_page_secret')
+                    ->where('order.id', $order->id)
+                    ->has('publishableKey')
+            );
     }
 
     public function test_success_page_clears_cart_when_returning_from_stripe(): void
@@ -448,7 +456,7 @@ class ShopCheckoutTest extends TestCase
         Http::fake([
             'https://api.stripe.com/v1/checkout/sessions' => Http::response([
                 'id' => 'cs_test_standard',
-                'url' => 'https://checkout.stripe.com/c/pay/cs_test_standard',
+                'client_secret' => 'cs_test_standard_secret',
             ], 200),
         ]);
 
@@ -460,7 +468,8 @@ class ShopCheckoutTest extends TestCase
 
         $response = $this->post(route('shop.checkout'));
 
-        $response->assertRedirect('https://checkout.stripe.com/c/pay/cs_test_standard');
+        $order = \App\Models\Order::where('stripe_checkout_session_id', 'cs_test_standard')->firstOrFail();
+        $response->assertRedirect(route('shop.checkout.pay', ['order' => $order->id, 'key' => $order->order_creation_key]));
 
         $this->assertDatabaseHas('inventory_reservations', [
             'product_edition_id' => $edition->id,
@@ -676,7 +685,7 @@ class ShopCheckoutTest extends TestCase
         Http::fake([
             'https://api.stripe.com/v1/checkout/sessions' => Http::response([
                 'id' => 'cs_test_456',
-                'url' => 'https://checkout.stripe.com/c/pay/cs_test_456',
+                'client_secret' => 'cs_test_456_secret',
             ], 200),
         ]);
 
@@ -689,7 +698,8 @@ class ShopCheckoutTest extends TestCase
 
         $response = $this->post(route('shop.checkout'));
 
-        $response->assertRedirect('https://checkout.stripe.com/c/pay/cs_test_456');
+        $order = \App\Models\Order::where('stripe_checkout_session_id', 'cs_test_456')->firstOrFail();
+        $response->assertRedirect(route('shop.checkout.pay', ['order' => $order->id, 'key' => $order->order_creation_key]));
 
         $this->assertDatabaseHas('inventory_reservations', [
             'product_edition_id' => $largeEdition->id,

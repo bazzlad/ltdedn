@@ -48,14 +48,21 @@ Route::middleware('password:invest')->group(function () {
 });
 
 Route::get('/shop', ShopController::class)->name('shop.index');
-Route::get('/shop/{artistId}/{productId}', [ShopProductController::class, 'byId'])->whereNumber('artistId')->whereNumber('productId')->name('shop.product');
-Route::get('/shop/{artistSlug}/{productSlug}', [ShopProductController::class, 'bySlug'])
-    ->where('artistSlug', '.*[A-Za-z].*')
-    ->where('productSlug', '.*[A-Za-z].*')
-    ->name('shop.product.slug');
+
+// Explicit shop routes must come BEFORE the slug-based catch-alls below:
+// `/shop/{artistSlug}/{productSlug}` would otherwise greedily match paths
+// like `/shop/success/123` and hand them to ShopProductController, which
+// 404s because "success" is not an artist.
 Route::post('/shop/checkout', CreateCheckoutSessionController::class)->middleware('throttle:10,1')->name('shop.checkout');
+Route::get('/shop/checkout/{order}/pay', [ShopCheckoutResultController::class, 'pay'])->name('shop.checkout.pay');
 Route::get('/shop/success/{order}', [ShopCheckoutResultController::class, 'success'])->name('shop.success');
 Route::get('/shop/cancel/{order}', [ShopCheckoutResultController::class, 'cancel'])->name('shop.cancel');
+
+Route::get('/shop/{artistId}/{productId}', [ShopProductController::class, 'byId'])->whereNumber('artistId')->whereNumber('productId')->name('shop.product');
+Route::get('/shop/{artistSlug}/{productSlug}', [ShopProductController::class, 'bySlug'])
+    ->where('artistSlug', '[a-z0-9](?:[a-z0-9-]*[a-z0-9])?')
+    ->where('productSlug', '[a-z0-9](?:[a-z0-9-]*[a-z0-9])?')
+    ->name('shop.product.slug');
 Route::get('/shop/{artistSlug}', [ShopArtistController::class, 'show'])
     ->where('artistSlug', '[a-z0-9](?:[a-z0-9-]*[a-z0-9])?')
     ->name('shop.artist');

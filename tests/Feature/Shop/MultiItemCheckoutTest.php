@@ -77,7 +77,7 @@ class MultiItemCheckoutTest extends TestCase
         Http::fake([
             'https://api.stripe.com/v1/checkout/sessions' => Http::response([
                 'id' => 'cs_multi_1',
-                'url' => 'https://checkout.stripe.com/c/pay/cs_multi_1',
+                'client_secret' => 'cs_multi_1_secret',
             ], 200),
         ]);
 
@@ -87,7 +87,8 @@ class MultiItemCheckoutTest extends TestCase
         $this->post(route('cart.items.store'), ['product_id' => $productC->id, 'product_sku_id' => $skuC->id, 'quantity' => 1]);
 
         $response = $this->post(route('shop.checkout'));
-        $response->assertRedirect('https://checkout.stripe.com/c/pay/cs_multi_1');
+        $order = \App\Models\Order::where('stripe_checkout_session_id', 'cs_multi_1')->firstOrFail();
+        $response->assertRedirect(route('shop.checkout.pay', ['order' => $order->id, 'key' => $order->order_creation_key]));
 
         $this->assertDatabaseCount('orders', 1);
         $this->assertDatabaseCount('order_items', 3);
@@ -165,7 +166,7 @@ class MultiItemCheckoutTest extends TestCase
         Http::fake([
             'https://api.stripe.com/v1/checkout/sessions' => Http::response([
                 'id' => 'cs_multi_2',
-                'url' => 'https://checkout.stripe.com/c/pay/cs_multi_2',
+                'client_secret' => 'cs_multi_2_secret',
             ], 200),
         ]);
 
@@ -243,7 +244,7 @@ class MultiItemCheckoutTest extends TestCase
         Http::fake([
             'https://api.stripe.com/v1/checkout/sessions' => Http::response([
                 'id' => 'cs_multi_3',
-                'url' => 'https://checkout.stripe.com/c/pay/cs_multi_3',
+                'client_secret' => 'cs_multi_3_secret',
             ], 200),
         ]);
 

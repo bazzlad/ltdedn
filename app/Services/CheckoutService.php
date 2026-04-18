@@ -132,9 +132,9 @@ class CheckoutService
                 $existingOrder = Order::where('order_creation_key', $orderCreationKey)->first();
                 if ($existingOrder && $existingOrder->status === OrderStatus::Pending) {
                     $meta = is_array($existingOrder->meta) ? $existingOrder->meta : [];
-                    $url = isset($meta['checkout_url']) ? (string) $meta['checkout_url'] : '';
-                    if ($url !== '') {
-                        return ['ok' => true, 'redirect' => $url, 'order' => $existingOrder];
+                    $clientSecret = isset($meta['client_secret']) ? (string) $meta['client_secret'] : '';
+                    if ($clientSecret !== '') {
+                        return ['ok' => true, 'client_secret' => $clientSecret, 'order' => $existingOrder];
                     }
                 }
             }
@@ -158,21 +158,25 @@ class CheckoutService
 
         $response = $request->post('https://api.stripe.com/v1/checkout/sessions', $stripeParams);
 
-        if (! $response->successful() || ! $response->json('id') || ! $response->json('url')) {
+        // Embedded mode returns `client_secret` instead of a hosted `url`.
+        // Stripe.js uses the client_secret to mount the checkout iframe.
+        if (! $response->successful() || ! $response->json('id') || ! $response->json('client_secret')) {
             $this->rollbackOrderAfterStripeFailure($order);
 
             return ['ok' => false, 'error' => 'Unable to start checkout right now. Please try again.'];
         }
 
+        $clientSecret = (string) $response->json('client_secret');
+
         $meta = is_array($order->meta) ? $order->meta : [];
-        $meta['checkout_url'] = (string) $response->json('url');
+        $meta['client_secret'] = $clientSecret;
 
         $order->update([
             'stripe_checkout_session_id' => (string) $response->json('id'),
             'meta' => $meta,
         ]);
 
-        return ['ok' => true, 'redirect' => (string) $response->json('url'), 'order' => $order];
+        return ['ok' => true, 'client_secret' => $clientSecret, 'order' => $order];
     }
 
     /**
@@ -328,8 +332,11 @@ class CheckoutService
 
         $params = [
             'mode' => 'payment',
-            'success_url' => route('shop.success', $order).'?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => route('shop.cancel', $order),
+            'ui_mode' => 'embedded',
+            // Stripe replaces `{CHECKOUT_SESSION_ID}` inside the iframe when it
+            // navigates the parent page back to us after successful payment.
+            // Embedded mode has a single return_url, not separate success/cancel.
+            'return_url' => route('shop.success', $order).'?session_id={CHECKOUT_SESSION_ID}',
             'metadata[order_id]' => (string) $order->id,
         ];
 
