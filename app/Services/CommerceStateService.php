@@ -19,6 +19,92 @@ class CommerceStateService
     public function __construct(private OrderStateService $orderStateService) {}
 
     /**
+     * Enrich the order with customer/shipping/totals pulled off a Stripe
+     * Checkout Session, then fulfil it. Used by the webhook, the poll-on-
+     * return success page and the reconcile command — single source of
+     * truth for "session says paid → turn our order into a paid order".
+     *
+     * @param  array<string, mixed>  $session  Stripe Checkout Session payload
+     */
+    public function fulfillFromSession(Order $order, array $session): bool
+    {
+        $this->applySessionFieldsToOrder($order, $session);
+        $order->refresh();
+
+        return $this->fulfillPaidOrder($order, [
+            'stripe_checkout_session_id' => (string) data_get($session, 'id', $order->stripe_checkout_session_id),
+            'stripe_payment_intent_id' => (string) data_get($session, 'payment_intent', $order->stripe_payment_intent_id),
+        ]);
+    }
+
+    /**
+     * Copy authoritative buyer + totals from a Stripe Checkout Session
+     * onto the order. Only fills fields that are still empty locally —
+     * never downgrades data the admin/webhook has already committed.
+     *
+     * @param  array<string, mixed>  $session
+     */
+    public function applySessionFieldsToOrder(Order $order, array $session): void
+    {
+        $updates = [];
+
+        if (! $order->customer_email) {
+            $email = (string) data_get($session, 'customer_details.email', '');
+            if ($email !== '') {
+                $updates['customer_email'] = $email;
+            }
+        }
+
+        foreach (['subtotal_amount' => 'amount_subtotal', 'total_amount' => 'amount_total'] as $col => $path) {
+            $val = data_get($session, $path);
+            if ($val !== null) {
+                $updates[$col] = (int) $val;
+            }
+        }
+
+        $tax = data_get($session, 'total_details.amount_tax');
+        if ($tax !== null) {
+            $updates['tax_amount'] = (int) $tax;
+        }
+
+        $shippingTotal = data_get($session, 'shipping_cost.amount_total');
+        if ($shippingTotal !== null) {
+            $updates['shipping_amount'] = (int) $shippingTotal;
+        }
+
+        $shippingRateId = (string) data_get($session, 'shipping_cost.shipping_rate', '');
+        if ($shippingRateId !== '') {
+            $updates['shipping_rate_id'] = $shippingRateId;
+        }
+
+        $addressMap = [
+            'shipping_name' => 'shipping_details.name',
+            'shipping_line1' => 'shipping_details.address.line1',
+            'shipping_line2' => 'shipping_details.address.line2',
+            'shipping_city' => 'shipping_details.address.city',
+            'shipping_state' => 'shipping_details.address.state',
+            'shipping_postal_code' => 'shipping_details.address.postal_code',
+            'shipping_country' => 'shipping_details.address.country',
+        ];
+
+        foreach ($addressMap as $col => $path) {
+            $val = data_get($session, $path);
+            if ($val !== null && $val !== '') {
+                $updates[$col] = (string) $val;
+            }
+        }
+
+        $phone = (string) data_get($session, 'customer_details.phone', '');
+        if ($phone !== '' && ! $order->shipping_phone) {
+            $updates['shipping_phone'] = $phone;
+        }
+
+        if ($updates !== []) {
+            $order->update($updates);
+        }
+    }
+
+    /**
      * Fulfil a paid order: mark paid, consume every active reservation and
      * its SKU stock, mark each reserved edition as Sold.
      *

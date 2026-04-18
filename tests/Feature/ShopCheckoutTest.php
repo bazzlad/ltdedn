@@ -191,6 +191,105 @@ class ShopCheckoutTest extends TestCase
         $this->assertSame(0, $cart->fresh()->items()->count());
     }
 
+    public function test_success_page_polls_stripe_and_fulfils_pending_order(): void
+    {
+        // Covers the "webhook never arrived" happy path: buyer returns from
+        // Stripe with a fresh session_id, the order is still Pending, we
+        // poll Stripe, see it's paid, and fulfil on the spot so the user
+        // lands on a real success page instead of 'pending'.
+        $user = User::factory()->create();
+        $artist = Artist::factory()->create();
+
+        $product = Product::factory()->create([
+            'artist_id' => $artist->id,
+            'is_public' => true,
+            'sell_through_ltdedn' => true,
+            'is_sellable' => true,
+            'sale_status' => 'active',
+            'is_limited' => true,
+        ]);
+        $sku = ProductSku::factory()->create([
+            'product_id' => $product->id,
+            'price_amount' => 12000,
+            'stock_on_hand' => 3,
+            'stock_reserved' => 1,
+            'is_active' => true,
+            'attributes' => ['size' => 'M'],
+        ]);
+        $edition = ProductEdition::factory()->create([
+            'product_id' => $product->id,
+            'product_sku_id' => $sku->id,
+            'status' => 'available',
+        ]);
+
+        $order = Order::create([
+            'user_id' => $user->id,
+            'status' => 'pending',
+            'currency' => 'gbp',
+            'subtotal_amount' => 12000,
+            'shipping_amount' => 0,
+            'tax_amount' => 0,
+            'total_amount' => 12000,
+            'customer_email' => null,
+            'order_creation_key' => 'key-poll-success',
+            'stripe_checkout_session_id' => 'cs_poll_1',
+        ]);
+
+        \App\Models\OrderItem::create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'product_edition_id' => $edition->id,
+            'product_sku_id' => $sku->id,
+            'product_name' => $product->name,
+            'product_slug' => $product->slug,
+            'sku_code_snapshot' => $sku->sku_code,
+            'attributes_snapshot' => $sku->attributes,
+            'quantity' => 1,
+            'unit_amount' => 12000,
+            'line_total_amount' => 12000,
+        ]);
+
+        \App\Models\InventoryReservation::create([
+            'order_id' => $order->id,
+            'order_item_id' => \App\Models\OrderItem::where('order_id', $order->id)->first()->id,
+            'product_edition_id' => $edition->id,
+            'product_sku_id' => $sku->id,
+            'quantity' => 1,
+            'status' => 'active',
+            'expires_at' => now()->addMinutes(15),
+        ]);
+
+        Http::fake([
+            'https://api.stripe.com/v1/checkout/sessions/cs_poll_1' => Http::response([
+                'id' => 'cs_poll_1',
+                'status' => 'complete',
+                'payment_status' => 'paid',
+                'payment_intent' => 'pi_poll_1',
+                'amount_subtotal' => 12000,
+                'amount_total' => 12495,
+                'total_details' => ['amount_tax' => 0],
+                'shipping_cost' => ['amount_total' => 495, 'shipping_rate' => 'shr_uk'],
+                'customer_details' => ['email' => 'poll@example.com', 'phone' => null],
+                'shipping_details' => [
+                    'name' => 'Polly Tester',
+                    'address' => ['line1' => '5 Regent St', 'line2' => null, 'city' => 'London', 'state' => null, 'postal_code' => 'SW1Y 4RG', 'country' => 'GB'],
+                ],
+            ], 200),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('shop.success', $order).'?session_id=cs_poll_1')
+            ->assertOk();
+
+        $order->refresh();
+        $this->assertSame('paid', $order->status->value);
+        $this->assertSame('poll@example.com', $order->customer_email);
+        $this->assertSame('Polly Tester', $order->shipping_name);
+        $this->assertSame('GB', $order->shipping_country);
+        $this->assertSame('pi_poll_1', $order->stripe_payment_intent_id);
+        $this->assertSame(12495, (int) $order->total_amount);
+    }
+
     public function test_success_page_does_not_clear_cart_on_stale_revisit(): void
     {
         // A later visit (no session_id query, or mismatched session_id) must not

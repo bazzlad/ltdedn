@@ -56,16 +56,7 @@ class ReconcileStripePendingOrdersCommand extends Command
             $paymentStatus = (string) ($session['payment_status'] ?? '');
 
             if ($paymentStatus === 'paid') {
-                // Copy customer_email, shipping address, tax/total from the
-                // session onto the order before marking it paid — webhook
-                // path does this via extractSessionFieldsForOrder; we
-                // replicate here so reconciled orders aren't missing
-                // customer details when the webhook never arrived.
-                $this->enrichOrderFromSession($order, $session);
-
-                $this->commerceStateService->fulfillPaidOrder($order, [
-                    'stripe_payment_intent_id' => (string) ($session['payment_intent'] ?? $order->stripe_payment_intent_id),
-                ]);
+                $this->commerceStateService->fulfillFromSession($order, $session);
                 $paid++;
 
                 continue;
@@ -80,69 +71,5 @@ class ReconcileStripePendingOrdersCommand extends Command
         $this->info('Reconciled pending orders. paid='.$paid.' failed='.$failed.' scanned='.$orders->count());
 
         return self::SUCCESS;
-    }
-
-    /**
-     * @param  array<string, mixed>  $session
-     */
-    private function enrichOrderFromSession(Order $order, array $session): void
-    {
-        $updates = [];
-
-        if (! $order->customer_email) {
-            $email = (string) data_get($session, 'customer_details.email', '');
-            if ($email !== '') {
-                $updates['customer_email'] = $email;
-            }
-        }
-
-        foreach (['subtotal_amount' => 'amount_subtotal', 'total_amount' => 'amount_total'] as $col => $path) {
-            $val = data_get($session, $path);
-            if ($val !== null) {
-                $updates[$col] = (int) $val;
-            }
-        }
-
-        $tax = data_get($session, 'total_details.amount_tax');
-        if ($tax !== null) {
-            $updates['tax_amount'] = (int) $tax;
-        }
-
-        $shippingTotal = data_get($session, 'shipping_cost.amount_total');
-        if ($shippingTotal !== null) {
-            $updates['shipping_amount'] = (int) $shippingTotal;
-        }
-
-        $shippingRateId = (string) data_get($session, 'shipping_cost.shipping_rate', '');
-        if ($shippingRateId !== '') {
-            $updates['shipping_rate_id'] = $shippingRateId;
-        }
-
-        $addressMap = [
-            'shipping_name' => 'shipping_details.name',
-            'shipping_line1' => 'shipping_details.address.line1',
-            'shipping_line2' => 'shipping_details.address.line2',
-            'shipping_city' => 'shipping_details.address.city',
-            'shipping_state' => 'shipping_details.address.state',
-            'shipping_postal_code' => 'shipping_details.address.postal_code',
-            'shipping_country' => 'shipping_details.address.country',
-        ];
-
-        foreach ($addressMap as $col => $path) {
-            $val = data_get($session, $path);
-            if ($val !== null && $val !== '') {
-                $updates[$col] = (string) $val;
-            }
-        }
-
-        $phone = (string) data_get($session, 'customer_details.phone', '');
-        if ($phone !== '' && ! $order->shipping_phone) {
-            $updates['shipping_phone'] = $phone;
-        }
-
-        if ($updates !== []) {
-            $order->update($updates);
-            $order->refresh();
-        }
     }
 }
