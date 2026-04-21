@@ -155,7 +155,13 @@ function eventLabel(type: string): string {
                     <div>
                         Status: <span class="font-medium">{{ props.order.status }}</span>
                     </div>
-                    <div>Customer: {{ props.order.customer_email || props.order.user?.email || 'Unknown' }}</div>
+                    <div>
+                        Customer:
+                        <span class="font-medium">{{ props.order.shipping_name || props.order.user?.name || 'Unknown buyer' }}</span>
+                        <span v-if="props.order.customer_email || props.order.user?.email">
+                            • {{ props.order.customer_email || props.order.user?.email }}
+                        </span>
+                    </div>
                     <div>Subtotal: {{ money(props.order.subtotal_amount, props.order.currency) }}</div>
                     <div>Shipping: {{ money(props.order.shipping_amount, props.order.currency) }}</div>
                     <div>Tax: {{ money(props.order.tax_amount, props.order.currency) }}</div>

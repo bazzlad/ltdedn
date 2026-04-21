@@ -14,6 +14,9 @@ interface OrderRow {
 	total_amount: number;
 	customer_email: string | null;
 	user_name: string | null;
+	shipping_name: string | null;
+	shipping_city: string | null;
+	shipping_country: string | null;
 	stripe_checkout_session_id: string | null;
 	stripe_payment_intent_id: string | null;
 	paid_at: string | null;
@@ -124,7 +127,13 @@ async function copyRefs(order: OrderRow): Promise<void> {
 						<div class="flex items-center justify-between">
 							<div>
 								<div class="font-medium">Order #{{ order.id }} • {{ order.status }}</div>
-								<div class="text-sm text-muted-foreground">{{ order.customer_email || order.user_name || 'Unknown customer' }}</div>
+								<div class="text-sm text-muted-foreground">
+									{{ order.shipping_name || order.user_name || 'Unknown buyer' }}
+									<span v-if="order.customer_email"> • {{ order.customer_email }}</span>
+								</div>
+								<div v-if="order.shipping_city || order.shipping_country" class="text-xs text-muted-foreground">
+									{{ [order.shipping_city, order.shipping_country].filter(Boolean).join(', ') }}
+								</div>
 							</div>
 							<div class="text-right">
 								<div class="font-medium">{{ money(order.total_amount, order.currency || 'gbp') }}</div>
