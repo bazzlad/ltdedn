@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\OrderStatus;
+use App\Models\Order;
 use App\Services\CartService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
@@ -48,7 +50,25 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'cartSummary' => fn () => $this->cartSummary($request),
+            'fulfilmentQueueCount' => fn () => $this->fulfilmentQueueCount($request),
         ];
+    }
+
+    /**
+     * Number of paid orders awaiting shipment. Drives the sidebar "Fulfilment"
+     * badge so admins see at a glance whether anything's waiting.
+     */
+    private function fulfilmentQueueCount(Request $request): int
+    {
+        $user = $request->user();
+        if (! $user || ! $user->isAdmin()) {
+            return 0;
+        }
+
+        return (int) Order::query()
+            ->where('status', OrderStatus::Paid)
+            ->whereNull('shipped_at')
+            ->count();
     }
 
     /**

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ArtistController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\FulfilmentController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductEditionBulkController;
 use App\Http\Controllers\Admin\ProductEditionController;
@@ -46,6 +47,7 @@ Route::prefix('admin')
         Route::middleware('role:admin')->group(function () {
             Route::resource('users', UserController::class);
             Route::resource('artists', ArtistController::class);
+            Route::get('fulfilment', [FulfilmentController::class, 'index'])->name('fulfilment.index');
             Route::get('sales', [SalesController::class, 'index'])->name('sales.index');
             Route::get('sales/export/csv', [SalesController::class, 'exportCsv'])->name('sales.export.csv');
             Route::get('sales/{order}', [SalesController::class, 'show'])->name('sales.show');

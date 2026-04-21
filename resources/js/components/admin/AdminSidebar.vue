@@ -2,7 +2,7 @@
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { ArrowLeft, ChartColumn, LayoutGrid, Package, Palette, Users } from 'lucide-vue-next';
+import { ArrowLeft, ChartColumn, LayoutGrid, Package, Palette, Truck, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from '../AppLogo.vue';
 
@@ -10,6 +10,7 @@ const page = usePage();
 const user = computed(() => page.props.auth.user);
 const isAdmin = computed(() => user.value?.role === 'admin');
 const isArtist = computed(() => user.value?.role === 'artist');
+const fulfilmentQueueCount = computed(() => Number(page.props.fulfilmentQueueCount ?? 0));
 
 // Admin-only navigation items
 const adminNavItems: NavItem[] = [
@@ -22,6 +23,11 @@ const adminNavItems: NavItem[] = [
         title: 'Artists',
         href: '/admin/artists',
         icon: Palette,
+    },
+    {
+        title: 'Fulfilment',
+        href: '/admin/fulfilment',
+        icon: Truck,
     },
     {
         title: 'Sales',
@@ -100,9 +106,15 @@ const panelSubtitle = computed(() => {
             <SidebarMenu>
                 <SidebarMenuItem v-for="item in mainNavItems" :key="item.title">
                     <SidebarMenuButton as-child>
-                        <Link :href="item.href">
+                        <Link :href="item.href" class="flex items-center">
                             <component :is="item.icon" />
                             <span>{{ item.title }}</span>
+                            <span
+                                v-if="item.title === 'Fulfilment' && fulfilmentQueueCount > 0"
+                                class="ml-auto rounded-full bg-red-600 px-2 py-0.5 text-xs font-medium text-white"
+                            >
+                                {{ fulfilmentQueueCount }}
+                            </span>
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
