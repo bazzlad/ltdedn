@@ -3,9 +3,11 @@
 namespace Tests\Feature\Admin;
 
 use App\Enums\UserRole;
+use App\Mail\OrderShippedMail;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class OrderFulfillmentTest extends TestCase
@@ -29,6 +31,7 @@ class OrderFulfillmentTest extends TestCase
 
     public function test_admin_can_mark_order_shipped(): void
     {
+        Mail::fake();
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $order = $this->paidOrder();
 
@@ -48,10 +51,17 @@ class OrderFulfillmentTest extends TestCase
             'user_id' => $admin->id,
             'type' => 'shipped',
         ]);
+
+        Mail::assertQueued(OrderShippedMail::class, function (OrderShippedMail $mail) use ($order) {
+            return $mail->order->is($order)
+                && $mail->hasTo('buyer@example.com');
+        });
+        $this->assertNotEmpty($order->fresh()->meta['shipped_mailed_at'] ?? null);
     }
 
-    public function test_second_ship_submission_logs_tracking_update(): void
+    public function test_second_ship_submission_logs_tracking_update_and_does_not_resend_email(): void
     {
+        Mail::fake();
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $order = $this->paidOrder();
 
@@ -72,6 +82,24 @@ class OrderFulfillmentTest extends TestCase
             'order_id' => $order->id,
             'type' => 'shipping_updated',
         ]);
+
+        // Buyer is notified once on the first ship; tracking edits stay silent.
+        Mail::assertQueuedCount(1);
+    }
+
+    public function test_shipped_mail_skipped_when_no_customer_email(): void
+    {
+        Mail::fake();
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $order = $this->paidOrder();
+        $order->update(['customer_email' => null]);
+
+        $this->actingAs($admin)->post(route('admin.sales.ship', $order), [
+            'carrier' => 'Royal Mail',
+            'tracking' => 'RM1234GB',
+        ]);
+
+        Mail::assertNothingQueued();
     }
 
     public function test_ship_rejected_when_order_not_paid(): void
