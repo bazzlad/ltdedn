@@ -201,6 +201,82 @@ class CommerceStateServiceTest extends TestCase
         ]);
     }
 
+    public function test_apply_session_fields_reads_basil_collected_information_path(): void
+    {
+        $data = $this->createPendingOrderWithReservation();
+        $service = app(CommerceStateService::class);
+
+        // API version 2025-03-31.basil and later return the buyer's address
+        // under collected_information.shipping_details, and leave the legacy
+        // top-level shipping_details null.
+        $service->applySessionFieldsToOrder($data['order'], [
+            'id' => 'cs_test_basil',
+            'amount_subtotal' => 9900,
+            'amount_total' => 10395,
+            'total_details' => ['amount_tax' => 0],
+            'shipping_cost' => ['amount_total' => 495, 'shipping_rate' => 'shr_uk'],
+            'customer_details' => ['email' => 'basil@example.com', 'phone' => null],
+            'shipping_details' => null,
+            'collected_information' => [
+                'shipping_details' => [
+                    'name' => 'Basil Buyer',
+                    'address' => [
+                        'line1' => '20 The Poplars',
+                        'line2' => 'Wordsley',
+                        'city' => 'Stourbridge',
+                        'state' => '',
+                        'postal_code' => 'DY8 5SN',
+                        'country' => 'GB',
+                    ],
+                ],
+            ],
+        ]);
+
+        $data['order']->refresh();
+        $this->assertSame('Basil Buyer', $data['order']->shipping_name);
+        $this->assertSame('20 The Poplars', $data['order']->shipping_line1);
+        $this->assertSame('Wordsley', $data['order']->shipping_line2);
+        $this->assertSame('Stourbridge', $data['order']->shipping_city);
+        $this->assertSame('DY8 5SN', $data['order']->shipping_postal_code);
+        $this->assertSame('GB', $data['order']->shipping_country);
+    }
+
+    public function test_apply_session_fields_falls_back_to_legacy_shipping_details_path(): void
+    {
+        $data = $this->createPendingOrderWithReservation();
+        $service = app(CommerceStateService::class);
+
+        // Older API versions (pre-basil) and replayed historical webhooks
+        // return the address under the top-level shipping_details and have
+        // no collected_information block at all.
+        $service->applySessionFieldsToOrder($data['order'], [
+            'id' => 'cs_test_legacy',
+            'amount_subtotal' => 9900,
+            'amount_total' => 10395,
+            'total_details' => ['amount_tax' => 0],
+            'shipping_cost' => ['amount_total' => 495, 'shipping_rate' => 'shr_uk'],
+            'customer_details' => ['email' => 'legacy@example.com', 'phone' => null],
+            'shipping_details' => [
+                'name' => 'Legacy Buyer',
+                'address' => [
+                    'line1' => '1 Old Path',
+                    'line2' => null,
+                    'city' => 'London',
+                    'state' => null,
+                    'postal_code' => 'SW1A 1AA',
+                    'country' => 'GB',
+                ],
+            ],
+        ]);
+
+        $data['order']->refresh();
+        $this->assertSame('Legacy Buyer', $data['order']->shipping_name);
+        $this->assertSame('1 Old Path', $data['order']->shipping_line1);
+        $this->assertSame('London', $data['order']->shipping_city);
+        $this->assertSame('SW1A 1AA', $data['order']->shipping_postal_code);
+        $this->assertSame('GB', $data['order']->shipping_country);
+    }
+
     public function test_fail_pending_order_succeeds_even_without_reservation(): void
     {
         $data = $this->createPendingOrderWithReservation();

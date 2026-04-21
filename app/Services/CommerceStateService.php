@@ -77,20 +77,27 @@ class CommerceStateService
             $updates['shipping_rate_id'] = $shippingRateId;
         }
 
+        // Stripe API 2025-03-31.basil moved the buyer's shipping address from
+        // the top-level `shipping_details` to `collected_information.shipping_details`.
+        // Read the new path first and fall back to the legacy path so older API
+        // versions, replayed webhooks, and historical fixtures keep working.
         $addressMap = [
-            'shipping_name' => 'shipping_details.name',
-            'shipping_line1' => 'shipping_details.address.line1',
-            'shipping_line2' => 'shipping_details.address.line2',
-            'shipping_city' => 'shipping_details.address.city',
-            'shipping_state' => 'shipping_details.address.state',
-            'shipping_postal_code' => 'shipping_details.address.postal_code',
-            'shipping_country' => 'shipping_details.address.country',
+            'shipping_name' => ['collected_information.shipping_details.name', 'shipping_details.name'],
+            'shipping_line1' => ['collected_information.shipping_details.address.line1', 'shipping_details.address.line1'],
+            'shipping_line2' => ['collected_information.shipping_details.address.line2', 'shipping_details.address.line2'],
+            'shipping_city' => ['collected_information.shipping_details.address.city', 'shipping_details.address.city'],
+            'shipping_state' => ['collected_information.shipping_details.address.state', 'shipping_details.address.state'],
+            'shipping_postal_code' => ['collected_information.shipping_details.address.postal_code', 'shipping_details.address.postal_code'],
+            'shipping_country' => ['collected_information.shipping_details.address.country', 'shipping_details.address.country'],
         ];
 
-        foreach ($addressMap as $col => $path) {
-            $val = data_get($session, $path);
-            if ($val !== null && $val !== '') {
-                $updates[$col] = (string) $val;
+        foreach ($addressMap as $col => $paths) {
+            foreach ($paths as $path) {
+                $val = data_get($session, $path);
+                if ($val !== null && $val !== '') {
+                    $updates[$col] = (string) $val;
+                    break;
+                }
             }
         }
 
