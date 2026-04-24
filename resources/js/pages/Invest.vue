@@ -7,6 +7,7 @@ const LOGO_SVG = '/images/logo-sm.svg';
 const DL_IMG = '/images/dl-img.jpg';
 
 const INVESTOR_GUIDE_URL = '/downloads/Investor-Guide.pdf';
+const PITCH_DECK_URL = '/pitch-deck';
 
 const page = usePage();
 
@@ -38,10 +39,10 @@ const otherDownloads = [
 		enabled: false,
 	},
 	{
-		url: '#',
+		url: PITCH_DECK_URL,
 		label: 'INVESTOR PITCHDECK',
-		subtitle: 'AVAILABLE SOON',
-		enabled: false,
+		subtitle: 'VIEW ONLINE',
+		enabled: true,
 	},
 ];
 </script>
@@ -86,6 +87,37 @@ const otherDownloads = [
 
 		<!-- Main -->
 		<main class="relative z-10 mx-auto w-full max-w-7xl flex-1 px-6 pb-8 pt-10 lg:px-8 lg:pb-20 lg:pt-14">
+			<Link
+				:href="PITCH_DECK_URL"
+				class="mb-10 flex flex-col gap-4 rounded border border-white bg-white px-5 py-5 text-black shadow-2xl shadow-black/30 transition hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white sm:flex-row sm:items-center sm:justify-between sm:px-6"
+			>
+				<div class="flex min-w-0 items-start gap-4">
+					<div class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-black text-white">
+						<svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-7.5a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25h6.75" />
+							<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 8.25h7.5M8.25 12h5.25M16.5 18h4.5m0 0l-2.25-2.25M21 18l-2.25 2.25" />
+						</svg>
+					</div>
+					<div class="min-w-0">
+						<p class="font-sans text-xs font-semibold uppercase tracking-wide text-neutral-500">
+							Investor pitch deck
+						</p>
+						<h2 class="mt-1 font-sans text-xl font-semibold tracking-tight text-black sm:text-2xl">
+							View the LTD/EDN pitch deck online
+						</h2>
+						<!--<p class="mt-2 max-w-2xl font-mono text-sm leading-6 text-neutral-700">
+							Read the deck in-browser, with options to open or download the PDF.
+						</p>-->
+					</div>
+				</div>
+				<div class="inline-flex shrink-0 items-center gap-2 self-start rounded bg-black px-4 py-2 font-sans text-xs font-semibold uppercase tracking-wide text-white sm:self-center">
+					View pitch deck
+					<svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+					</svg>
+				</div>
+			</Link>
+
 			<!-- Guide: top on mobile, hidden on lg (shown in sidebar instead) -->
 			<div class="mx-auto mb-8 mt-4 flex w-full max-w-sm justify-center lg:hidden">
 				<a :href="guide.url" target="_blank" class="group block">

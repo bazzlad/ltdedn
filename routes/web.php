@@ -24,6 +24,10 @@ Route::get('/terms', function () {
     return Inertia::render('Terms');
 })->name('terms');
 
+Route::get('/pitch-deck', function () {
+    return Inertia::render('PitchDeck');
+})->name('pitch-deck');
+
 Route::get('dashboard', UserDashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 /*
