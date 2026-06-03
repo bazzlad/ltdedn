@@ -7,8 +7,8 @@ import { downloadQRCode, getQRCodeUrl, useQRCode } from '@/composables/useQRCode
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
-import { ArrowLeft } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { ArrowLeft, Check, Copy } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 interface Artist {
     id: number;
@@ -53,6 +53,37 @@ const qrValue = computed(() => {
     const qrCode = props.edition.qr_code;
     return qrCode ? getQRCodeUrl(qrCode) : '';
 });
+
+const qrDataString = computed(() => qrValue.value);
+const copiedDataString = ref(false);
+
+const writeClipboardText = async (text: string) => {
+    if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+};
+
+const copyQrDataString = async () => {
+    if (!qrDataString.value) return;
+
+    await writeClipboardText(qrDataString.value);
+    copiedDataString.value = true;
+
+    window.setTimeout(() => {
+        copiedDataString.value = false;
+    }, 1500);
+};
 
 const {
     qrDataUrl,
@@ -185,6 +216,17 @@ const submit = () => {
                             <CardTitle>QR Codes</CardTitle>
                         </CardHeader>
                         <CardContent class="space-y-4">
+                            <div v-if="qrDataString">
+                                <div class="mb-2 flex items-center justify-between gap-2">
+                                    <h4 class="text-sm font-medium text-muted-foreground">QR Data String</h4>
+                                    <Button variant="outline" size="sm" @click="copyQrDataString">
+                                        <Check v-if="copiedDataString" class="mr-2 h-3 w-3" />
+                                        <Copy v-else class="mr-2 h-3 w-3" />
+                                        {{ copiedDataString ? 'Copied' : 'Copy' }}
+                                    </Button>
+                                </div>
+                                <p class="rounded bg-muted px-2 py-1 font-mono text-xs break-all">{{ qrDataString }}</p>
+                            </div>
                             <div>
                                 <h4 class="mb-2 text-sm font-medium text-muted-foreground">Long QR Code</h4>
                                 <p class="rounded bg-muted px-2 py-1 font-mono text-xs break-all">{{ edition.qr_code }}</p>

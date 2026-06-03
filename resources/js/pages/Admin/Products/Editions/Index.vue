@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { generateAndDownloadQR } from '@/composables/useQRCode';
+import { generateAndDownloadQR, getQRCodeUrl } from '@/composables/useQRCode';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { qrBatchPdf } from '@/routes/admin/products/editions';
 import type { BreadcrumbItemType } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
 import { formatDistanceToNow } from 'date-fns';
-import { ArrowLeft, Download, Hash, Plus, QrCodeIcon, Share2, SquarePen, Trash2, User } from 'lucide-vue-next';
+import { ArrowLeft, Check, Copy, Download, Hash, Plus, QrCodeIcon, Share2, SquarePen, Trash2, User } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 interface Artist {
@@ -121,8 +121,40 @@ const selectedEdition = ref<Edition | null>(null);
 
 const selectedEditionQrUrl = computed(() => {
     if (!selectedEdition.value) return '';
-    return `${window.location.origin}/qr/${selectedEdition.value.qr_code}`;
+    return getEditionQrDataString(selectedEdition.value);
 });
+
+const copiedEditionId = ref<number | null>(null);
+
+const getEditionQrDataString = (edition: Edition) => getQRCodeUrl(edition.qr_code);
+
+const writeClipboardText = async (text: string) => {
+    if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+};
+
+const copyQrDataString = async (edition: Edition) => {
+    await writeClipboardText(getEditionQrDataString(edition));
+    copiedEditionId.value = edition.id;
+
+    window.setTimeout(() => {
+        if (copiedEditionId.value === edition.id) {
+            copiedEditionId.value = null;
+        }
+    }, 1500);
+};
 
 const openQrModal = (edition: Edition) => {
     selectedEdition.value = edition;
@@ -348,6 +380,16 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                                                     </Link>
                                                 </Button>
                                                 <Button
+                                                    :title="`Copy QR data string for Edition #${edition.number}`"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    @click="copyQrDataString(edition)"
+                                                    class="text-emerald-600 hover:text-emerald-700"
+                                                >
+                                                    <Check v-if="copiedEditionId === edition.id" class="h-3 w-3" />
+                                                    <Copy v-else class="h-3 w-3" />
+                                                </Button>
+                                                <Button
                                                     title="View QR Code"
                                                     size="sm"
                                                     variant="ghost"
@@ -440,10 +482,8 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
 
                     <!-- QR Code Info -->
                     <div class="w-full space-y-2 text-center">
-                        <div class="text-sm font-medium text-muted-foreground">
-                            Edition #{{ selectedEdition?.number }}
-                        </div>
-                        <div class="break-all px-4 font-mono text-xs text-muted-foreground">
+                        <div class="text-sm font-medium text-muted-foreground">Edition #{{ selectedEdition?.number }}</div>
+                        <div class="px-4 font-mono text-xs break-all text-muted-foreground">
                             {{ selectedEditionQrUrl }}
                         </div>
                     </div>
