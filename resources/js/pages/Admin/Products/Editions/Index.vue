@@ -3,6 +3,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { generateAndDownloadQR, getQRCodeUrl } from '@/composables/useQRCode';
 import AdminLayout from '@/layouts/AdminLayout.vue';
@@ -10,7 +12,7 @@ import { qrBatchPdf } from '@/routes/admin/products/editions';
 import type { BreadcrumbItemType } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
 import { formatDistanceToNow } from 'date-fns';
-import { ArrowLeft, Check, Copy, Download, Hash, Plus, QrCodeIcon, Share2, SquarePen, Trash2, User } from 'lucide-vue-next';
+import { ArrowLeft, Check, Copy, Download, FileSpreadsheet, Hash, Plus, QrCodeIcon, Share2, SquarePen, Trash2, User } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 interface Artist {
@@ -222,6 +224,31 @@ const batchPdfButtonText = computed(() => {
     return 'Download QR Codes';
 });
 
+const csvDialogOpen = ref(false);
+const csvLogoName = ref('');
+
+const closeCsvDialog = () => {
+    csvDialogOpen.value = false;
+};
+
+const downloadCsv = () => {
+    const url = new URL(`/admin/products/${props.product.id}/editions/csv`, window.location.origin);
+    const logo = csvLogoName.value.trim();
+
+    if (logo) {
+        url.searchParams.set('logo', logo);
+    }
+
+    const link = document.createElement('a');
+    link.href = url.toString();
+    link.download = '';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    closeCsvDialog();
+};
+
 const changePerPage = (event: Event) => {
     const target = event.target as HTMLSelectElement;
     const currentUrl = new URL(window.location.href);
@@ -270,6 +297,10 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                 </div>
                 <div class="flex items-center space-x-2">
                     <div v-if="editions?.data?.length > 0">
+                        <Button size="sm" variant="outline" @click="csvDialogOpen = true">
+                            <FileSpreadsheet class="mr-2 h-3 w-3" />
+                            Download CSV
+                        </Button>
                         <Button size="sm" variant="outline" @click="downloadBatchPdf" :disabled="isDownloadingBatchPDF">
                             <div
                                 v-if="isDownloadingBatchPDF"
@@ -457,6 +488,33 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                 </CardContent>
             </Card>
         </div>
+
+        <!-- CSV Export Dialog -->
+        <Dialog :open="csvDialogOpen" @update:open="csvDialogOpen = $event">
+            <DialogContent class="sm:max-w-md">
+                <form @submit.prevent="downloadCsv">
+                    <DialogHeader>
+                        <DialogTitle>Download CSV</DialogTitle>
+                        <DialogDescription>Enter the logo name to include in the LOGO column.</DialogDescription>
+                    </DialogHeader>
+
+                    <div class="py-4">
+                        <div class="space-y-2">
+                            <Label for="csv-logo-name">Logo name</Label>
+                            <Input id="csv-logo-name" v-model="csvLogoName" type="text" maxlength="255" autofocus />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button type="button" variant="outline" @click="closeCsvDialog">Cancel</Button>
+                        <Button type="submit">
+                            <Download class="mr-2 h-4 w-4" />
+                            Download
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
 
         <!-- QR Code Modal -->
         <Dialog :open="qrModalOpen" @update:open="closeQrModal">

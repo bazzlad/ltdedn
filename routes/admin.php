@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductEditionBulkController;
 use App\Http\Controllers\Admin\ProductEditionController;
+use App\Http\Controllers\Admin\ProductEditionCsvController;
 use App\Http\Controllers\Admin\ProductEditionQrBatchPdfController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,7 @@ Route::prefix('admin')
             ]);
 
         Route::post('products/{product}/editions/bulk', [ProductEditionBulkController::class, 'store'])->name('products.editions.store-bulk');
+        Route::get('products/{product}/editions/csv', ProductEditionCsvController::class)->name('products.editions.csv');
         Route::get('products/{product}/editions/qr-batch-pdf', ProductEditionQrBatchPdfController::class)->name('products.editions.qr-batch-pdf');
 
         // Admin-only routes
