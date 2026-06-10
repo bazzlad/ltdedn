@@ -42,7 +42,7 @@ class ProductEditionCsvController extends Controller
                     fputcsv($handle, [
                         $this->buildQrUrl($edition),
                         $logo,
-                        $edition->number,
+                        str_pad((string) $edition->number, strlen((string) $total), '0', STR_PAD_LEFT),
                         $total,
                     ]);
                 });

@@ -61,6 +61,28 @@ class ProductEditionCsvTest extends TestCase
         $this->assertSame([url('/qr/first-code'), 'shirt-logo.png', '1', '1'], $rows[1]);
     }
 
+    public function test_csv_pads_edition_numbers_to_total_digit_width(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $artist = Artist::factory()->create();
+        $product = Product::factory()->for($artist)->create();
+
+        foreach (range(1, 100) as $number) {
+            ProductEdition::factory()->for($product)->create([
+                'number' => $number,
+                'qr_code' => "code-{$number}",
+            ]);
+        }
+
+        $response = $this->actingAs($admin)->get("/admin/products/{$product->id}/editions/csv");
+
+        $rows = array_map('str_getcsv', array_filter(explode("\n", trim($response->streamedContent()))));
+
+        $this->assertSame([url('/qr/code-1'), '', '001', '100'], $rows[1]);
+        $this->assertSame([url('/qr/code-2'), '', '002', '100'], $rows[2]);
+        $this->assertSame([url('/qr/code-100'), '', '100', '100'], $rows[100]);
+    }
+
     public function test_artist_can_download_csv_for_owned_product(): void
     {
         $artistUser = User::factory()->create(['role' => UserRole::Artist]);
