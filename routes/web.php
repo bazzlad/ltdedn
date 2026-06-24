@@ -4,6 +4,9 @@ use App\Http\Controllers\AcceptProductEditionTransferController;
 use App\Http\Controllers\ArtistsController;
 use App\Http\Controllers\CancelProductEditionTransferController;
 use App\Http\Controllers\ClaimQRController;
+use App\Http\Controllers\Connect\ShopifyConnectionController;
+use App\Http\Controllers\Connect\SquarespaceConnectionController;
+use App\Http\Controllers\Connect\StorefrontConnectionController;
 use App\Http\Controllers\InvestController;
 use App\Http\Controllers\PasswordGateController;
 use App\Http\Controllers\ProductEditionTransferController;
@@ -32,6 +35,15 @@ Route::get('/pitch-deck', $pitchDeck)->name('pitch-deck');
 Route::get('/pitchdeck', $pitchDeck)->name('pitchdeck');
 
 Route::get('dashboard', UserDashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware(['auth', 'verified'])->prefix('connect')->name('connect.')->group(function () {
+    Route::get('storefronts', [StorefrontConnectionController::class, 'index'])->name('storefronts');
+    Route::get('storefronts/{connection}/check', [StorefrontConnectionController::class, 'check'])->name('storefronts.check');
+    Route::get('shopify/start', [ShopifyConnectionController::class, 'start'])->name('shopify.start');
+    Route::get('shopify/callback', [ShopifyConnectionController::class, 'callback'])->name('shopify.callback');
+    Route::get('squarespace/start', [SquarespaceConnectionController::class, 'start'])->name('squarespace.start');
+    Route::get('squarespace/callback', [SquarespaceConnectionController::class, 'callback'])->name('squarespace.callback');
+});
 
 /*
 |--------------------------------------------------------------------------

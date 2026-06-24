@@ -47,5 +47,10 @@ Route::prefix('admin')
             Route::post('sales/{order}/ship', [SalesController::class, 'markShipped'])->name('sales.ship');
             Route::get('external-imports', [ExternalImportController::class, 'index'])->name('external-imports.index');
             Route::get('storefront-connections', [StorefrontConnectionController::class, 'index'])->name('storefront-connections.index');
+            Route::get('storefront-connections/create', [StorefrontConnectionController::class, 'create'])->name('storefront-connections.create');
+            Route::post('storefront-connections', [StorefrontConnectionController::class, 'store'])->name('storefront-connections.store');
+            Route::get('storefront-connections/{connection}', [StorefrontConnectionController::class, 'show'])->name('storefront-connections.show');
+            Route::post('storefront-connections/{connection}/test', [StorefrontConnectionController::class, 'test'])->name('storefront-connections.test');
+            Route::post('storefront-connections/{connection}/activate', [StorefrontConnectionController::class, 'activate'])->name('storefront-connections.activate');
         });
     });

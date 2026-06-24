@@ -28,6 +28,20 @@ return [
         'key' => env('RESEND_KEY'),
     ],
 
+    'shopify_connect' => [
+        'client_id' => env('SHOPIFY_CONNECT_CLIENT_ID'),
+        'client_secret' => env('SHOPIFY_CONNECT_CLIENT_SECRET'),
+        'scopes' => array_filter(explode(',', env('SHOPIFY_CONNECT_SCOPES', 'read_orders,write_fulfillments'))),
+        'api_version' => env('SHOPIFY_CONNECT_API_VERSION', '2025-10'),
+    ],
+
+    'squarespace_connect' => [
+        'client_id' => env('SQUARESPACE_CONNECT_CLIENT_ID'),
+        'client_secret' => env('SQUARESPACE_CONNECT_CLIENT_SECRET'),
+        'scopes' => array_filter(explode(',', env('SQUARESPACE_CONNECT_SCOPES', 'website.orders,website.orders.read,website.products.read'))),
+        'user_agent' => env('SQUARESPACE_CONNECT_USER_AGENT', env('APP_NAME', 'LTD EDN Connect')),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

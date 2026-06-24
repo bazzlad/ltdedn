@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\StorefrontConnectionStatus;
 use App\Enums\StorefrontPlatform;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,16 +16,22 @@ class StorefrontConnection extends Model
 
     protected $guarded = ['id'];
 
-    protected $hidden = ['credentials', 'webhook_secret'];
+    protected $hidden = ['credentials', 'refresh_token', 'webhook_secret'];
 
     protected function casts(): array
     {
         return [
             'platform' => StorefrontPlatform::class,
+            'connection_status' => StorefrontConnectionStatus::class,
             'credentials' => 'encrypted:array',
+            'oauth_scopes' => 'array',
+            'refresh_token' => 'encrypted',
             'webhook_secret' => 'encrypted',
             'last_sync_meta' => 'array',
+            'token_expires_at' => 'datetime',
             'last_synced_at' => 'datetime',
+            'tested_at' => 'datetime',
+            'activated_at' => 'datetime',
         ];
     }
 
