@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\FulfilmentController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductEditionBulkController;
 use App\Http\Controllers\Admin\ProductEditionController;
+use App\Http\Controllers\Admin\ProductEditionCsvController;
 use App\Http\Controllers\Admin\ProductEditionQrBatchPdfController;
 use App\Http\Controllers\Admin\ProductSkuController;
 use App\Http\Controllers\Admin\ProductVariantController;
@@ -33,6 +34,7 @@ Route::prefix('admin')
             ]);
 
         Route::post('products/{product}/editions/bulk', [ProductEditionBulkController::class, 'store'])->name('products.editions.store-bulk');
+        Route::get('products/{product}/editions/csv', ProductEditionCsvController::class)->name('products.editions.csv');
         Route::get('products/{product}/editions/qr-batch-pdf', ProductEditionQrBatchPdfController::class)->name('products.editions.qr-batch-pdf');
 
         Route::get('products/{product}/skus', [ProductSkuController::class, 'index'])->name('products.skus.index');

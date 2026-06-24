@@ -35,6 +35,13 @@ Route::get('/terms', function () {
     return Inertia::render('Terms');
 })->name('terms');
 
+$pitchDeck = function () {
+    return Inertia::render('PitchDeck');
+};
+
+Route::get('/pitch-deck', $pitchDeck)->name('pitch-deck');
+Route::get('/pitchdeck', $pitchDeck)->name('pitchdeck');
+
 Route::get('dashboard', UserDashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::post('/', [PasswordGateController::class, 'store'])->name('password-gate.store');

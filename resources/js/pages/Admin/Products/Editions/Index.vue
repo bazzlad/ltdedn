@@ -3,14 +3,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { generateAndDownloadQR } from '@/composables/useQRCode';
+import { generateAndDownloadQR, getQRCodeUrl } from '@/composables/useQRCode';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { qrBatchPdf } from '@/routes/admin/products/editions';
 import type { BreadcrumbItemType } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
 import { formatDistanceToNow } from 'date-fns';
-import { ArrowLeft, Download, Hash, Plus, QrCodeIcon, Share2, SquarePen, Trash2, User } from 'lucide-vue-next';
+import { ArrowLeft, Check, Copy, Download, FileSpreadsheet, Hash, Plus, QrCodeIcon, Share2, SquarePen, Trash2, User } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 interface Artist {
@@ -127,8 +129,40 @@ const selectedEdition = ref<Edition | null>(null);
 
 const selectedEditionQrUrl = computed(() => {
     if (!selectedEdition.value) return '';
-    return `${window.location.origin}/qr/${selectedEdition.value.qr_code}`;
+    return getEditionQrDataString(selectedEdition.value);
 });
+
+const copiedEditionId = ref<number | null>(null);
+
+const getEditionQrDataString = (edition: Edition) => getQRCodeUrl(edition.qr_code);
+
+const writeClipboardText = async (text: string) => {
+    if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+};
+
+const copyQrDataString = async (edition: Edition) => {
+    await writeClipboardText(getEditionQrDataString(edition));
+    copiedEditionId.value = edition.id;
+
+    window.setTimeout(() => {
+        if (copiedEditionId.value === edition.id) {
+            copiedEditionId.value = null;
+        }
+    }, 1500);
+};
 
 const openQrModal = (edition: Edition) => {
     selectedEdition.value = edition;
@@ -196,6 +230,31 @@ const batchPdfButtonText = computed(() => {
     return 'Download QR Codes';
 });
 
+const csvDialogOpen = ref(false);
+const csvLogoName = ref('');
+
+const closeCsvDialog = () => {
+    csvDialogOpen.value = false;
+};
+
+const downloadCsv = () => {
+    const url = new URL(`/admin/products/${props.product.id}/editions/csv`, window.location.origin);
+    const logo = csvLogoName.value.trim();
+
+    if (logo) {
+        url.searchParams.set('logo', logo);
+    }
+
+    const link = document.createElement('a');
+    link.href = url.toString();
+    link.download = '';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    closeCsvDialog();
+};
+
 const changePerPage = (event: Event) => {
     const target = event.target as HTMLSelectElement;
     const currentUrl = new URL(window.location.href);
@@ -244,6 +303,10 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                 </div>
                 <div class="flex items-center space-x-2">
                     <div v-if="editions?.data?.length > 0">
+                        <Button size="sm" variant="outline" @click="csvDialogOpen = true">
+                            <FileSpreadsheet class="mr-2 h-3 w-3" />
+                            Download CSV
+                        </Button>
                         <Button size="sm" variant="outline" @click="downloadBatchPdf" :disabled="isDownloadingBatchPDF">
                             <div
                                 v-if="isDownloadingBatchPDF"
@@ -359,6 +422,16 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                                                     </Link>
                                                 </Button>
                                                 <Button
+                                                    :title="`Copy QR data string for Edition #${edition.number}`"
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    @click="copyQrDataString(edition)"
+                                                    class="text-emerald-600 hover:text-emerald-700"
+                                                >
+                                                    <Check v-if="copiedEditionId === edition.id" class="h-3 w-3" />
+                                                    <Copy v-else class="h-3 w-3" />
+                                                </Button>
+                                                <Button
                                                     title="View QR Code"
                                                     size="sm"
                                                     variant="ghost"
@@ -427,6 +500,33 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
             </Card>
         </div>
 
+        <!-- CSV Export Dialog -->
+        <Dialog :open="csvDialogOpen" @update:open="csvDialogOpen = $event">
+            <DialogContent class="sm:max-w-md">
+                <form @submit.prevent="downloadCsv">
+                    <DialogHeader>
+                        <DialogTitle>Download CSV</DialogTitle>
+                        <DialogDescription>Enter the logo name to include in the LOGO column.</DialogDescription>
+                    </DialogHeader>
+
+                    <div class="py-4">
+                        <div class="space-y-2">
+                            <Label for="csv-logo-name">Logo name</Label>
+                            <Input id="csv-logo-name" v-model="csvLogoName" type="text" maxlength="255" autofocus />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button type="button" variant="outline" @click="closeCsvDialog">Cancel</Button>
+                        <Button type="submit">
+                            <Download class="mr-2 h-4 w-4" />
+                            Download
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+
         <!-- QR Code Modal -->
         <Dialog :open="qrModalOpen" @update:open="closeQrModal">
             <DialogContent class="sm:max-w-md">
@@ -451,10 +551,8 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
 
                     <!-- QR Code Info -->
                     <div class="w-full space-y-2 text-center">
-                        <div class="text-sm font-medium text-muted-foreground">
-                            Edition #{{ selectedEdition?.number }}
-                        </div>
-                        <div class="break-all px-4 font-mono text-xs text-muted-foreground">
+                        <div class="text-sm font-medium text-muted-foreground">Edition #{{ selectedEdition?.number }}</div>
+                        <div class="px-4 font-mono text-xs break-all text-muted-foreground">
                             {{ selectedEditionQrUrl }}
                         </div>
                     </div>
