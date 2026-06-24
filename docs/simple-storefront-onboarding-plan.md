@@ -115,6 +115,8 @@ Use this until a proper connection wizard exists.
 
 Build a simple internal wizard first. Do not start with a fully public self-service app.
 
+For the full click-accept-done approach, see [One-Click Storefront Connector Plan](one-click-storefront-connector-plan.md).
+
 ### Step 1: Admin Connection Wizard
 
 Add `/admin/storefront-connections/create`.
