@@ -2,11 +2,15 @@
 
 use App\Http\Controllers\Admin\ArtistController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ExternalImportController;
+use App\Http\Controllers\Admin\FulfilmentController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductEditionBulkController;
 use App\Http\Controllers\Admin\ProductEditionController;
 use App\Http\Controllers\Admin\ProductEditionCsvController;
 use App\Http\Controllers\Admin\ProductEditionQrBatchPdfController;
+use App\Http\Controllers\Admin\SalesController;
+use App\Http\Controllers\Admin\StorefrontConnectionController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,5 +41,11 @@ Route::prefix('admin')
         Route::middleware('role:admin')->group(function () {
             Route::resource('users', UserController::class);
             Route::resource('artists', ArtistController::class);
+            Route::get('fulfilment', [FulfilmentController::class, 'index'])->name('fulfilment.index');
+            Route::get('sales', [SalesController::class, 'index'])->name('sales.index');
+            Route::get('sales/{order}', [SalesController::class, 'show'])->name('sales.show');
+            Route::post('sales/{order}/ship', [SalesController::class, 'markShipped'])->name('sales.ship');
+            Route::get('external-imports', [ExternalImportController::class, 'index'])->name('external-imports.index');
+            Route::get('storefront-connections', [StorefrontConnectionController::class, 'index'])->name('storefront-connections.index');
         });
     });

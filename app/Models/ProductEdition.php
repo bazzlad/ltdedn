@@ -45,6 +45,11 @@ class ProductEdition extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function sku(): BelongsTo
+    {
+        return $this->belongsTo(ProductSku::class, 'product_sku_id');
+    }
+
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');

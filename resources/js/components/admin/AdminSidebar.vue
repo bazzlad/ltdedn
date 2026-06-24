@@ -2,7 +2,7 @@
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { ArrowLeft, LayoutGrid, Package, Palette, Users } from 'lucide-vue-next';
+import { ArrowLeft, ClipboardList, LayoutGrid, Package, Palette, Plug, Truck, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from '../AppLogo.vue';
 
@@ -22,6 +22,26 @@ const adminNavItems: NavItem[] = [
         title: 'Artists',
         href: '/admin/artists',
         icon: Palette,
+    },
+    {
+        title: 'Connections',
+        href: '/admin/storefront-connections',
+        icon: Plug,
+    },
+    {
+        title: 'Imports',
+        href: '/admin/external-imports',
+        icon: ClipboardList,
+    },
+    {
+        title: 'Sales',
+        href: '/admin/sales',
+        icon: ClipboardList,
+    },
+    {
+        title: 'Fulfilment',
+        href: '/admin/fulfilment',
+        icon: Truck,
     },
 ];
 

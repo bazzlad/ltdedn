@@ -61,6 +61,16 @@ class Product extends Model
         return $this->hasMany(ProductEdition::class);
     }
 
+    public function skus(): HasMany
+    {
+        return $this->hasMany(ProductSku::class);
+    }
+
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
     public function collection(): BelongsTo
     {
         return $this->belongsTo(Collection::class);
