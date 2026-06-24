@@ -1,0 +1,388 @@
+# External Order Fulfilment Usage Guide
+
+This guide covers the current external order fulfilment pipeline for Shopify and Squarespace orders.
+
+The external storefront remains responsible for checkout, payment, tax, and fraud checks. LTD EDN imports paid orders, matches line items by SKU, allocates stock or limited editions, exposes the order in the admin fulfilment queue, records shipment tracking, emails the buyer, and attempts to push tracking back to the source storefront.
+
+## What Exists Now
+
+- `POST /api/webhooks/shopify/{connection}` imports signed Shopify order payloads.
+- `POST /api/webhooks/squarespace/{connection}` imports signed Squarespace order payloads.
+- `/admin/storefront-connections` lists configured connections and import counts.
+- `/admin/external-imports` lists webhook import attempts and their status.
+- `/admin/fulfilment` shows paid, unshipped, non-exception orders ready to ship.
+- `/admin/sales` lists imported orders with filters for status, platform, and exception state.
+- `/admin/sales/{order}` shows order details, line items, events, and shipment pushback status.
+
+Connection creation is not exposed in the admin UI yet. Create connections through Tinker, a seeder, or a migration.
+
+## Data Requirements
+
+Each externally sold variant must have a matching local `product_skus.sku_code`.
+
+For a successful import:
+
+- The webhook must be signed with the connection's `webhook_secret`.
+- The connection platform must match the endpoint.
+- The external order payment status must be paid.
+- Every line item must include a SKU that exists locally and is active.
+- The SKU must have enough `stock_on_hand`.
+- Limited products must have enough available `product_editions`.
+
+If a paid order has an unknown SKU or insufficient stock, LTD EDN creates an exception order instead of silently dropping it.
+
+## Local Setup
+
+Install and migrate as usual:
+
+```bash
+composer install
+npm install
+php artisan migrate
+```
+
+Run the app:
+
+```bash
+composer run dev
+```
+
+For webhook-only testing, `php artisan serve` is enough, but `composer run dev` also starts the queue worker and frontend dev server used by the admin UI.
+
+## Create Local Test Data
+
+Open Tinker:
+
+```bash
+php artisan tinker
+```
+
+Paste this setup for a Shopify test connection and one limited test SKU:
+
+```php
+use App\Enums\ProductEditionStatus;
+use App\Enums\StorefrontPlatform;
+use App\Models\Artist;
+use App\Models\Product;
+use App\Models\ProductEdition;
+use App\Models\ProductSku;
+use App\Models\StorefrontConnection;
+use App\Models\User;
+
+$admin = User::updateOrCreate(['email' => 'admin@example.test'], [
+    'name' => 'Local Admin',
+    'password' => bcrypt('password'),
+    'role' => 'admin',
+]);
+
+$artist = Artist::updateOrCreate(['slug' => 'local-test-artist'], [
+    'name' => 'Local Test Artist',
+    'owner_id' => $admin->id,
+]);
+
+$product = Product::updateOrCreate(['slug' => 'local-test-print'], [
+    'name' => 'Local Test Print',
+    'artist_id' => $artist->id,
+    'is_limited' => true,
+    'edition_size' => 3,
+]);
+
+$sku = ProductSku::updateOrCreate(['sku_code' => 'TEST-PRINT-A2'], [
+    'product_id' => $product->id,
+    'stock_on_hand' => 3,
+    'stock_reserved' => 0,
+    'is_active' => true,
+]);
+
+foreach ([1, 2, 3] as $number) {
+    ProductEdition::updateOrCreate(['product_id' => $product->id, 'number' => $number], [
+        'product_sku_id' => $sku->id,
+        'status' => ProductEditionStatus::Available,
+    ]);
+}
+
+$connection = StorefrontConnection::updateOrCreate(['platform' => StorefrontPlatform::Shopify->value, 'name' => 'Local Shopify Test'], [
+    'artist_id' => $artist->id,
+    'store_url' => 'https://example.myshopify.com',
+    'credentials' => ['access_token' => 'local-test-token'],
+    'webhook_secret' => 'local-shopify-secret',
+]);
+
+$connection->id;
+```
+
+Keep the returned connection id. The webhook URL is:
+
+```text
+http://127.0.0.1:8000/api/webhooks/shopify/{connection_id}
+```
+
+The example shell commands below use `CONNECTION_ID=1`. Replace that value with the id returned by Tinker.
+
+## Test A Successful Shopify Import
+
+Create a payload file:
+
+```bash
+cat > /tmp/ltdedn-shopify-order.json <<'JSON'
+{
+  "id": "local-shopify-order-1001",
+  "order_number": "S1001",
+  "email": "buyer@example.test",
+  "currency": "GBP",
+  "financial_status": "paid",
+  "fulfillment_status": null,
+  "subtotal_price": "25.00",
+  "total_tax": "0.00",
+  "total_price": "25.00",
+  "total_shipping_price_set": {
+    "shop_money": { "amount": "0.00" }
+  },
+  "shipping_address": {
+    "name": "Buyer Name",
+    "address1": "1 Test Street",
+    "city": "London",
+    "zip": "N1 1AA",
+    "country_code": "GB"
+  },
+  "line_items": [
+    {
+      "id": 501,
+      "sku": "TEST-PRINT-A2",
+      "title": "Local Test Print",
+      "variant_title": "A2",
+      "quantity": 1,
+      "price": "25.00"
+    }
+  ]
+}
+JSON
+```
+
+Sign and post it:
+
+```bash
+CONNECTION_ID=1
+SECRET='local-shopify-secret'
+BODY="$(cat /tmp/ltdedn-shopify-order.json)"
+SIGNATURE="$(php -r 'echo base64_encode(hash_hmac("sha256", file_get_contents($argv[1]), $argv[2], true));' /tmp/ltdedn-shopify-order.json "$SECRET")"
+
+curl -sS -X POST "http://127.0.0.1:8000/api/webhooks/shopify/${CONNECTION_ID}" \
+  -H 'Content-Type: application/json' \
+  -H "X-Shopify-Hmac-Sha256: ${SIGNATURE}" \
+  -H 'X-Shopify-Webhook-Id: local-delivery-1001' \
+  --data "$BODY"
+```
+
+Expected response:
+
+```json
+{"status":"processed","import_id":1,"order_id":1}
+```
+
+Then check:
+
+- `/admin/external-imports` shows the import as `processed`.
+- `/admin/fulfilment` shows the order ready to ship.
+- `/admin/sales` shows a paid Shopify order.
+- The SKU stock is reduced by the ordered quantity.
+- One limited edition is marked sold.
+
+## Test Duplicate Delivery Handling
+
+Run the same `curl` command again with the same body and `X-Shopify-Webhook-Id`.
+
+Expected behavior:
+
+- The response is still `200`.
+- No duplicate order is created.
+- No extra stock is consumed.
+- The existing import record is returned.
+
+## Test An Exception Order
+
+Change the line item SKU to a value that does not exist:
+
+```bash
+perl -0pi -e 's/TEST-PRINT-A2/MISSING-SKU/g' /tmp/ltdedn-shopify-order.json
+perl -0pi -e 's/local-shopify-order-1001/local-shopify-order-1002/g' /tmp/ltdedn-shopify-order.json
+```
+
+Sign and post again with a new delivery id:
+
+```bash
+BODY="$(cat /tmp/ltdedn-shopify-order.json)"
+SIGNATURE="$(php -r 'echo base64_encode(hash_hmac("sha256", file_get_contents($argv[1]), $argv[2], true));' /tmp/ltdedn-shopify-order.json "$SECRET")"
+
+curl -sS -X POST "http://127.0.0.1:8000/api/webhooks/shopify/${CONNECTION_ID}" \
+  -H 'Content-Type: application/json' \
+  -H "X-Shopify-Hmac-Sha256: ${SIGNATURE}" \
+  -H 'X-Shopify-Webhook-Id: local-delivery-1002' \
+  --data "$BODY"
+```
+
+Expected response:
+
+```json
+{"status":"exception","import_id":2,"order_id":2}
+```
+
+Then check:
+
+- `/admin/external-imports` shows `exception`.
+- `/admin/sales?exception=1` shows the blocked order.
+- The sales detail page shows the exception reason.
+- Admin users receive an `ExternalOrderExceptionNotification`.
+
+## Test Squarespace Import
+
+Create a Squarespace connection in Tinker:
+
+```php
+use App\Enums\StorefrontPlatform;
+use App\Models\Artist;
+use App\Models\StorefrontConnection;
+
+$artist = $artist ?? Artist::where('slug', 'local-test-artist')->firstOrFail();
+
+$square = StorefrontConnection::updateOrCreate(['platform' => StorefrontPlatform::Squarespace->value, 'name' => 'Local Squarespace Test'], [
+    'artist_id' => $artist->id,
+    'store_url' => 'https://example.squarespace.com',
+    'credentials' => ['access_token' => 'local-test-token'],
+    'webhook_secret' => 'local-squarespace-secret',
+]);
+
+$square->id;
+```
+
+Create a payload:
+
+```bash
+cat > /tmp/ltdedn-squarespace-order.json <<'JSON'
+{
+  "order": {
+    "id": "local-squarespace-order-1001",
+    "orderNumber": "SQ1001",
+    "customerEmail": "buyer@example.test",
+    "currency": "GBP",
+    "paymentStatus": "paid",
+    "subtotal": "25.00",
+    "grandTotal": "25.00",
+    "shippingAddress": {
+      "fullName": "Buyer Name",
+      "address1": "1 Test Street",
+      "city": "London",
+      "postalCode": "N1 1AA",
+      "countryCode": "GB"
+    },
+    "lineItems": [
+      {
+        "id": "line-1",
+        "sku": "TEST-PRINT-A2",
+        "productName": "Local Test Print",
+        "quantity": 1,
+        "unitPricePaid": "25.00"
+      }
+    ]
+  }
+}
+JSON
+```
+
+Sign and post it. Squarespace accepts either hex or base64 HMAC in this app; this example uses hex:
+
+```bash
+SQUARE_CONNECTION_ID=2
+SQUARE_SECRET='local-squarespace-secret'
+BODY="$(cat /tmp/ltdedn-squarespace-order.json)"
+SIGNATURE="$(php -r 'echo hash_hmac("sha256", file_get_contents($argv[1]), $argv[2]);' /tmp/ltdedn-squarespace-order.json "$SQUARE_SECRET")"
+
+curl -sS -X POST "http://127.0.0.1:8000/api/webhooks/squarespace/${SQUARE_CONNECTION_ID}" \
+  -H 'Content-Type: application/json' \
+  -H "X-Squarespace-Signature: ${SIGNATURE}" \
+  -H 'X-Squarespace-Webhook-Id: local-square-delivery-1001' \
+  --data "$BODY"
+```
+
+Expected response:
+
+```json
+{"status":"processed","import_id":3,"order_id":3}
+```
+
+## Fulfil An Imported Order
+
+1. Log in as an admin.
+2. Open `/admin/fulfilment`.
+3. Find the imported order.
+4. Enter the carrier and tracking number in the fulfilment card.
+5. Submit the shipment form.
+
+On first shipment:
+
+- `shipping_carrier`, `shipping_tracking_number`, and `shipped_at` are stored on the order.
+- A `shipped` order event is recorded.
+- A buyer shipment email is queued if `customer_email` is present.
+- A platform pushback job is queued for Shopify or Squarespace orders.
+
+Run a queue worker if one is not already running:
+
+```bash
+php artisan queue:listen --tries=1
+```
+
+## Pushback Notes
+
+Pushback is best tested against a real sandbox/dev storefront.
+
+Shopify pushback requires:
+
+- `store_url` using HTTPS and a `*.myshopify.com` host.
+- `credentials.access_token`.
+- `orders.meta.shopify_fulfillment_order_id`.
+
+The Shopify webhook import does not currently fetch Shopify fulfilment order ids. Without `meta.shopify_fulfillment_order_id`, the pushback job records a failure on the order instead of making a network request.
+
+Squarespace pushback requires:
+
+- `store_url` using HTTPS and a `*.squarespace.com` host.
+- `credentials.access_token`.
+
+Pushback success or failure is visible on the sales detail page and recorded as an order event.
+
+## Operational Statuses
+
+External import statuses:
+
+- `processed`: paid order imported and stock allocated.
+- `ignored`: webhook accepted but not imported, usually because the order was not paid or was already imported.
+- `exception`: paid order imported as an exception because SKU or stock allocation failed.
+- `failed`: unexpected importer error.
+
+Order statuses:
+
+- `paid`: ready for fulfilment unless already shipped.
+- `exception`: needs admin review before fulfilment.
+- `pending`, `cancelled`, `failed`: not in the fulfilment queue.
+
+## Useful Verification Commands
+
+Run the focused tests:
+
+```bash
+php artisan test tests/Feature/ExternalOrders tests/Feature/Admin/FulfilmentTest.php
+```
+
+Run the full backend suite:
+
+```bash
+composer test
+```
+
+Build the frontend:
+
+```bash
+npm run build
+```
+
+Known local warning: PHP 8.5 emits deprecation warnings from framework/PDO/PHPUnit internals. They do not indicate a failure when the test command exits successfully.
