@@ -1,8 +1,12 @@
 # Pipe17 Fulfilment Pivot
 
-Pipe17 is the active v1 storefront bridge for LTD EDN fulfilment.
+Status: fallback/reference.
 
-Artist storefronts connect to Pipe17. Pipe17 pulls Shopify and Squarespace orders, routes LTD EDN SKUs to the LTD EDN fulfillment location, and exposes those routed line items as Shipping Requests. LTD EDN has one active Pipe17 hub connection, polls those requests, allocates stock and limited editions locally, fulfils the order, then pushes tracking back to Pipe17 as a Fulfillment.
+Pipe17 is no longer the preferred active v1 storefront bridge for LTD EDN fulfilment. The active path is [Direct Storefront Connector Battle Plan](direct-storefront-connector-battle-plan.md), using direct Shopify and Squarespace OAuth/webhook connections.
+
+Keep this document as a reference if LTD EDN later needs Pipe17's routing, inventory, ERP, or complex middleware features.
+
+If LTD EDN later chooses the Pipe17 fallback, artist storefronts connect to Pipe17. Pipe17 pulls Shopify and Squarespace orders, routes LTD EDN SKUs to the LTD EDN fulfillment location, and exposes those routed line items as Shipping Requests. LTD EDN has one active Pipe17 hub connection, polls those requests, allocates stock and limited editions locally, fulfils the order, then pushes tracking back to Pipe17 as a Fulfillment.
 
 ## Operating Flow
 
@@ -20,7 +24,7 @@ Artist storefronts connect to Pipe17. Pipe17 pulls Shopify and Squarespace order
 10. LTD EDN posts a Pipe17 Fulfillment with tracking.
 11. Pipe17 syncs tracking onward to the original storefront.
 
-## Pipe17 Setup
+## Pipe17 Setup If Re-Enabled
 
 In Pipe17:
 

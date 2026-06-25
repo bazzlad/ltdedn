@@ -6,12 +6,12 @@ This is the simple way to get an artist, such as Joe Bloggs, connected to LTD ED
 
 Do not ask Joe to configure webhooks, handle API tokens, read developer docs, or understand fulfilment pushback.
 
-For now, use a concierge setup through Pipe17:
+For now, use a concierge setup through direct LTD EDN Connect:
 
 1. Joe fills in a short connection form.
-2. Joe gives LTD EDN temporary store access or joins a 10 minute setup call.
-3. LTD EDN connects the store to Pipe17.
-4. LTD EDN routes LTD EDN SKUs to the LTD EDN Pipe17 fulfillment location.
+2. Joe confirms the store platform and product SKU codes.
+3. Joe clicks the Shopify or Squarespace authorization link, or joins a 10 minute setup call while LTD EDN starts it.
+4. LTD EDN confirms the direct webhook connection is active.
 5. Joe places one test order.
 6. LTD EDN confirms the order appears in the fulfilment queue.
 
@@ -82,7 +82,7 @@ Hi Joe,
 To connect your Shopify/Squarespace store to LTD EDN fulfilment, we only need three things from you:
 
 1. Make sure each product variant has the SKU code we gave you.
-2. Give LTD EDN temporary access to your store, or join a short setup call with us.
+2. Click the secure Shopify/Squarespace connection link we send you, or join a short setup call with us.
 3. Place one small paid test order when we confirm setup is ready.
 
 After that, paid orders for those SKUs will flow into LTD EDN for fulfilment.
@@ -94,23 +94,23 @@ You do not need to configure webhooks or API settings yourself.
 
 Use this until a proper connection wizard exists.
 
-### Shopify Through Pipe17
+### Shopify Through LTD EDN Connect
 
 1. Joe confirms SKUs in Shopify product variants.
-2. Joe grants LTD EDN collaborator/staff access or joins a screen-share call.
-3. LTD EDN connects Shopify to Pipe17.
-4. LTD EDN creates the local `storefront_connections` row with platform `pipe17`.
-5. LTD EDN configures Pipe17 routing to the LTD EDN fulfillment location.
+2. Joe clicks `Connect Shopify` and approves LTD EDN.
+3. LTD EDN stores the Shopify connection in `storefront_connections`.
+4. LTD EDN registers the Shopify order webhook.
+5. LTD EDN confirms the connection is waiting for a test order.
 6. Joe places a paid test order.
 7. LTD EDN checks that the order is `processed` and appears in `/admin/fulfilment`.
 
-### Squarespace Through Pipe17
+### Squarespace Through LTD EDN Connect
 
 1. Joe confirms SKUs in Squarespace products.
-2. Joe grants LTD EDN the access needed to configure the Squarespace connection, or joins a screen-share call.
-3. LTD EDN connects Squarespace to Pipe17.
-4. LTD EDN creates the local `storefront_connections` row with platform `pipe17`.
-5. LTD EDN configures Pipe17 routing to the LTD EDN fulfillment location.
+2. Joe clicks `Connect Squarespace` and approves LTD EDN.
+3. LTD EDN stores the Squarespace connection in `storefront_connections`.
+4. LTD EDN registers the Squarespace `order.create` webhook subscription.
+5. LTD EDN confirms the connection is waiting for a test order.
 6. Joe places a paid test order.
 7. LTD EDN checks that the order is `processed` and appears in `/admin/fulfilment`.
 
@@ -118,7 +118,7 @@ Use this until a proper connection wizard exists.
 
 Build a simple internal wizard first. Do not start with a fully public self-service app.
 
-For the active middleware bridge, see [Pipe17 Fulfilment Pivot](pipe17-fulfilment-pivot-plan.md). For the paused click-accept-done approach, see [One-Click Storefront Connector Plan](one-click-storefront-connector-plan.md).
+For the active build plan, see [Direct Storefront Connector Battle Plan](direct-storefront-connector-battle-plan.md). Pipe17 remains documented as fallback/reference material in [Pipe17 Fulfilment Pivot](pipe17-fulfilment-pivot-plan.md).
 
 ### Step 1: Admin Connection Wizard
 

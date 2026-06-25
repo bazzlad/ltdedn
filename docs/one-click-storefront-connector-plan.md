@@ -1,8 +1,8 @@
 # One-Click Storefront Connector Plan
 
-Status: paused in favour of the Pipe17 fulfilment pivot.
+Status: active again as the preferred v1 direction.
 
-The active v1 integration path is now [Pipe17 Fulfilment Pivot](pipe17-fulfilment-pivot-plan.md). The OAuth connector remains useful long term, but it is not the current onboarding path.
+The active implementation plan is now [Direct Storefront Connector Battle Plan](direct-storefront-connector-battle-plan.md). Pipe17 remains fallback/reference material, but the preferred path is direct Shopify and Squarespace OAuth/webhook integration.
 
 This is the better long-term answer for connecting artists such as Joe Bloggs.
 
