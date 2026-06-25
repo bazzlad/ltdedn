@@ -1,8 +1,8 @@
 # One-Click Storefront Connector Plan
 
-Status: paused in favour of the Order Desk fulfilment pivot.
+Status: paused in favour of the Pipe17 fulfilment pivot.
 
-The active v1 integration path is now [Order Desk Fulfilment Pivot](orderdesk-fulfilment-pivot-plan.md). The OAuth connector remains useful long term, but it is not the current onboarding path.
+The active v1 integration path is now [Pipe17 Fulfilment Pivot](pipe17-fulfilment-pivot-plan.md). The OAuth connector remains useful long term, but it is not the current onboarding path.
 
 This is the better long-term answer for connecting artists such as Joe Bloggs.
 

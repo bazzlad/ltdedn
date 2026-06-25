@@ -16,7 +16,11 @@ class StorefrontConnectionFactory extends Factory
     public function definition(): array
     {
         return [
-            'platform' => fake()->randomElement(StorefrontPlatform::cases()),
+            'platform' => fake()->randomElement([
+                StorefrontPlatform::Shopify,
+                StorefrontPlatform::Squarespace,
+                StorefrontPlatform::Pipe17,
+            ]),
             'artist_id' => Artist::factory(),
             'name' => fake()->unique()->company(),
             'store_url' => fake()->url(),

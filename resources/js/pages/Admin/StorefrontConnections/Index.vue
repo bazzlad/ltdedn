@@ -35,7 +35,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <h1 class="text-2xl font-semibold">Storefront Connections</h1>
-                    <p class="text-sm text-muted-foreground">Order Desk intake setup status for artist storefronts</p>
+                    <p class="text-sm text-muted-foreground">Pipe17 fulfillment setup status for artist storefronts</p>
                 </div>
                 <Button as-child>
                     <Link href="/admin/storefront-connections/create">
@@ -64,20 +64,29 @@ const breadcrumbs: BreadcrumbItemType[] = [
                         <TableBody>
                             <TableRow v-for="connection in connections" :key="connection.id">
                                 <TableCell>
-                                    <Link class="font-medium underline-offset-4 hover:underline" :href="`/admin/storefront-connections/${connection.id}`">
+                                    <Link
+                                        class="font-medium underline-offset-4 hover:underline"
+                                        :href="`/admin/storefront-connections/${connection.id}`"
+                                    >
                                         {{ connection.name }}
                                     </Link>
                                 </TableCell>
                                 <TableCell>{{ connection.platform }}</TableCell>
                                 <TableCell>{{ connection.artist_name || '-' }}</TableCell>
-                                <TableCell><Badge variant="secondary">{{ connection.status }}</Badge></TableCell>
-                                <TableCell><Badge variant="outline">{{ connection.connection_status }}</Badge></TableCell>
+                                <TableCell
+                                    ><Badge variant="secondary">{{ connection.status }}</Badge></TableCell
+                                >
+                                <TableCell
+                                    ><Badge variant="outline">{{ connection.connection_status }}</Badge></TableCell
+                                >
                                 <TableCell>{{ connection.orders_count }}</TableCell>
                                 <TableCell>{{ connection.imports_count }}</TableCell>
                                 <TableCell>{{ connection.last_synced_at || '-' }}</TableCell>
                             </TableRow>
                             <TableRow v-if="connections.length === 0">
-                                <TableCell colspan="8" class="py-8 text-center text-sm text-muted-foreground">No storefront connections yet.</TableCell>
+                                <TableCell colspan="8" class="py-8 text-center text-sm text-muted-foreground"
+                                    >No storefront connections yet.</TableCell
+                                >
                             </TableRow>
                         </TableBody>
                     </Table>

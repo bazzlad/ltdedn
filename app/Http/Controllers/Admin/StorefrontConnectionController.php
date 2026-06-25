@@ -48,6 +48,7 @@ class StorefrontConnectionController extends Controller
                 ->orderBy('name')
                 ->get(),
             'platforms' => collect(StorefrontPlatform::cases())
+                ->reject(fn (StorefrontPlatform $platform) => $platform === StorefrontPlatform::LegacyOrderDesk)
                 ->map(fn (StorefrontPlatform $platform) => [
                     'value' => $platform->value,
                     'label' => Str::headline($platform->value),
@@ -69,14 +70,14 @@ class StorefrontConnectionController extends Controller
         $webhookSecret = $this->webhookSecret($platform, $validated['webhook_secret'] ?? null);
         $credentials = [];
 
-        if (filled($validated['access_token'] ?? null) && $platform === StorefrontPlatform::OrderDesk) {
+        if (filled($validated['access_token'] ?? null) && $platform === StorefrontPlatform::Pipe17) {
             $credentials['api_key'] = $validated['access_token'];
         } elseif (filled($validated['access_token'] ?? null)) {
             $credentials['access_token'] = $validated['access_token'];
         }
 
         $connection = StorefrontConnection::create([
-            'artist_id' => $validated['artist_id'],
+            'artist_id' => $validated['artist_id'] ?? null,
             'platform' => $platform,
             'name' => $validated['name'],
             'store_url' => $validated['store_url'] ?? null,
@@ -161,7 +162,8 @@ class StorefrontConnectionController extends Controller
         return match ($connection->platform) {
             StorefrontPlatform::Shopify => route('webhooks.shopify', $connection),
             StorefrontPlatform::Squarespace => route('webhooks.squarespace', $connection),
-            StorefrontPlatform::OrderDesk => route('webhooks.orderdesk', $connection),
+            StorefrontPlatform::LegacyOrderDesk => '',
+            StorefrontPlatform::Pipe17 => '',
         };
     }
 
@@ -173,7 +175,8 @@ class StorefrontConnectionController extends Controller
         return match ($platform) {
             StorefrontPlatform::Shopify => array_values(config('services.shopify_connect.scopes', [])),
             StorefrontPlatform::Squarespace => array_values(config('services.squarespace_connect.scopes', [])),
-            StorefrontPlatform::OrderDesk => [],
+            StorefrontPlatform::LegacyOrderDesk => [],
+            StorefrontPlatform::Pipe17 => [],
         };
     }
 
@@ -192,7 +195,7 @@ class StorefrontConnectionController extends Controller
             return $providedSecret;
         }
 
-        if ($platform === StorefrontPlatform::OrderDesk) {
+        if (in_array($platform, [StorefrontPlatform::LegacyOrderDesk, StorefrontPlatform::Pipe17], true)) {
             return null;
         }
 

@@ -23,7 +23,7 @@ class SalesController extends Controller
         $filters = $request->validate([
             'q' => ['nullable', 'string', 'max:100'],
             'status' => ['nullable', 'in:pending,paid,exception,cancelled,failed'],
-            'source_platform' => ['nullable', 'in:manual,shopify,squarespace,orderdesk'],
+            'source_platform' => ['nullable', 'in:manual,shopify,squarespace,pipe17'],
             'exception' => ['nullable', 'boolean'],
         ]);
 

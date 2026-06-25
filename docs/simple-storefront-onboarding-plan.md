@@ -6,12 +6,12 @@ This is the simple way to get an artist, such as Joe Bloggs, connected to LTD ED
 
 Do not ask Joe to configure webhooks, handle API tokens, read developer docs, or understand fulfilment pushback.
 
-For now, use a concierge setup through Order Desk:
+For now, use a concierge setup through Pipe17:
 
 1. Joe fills in a short connection form.
 2. Joe gives LTD EDN temporary store access or joins a 10 minute setup call.
-3. LTD EDN connects the store to Order Desk.
-4. LTD EDN connects Order Desk to LTD EDN fulfilment.
+3. LTD EDN connects the store to Pipe17.
+4. LTD EDN routes LTD EDN SKUs to the LTD EDN Pipe17 fulfillment location.
 5. Joe places one test order.
 6. LTD EDN confirms the order appears in the fulfilment queue.
 
@@ -58,8 +58,8 @@ An LTD EDN operator does the technical work:
 2. Create or confirm the local products.
 3. Create the matching LTD EDN SKUs.
 4. Create limited editions if the product is limited.
-5. Create the storefront connection.
-6. Configure Order Desk to send order JSON to LTD EDN.
+5. Create or confirm the single LTD EDN Pipe17 storefront connection.
+6. Configure Pipe17 routing to send LTD EDN SKUs to the LTD EDN fulfillment location.
 7. Place or wait for Joe's test order.
 8. Check `/admin/external-imports`.
 9. Check `/admin/fulfilment`.
@@ -94,23 +94,23 @@ You do not need to configure webhooks or API settings yourself.
 
 Use this until a proper connection wizard exists.
 
-### Shopify Through Order Desk
+### Shopify Through Pipe17
 
 1. Joe confirms SKUs in Shopify product variants.
 2. Joe grants LTD EDN collaborator/staff access or joins a screen-share call.
-3. LTD EDN connects Shopify to Order Desk.
-4. LTD EDN creates the local `storefront_connections` row with platform `orderdesk`.
-5. LTD EDN configures Order Desk `Post Order JSON`.
+3. LTD EDN connects Shopify to Pipe17.
+4. LTD EDN creates the local `storefront_connections` row with platform `pipe17`.
+5. LTD EDN configures Pipe17 routing to the LTD EDN fulfillment location.
 6. Joe places a paid test order.
 7. LTD EDN checks that the order is `processed` and appears in `/admin/fulfilment`.
 
-### Squarespace Through Order Desk
+### Squarespace Through Pipe17
 
 1. Joe confirms SKUs in Squarespace products.
 2. Joe grants LTD EDN the access needed to configure the Squarespace connection, or joins a screen-share call.
-3. LTD EDN connects Squarespace to Order Desk.
-4. LTD EDN creates the local `storefront_connections` row with platform `orderdesk`.
-5. LTD EDN configures Order Desk `Post Order JSON`.
+3. LTD EDN connects Squarespace to Pipe17.
+4. LTD EDN creates the local `storefront_connections` row with platform `pipe17`.
+5. LTD EDN configures Pipe17 routing to the LTD EDN fulfillment location.
 6. Joe places a paid test order.
 7. LTD EDN checks that the order is `processed` and appears in `/admin/fulfilment`.
 
@@ -118,7 +118,7 @@ Use this until a proper connection wizard exists.
 
 Build a simple internal wizard first. Do not start with a fully public self-service app.
 
-For the active middleware bridge, see [Order Desk Fulfilment Pivot](orderdesk-fulfilment-pivot-plan.md). For the paused click-accept-done approach, see [One-Click Storefront Connector Plan](one-click-storefront-connector-plan.md).
+For the active middleware bridge, see [Pipe17 Fulfilment Pivot](pipe17-fulfilment-pivot-plan.md). For the paused click-accept-done approach, see [One-Click Storefront Connector Plan](one-click-storefront-connector-plan.md).
 
 ### Step 1: Admin Connection Wizard
 

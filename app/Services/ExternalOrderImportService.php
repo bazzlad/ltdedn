@@ -318,6 +318,7 @@ class ExternalOrderImportService
             'shipping_country' => $address->country ? strtoupper($address->country) : null,
             'paid_at' => $status === OrderStatus::Paid ? now() : null,
             'exception_reason' => $exceptionReason,
+            'meta' => $normalized->meta ?: null,
         ]);
     }
 

@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ExternalImportStatus;
 use App\Enums\ProductEditionStatus;
 use App\Enums\StorefrontConnectionStatus;
 use App\Enums\StorefrontPlatform;
 use App\Models\Artist;
+use App\Models\ExternalOrderImport;
 use App\Models\Product;
 use App\Models\ProductEdition;
 use App\Models\ProductSku;
@@ -77,29 +79,87 @@ class ConnectStorefrontTest extends TestCase
         $this->assertStringNotContainsString('configured-shopify-secret', (string) $connection->getRawOriginal('webhook_secret'));
     }
 
-    public function test_admin_can_create_orderdesk_connection(): void
+    public function test_admin_can_create_pipe17_connection_without_artist(): void
     {
         $admin = User::factory()->admin()->create();
-        $artist = Artist::factory()->create();
 
         $this->actingAs($admin)
             ->post('/admin/storefront-connections', [
-                'artist_id' => $artist->id,
-                'platform' => StorefrontPlatform::OrderDesk->value,
-                'name' => 'Joe Bloggs Order Desk',
-                'external_shop_id' => 'od-store-1',
-                'access_token' => 'od-api-key',
+                'platform' => StorefrontPlatform::Pipe17->value,
+                'name' => 'LTD EDN Pipe17',
+                'external_shop_id' => 'pipe17-location-1',
+                'access_token' => 'pipe17-api-key',
                 'connection_status' => StorefrontConnectionStatus::Testing->value,
             ])
             ->assertRedirect();
 
         $connection = StorefrontConnection::query()->firstOrFail();
 
-        $this->assertSame(StorefrontPlatform::OrderDesk, $connection->platform);
-        $this->assertSame('od-store-1', $connection->external_shop_id);
-        $this->assertSame('od-api-key', data_get($connection->credentials, 'api_key'));
+        $this->assertSame(StorefrontPlatform::Pipe17, $connection->platform);
+        $this->assertNull($connection->artist_id);
+        $this->assertSame('pipe17-location-1', $connection->external_shop_id);
+        $this->assertSame('pipe17-api-key', data_get($connection->credentials, 'api_key'));
         $this->assertNull($connection->webhook_secret);
-        $this->assertStringNotContainsString('od-api-key', (string) $connection->getRawOriginal('credentials'));
+        $this->assertStringNotContainsString('pipe17-api-key', (string) $connection->getRawOriginal('credentials'));
+    }
+
+    public function test_admin_cannot_create_second_active_pipe17_connection(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        StorefrontConnection::factory()->create([
+            'platform' => StorefrontPlatform::Pipe17,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($admin)
+            ->from('/admin/storefront-connections/create')
+            ->post('/admin/storefront-connections', [
+                'platform' => StorefrontPlatform::Pipe17->value,
+                'name' => 'Second Pipe17',
+                'external_shop_id' => 'pipe17-location-2',
+                'access_token' => 'pipe17-api-key',
+                'connection_status' => StorefrontConnectionStatus::Testing->value,
+            ])
+            ->assertRedirect('/admin/storefront-connections/create')
+            ->assertSessionHasErrors('platform');
+    }
+
+    public function test_admin_cannot_create_legacy_orderdesk_connection(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->from('/admin/storefront-connections/create')
+            ->post('/admin/storefront-connections', [
+                'platform' => StorefrontPlatform::LegacyOrderDesk->value,
+                'name' => 'Legacy Order Desk',
+                'external_shop_id' => 'od-store-1',
+                'access_token' => 'od-api-key',
+                'connection_status' => StorefrontConnectionStatus::Testing->value,
+            ])
+            ->assertRedirect('/admin/storefront-connections/create')
+            ->assertSessionHasErrors('platform');
+    }
+
+    public function test_legacy_orderdesk_rows_do_not_break_admin_indexes(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $connection = StorefrontConnection::factory()->create([
+            'platform' => StorefrontPlatform::LegacyOrderDesk,
+        ]);
+        ExternalOrderImport::factory()->for($connection, 'connection')->create([
+            'platform' => StorefrontPlatform::LegacyOrderDesk,
+            'status' => ExternalImportStatus::Processed,
+        ]);
+
+        $this->actingAs($admin)
+            ->get('/admin/storefront-connections')
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->get('/admin/external-imports')
+            ->assertOk();
     }
 
     public function test_artist_cannot_use_admin_connection_wizard(): void

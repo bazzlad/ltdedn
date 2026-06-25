@@ -20,6 +20,7 @@ final readonly class NormalizedOrderData
         public string $paymentStatus,
         public ?string $fulfilmentStatus,
         public array $lineItems,
+        public array $meta = [],
     ) {}
 
     public function isPaid(): bool

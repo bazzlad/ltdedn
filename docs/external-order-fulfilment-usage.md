@@ -1,6 +1,6 @@
 # External Order Fulfilment Usage Guide
 
-This guide covers the current external order fulfilment pipeline for Shopify and Squarespace orders.
+This guide covers the current external order fulfilment pipeline for Shopify, Squarespace, and Pipe17-routed orders.
 
 The external storefront remains responsible for checkout, payment, tax, and fraud checks. LTD EDN imports paid orders, matches line items by SKU, allocates stock or limited editions, exposes the order in the admin fulfilment queue, records shipment tracking, emails the buyer, and attempts to push tracking back to the source storefront.
 
@@ -8,14 +8,14 @@ The external storefront remains responsible for checkout, payment, tax, and frau
 
 - `POST /api/webhooks/shopify/{connection}` imports signed Shopify order payloads.
 - `POST /api/webhooks/squarespace/{connection}` imports signed Squarespace order payloads.
-- `POST /api/webhooks/orderdesk/{connection}` imports signed Order Desk `Post Order JSON` payloads.
+- `php artisan pipe17:pull-shipping-requests` imports Pipe17 Shipping Requests assigned to LTD EDN.
 - `/admin/storefront-connections` lists configured connections and import counts.
 - `/admin/external-imports` lists webhook import attempts and their status.
 - `/admin/fulfilment` shows paid, unshipped, non-exception orders ready to ship.
 - `/admin/sales` lists imported orders with filters for status, platform, and exception state.
 - `/admin/sales/{order}` shows order details, line items, events, and shipment pushback status.
 
-Connection creation is not exposed in the admin UI yet. Create connections through Tinker, a seeder, or a migration.
+Connection creation is exposed at `/admin/storefront-connections/create`.
 
 ## Data Requirements
 
@@ -25,7 +25,7 @@ For a successful import:
 
 - The webhook must be signed with the connection's `webhook_secret`.
 - The connection platform must match the endpoint.
-- For Order Desk, `X-ORDER-DESK-STORE-ID` must match `storefront_connections.external_shop_id`, and `X-ORDER-DESK-HASH` must match an HMAC of the posted `order` value using the connection `webhook_secret`.
+- Pipe17 imports require one active `pipe17` hub connection with the Pipe17 API key stored as encrypted `credentials.api_key`.
 - The external order payment status must be paid.
 - Every line item must include a SKU that exists locally and is active.
 - The SKU must have enough `stock_on_hand`.
@@ -325,7 +325,7 @@ On first shipment:
 - `shipping_carrier`, `shipping_tracking_number`, and `shipped_at` are stored on the order.
 - A `shipped` order event is recorded.
 - A buyer shipment email is queued if `customer_email` is present.
-- A platform pushback job is queued for Shopify, Squarespace, or Order Desk orders.
+- A platform pushback job is queued for Shopify, Squarespace, or Pipe17 orders.
 
 Run a queue worker if one is not already running:
 
@@ -350,13 +350,15 @@ Squarespace pushback requires:
 - `store_url` using HTTPS and a `*.squarespace.com` host.
 - `credentials.access_token`.
 
-Order Desk pushback requires:
+Pipe17 pushback requires:
 
-- `storefront_connections.external_shop_id` set to the Order Desk store ID.
-- `storefront_connections.credentials.api_key` set to the Order Desk API key.
-- `orders.external_order_id` set to the internal Order Desk order ID.
+- `storefront_connections.external_shop_id` set to the Pipe17 fulfillment location ID.
+- `storefront_connections.credentials.api_key` set to the Pipe17 API key, or `PIPE17_API_KEY` configured.
+- `orders.external_order_id` set to the Pipe17 Shipping Request ID.
 
 Pushback success or failure is visible on the sales detail page and recorded as an order event.
+
+Legacy `orderdesk` rows remain readable in admin screens so old data does not break enum casts, but Order Desk is not an active connection platform and cannot be created from the admin wizard.
 
 ## Operational Statuses
 

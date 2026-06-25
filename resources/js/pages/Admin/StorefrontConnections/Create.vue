@@ -37,7 +37,9 @@ const breadcrumbs: BreadcrumbItemType[] = [
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <h1 class="text-2xl font-semibold">New Storefront Connection</h1>
-                    <p class="text-sm text-muted-foreground">Create the Order Desk intake record and webhook endpoint for an artist store</p>
+                    <p class="text-sm text-muted-foreground">
+                        Create the Pipe17 fulfillment connection LTD EDN will poll for assigned shipping requests
+                    </p>
                 </div>
                 <Button variant="outline" as-child>
                     <Link href="/admin/storefront-connections">
@@ -53,8 +55,8 @@ const breadcrumbs: BreadcrumbItemType[] = [
                 </CardHeader>
                 <CardContent>
                     <div class="mb-6 rounded-md border bg-muted p-3 text-sm text-muted-foreground">
-                        For Order Desk, use the Order Desk store ID as the external shop ID and the Order Desk API key as the access token. The webhook secret
-                        can be left blank; LTD EDN will verify the inbound hash with the encrypted API key.
+                        For Pipe17, use the Pipe17 fulfillment location ID as the external shop ID and the Pipe17 API key as the access token. Pipe17
+                        orders are pulled by the scheduled shipping request poller, so no webhook secret is required.
                     </div>
                     <Form action="/admin/storefront-connections" method="post" #default="{ errors, processing }">
                         <div class="grid gap-6 md:grid-cols-2">
@@ -100,13 +102,17 @@ const breadcrumbs: BreadcrumbItemType[] = [
 
                             <div class="grid gap-2">
                                 <Label for="external_shop_domain">Store domain</Label>
-                                <Input id="external_shop_domain" name="external_shop_domain" placeholder="example.myshopify.com or Order Desk store name" />
+                                <Input
+                                    id="external_shop_domain"
+                                    name="external_shop_domain"
+                                    placeholder="example.myshopify.com or Pipe17 connection name"
+                                />
                                 <div v-if="errors.external_shop_domain" class="text-sm text-red-600">{{ errors.external_shop_domain }}</div>
                             </div>
 
                             <div class="grid gap-2">
                                 <Label for="external_shop_id">External shop ID</Label>
-                                <Input id="external_shop_id" name="external_shop_id" placeholder="Order Desk store ID" />
+                                <Input id="external_shop_id" name="external_shop_id" placeholder="Pipe17 fulfillment location ID" />
                                 <div v-if="errors.external_shop_id" class="text-sm text-red-600">{{ errors.external_shop_id }}</div>
                             </div>
 
@@ -118,7 +124,12 @@ const breadcrumbs: BreadcrumbItemType[] = [
                                     required
                                     class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
                                 >
-                                    <option v-for="status in statuses" :key="status.value" :value="status.value" :selected="status.value === 'testing'">
+                                    <option
+                                        v-for="status in statuses"
+                                        :key="status.value"
+                                        :value="status.value"
+                                        :selected="status.value === 'testing'"
+                                    >
                                         {{ status.label }}
                                     </option>
                                 </select>

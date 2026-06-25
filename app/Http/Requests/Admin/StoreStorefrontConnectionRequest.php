@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\StorefrontConnectionStatus;
 use App\Enums\StorefrontPlatform;
+use App\Models\StorefrontConnection;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,7 +18,7 @@ class StoreStorefrontConnectionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'artist_id' => ['required', 'exists:artists,id'],
+            'artist_id' => ['nullable', 'exists:artists,id'],
             'platform' => ['required', Rule::enum(StorefrontPlatform::class)],
             'name' => ['required', 'string', 'max:255'],
             'store_url' => ['nullable', 'url', 'max:255'],
@@ -33,8 +34,8 @@ class StoreStorefrontConnectionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'artist_id.required' => 'Please choose the artist this store belongs to.',
-            'platform.required' => 'Please choose Shopify, Squarespace, or Order Desk.',
+            'artist_id.required' => 'Please choose the artist or fulfillment owner this connection belongs to.',
+            'platform.required' => 'Please choose Shopify, Squarespace, or Pipe17.',
             'name.required' => 'Please name this connection.',
             'store_url.url' => 'Enter the full store URL, including https://.',
         ];
@@ -44,6 +45,16 @@ class StoreStorefrontConnectionRequest extends FormRequest
     {
         return [
             function ($validator): void {
+                if ($this->input('platform') === StorefrontPlatform::LegacyOrderDesk->value) {
+                    $validator->errors()->add('platform', 'Order Desk is no longer an active connection platform.');
+
+                    return;
+                }
+
+                if ($this->input('platform') !== StorefrontPlatform::Pipe17->value && blank($this->input('artist_id'))) {
+                    $validator->errors()->add('artist_id', 'Please choose the artist this store belongs to.');
+                }
+
                 if (
                     $this->input('platform') === StorefrontPlatform::Shopify->value
                     && blank($this->input('webhook_secret'))
@@ -52,16 +63,25 @@ class StoreStorefrontConnectionRequest extends FormRequest
                     $validator->errors()->add('webhook_secret', 'Enter the Shopify app secret before saving this connection.');
                 }
 
-                if ($this->input('platform') !== StorefrontPlatform::OrderDesk->value) {
+                if ($this->input('platform') !== StorefrontPlatform::Pipe17->value) {
                     return;
                 }
 
                 if (blank($this->input('external_shop_id'))) {
-                    $validator->errors()->add('external_shop_id', 'Enter the Order Desk store ID.');
+                    $validator->errors()->add('external_shop_id', 'Enter the Pipe17 fulfillment location ID.');
                 }
 
                 if (blank($this->input('access_token'))) {
-                    $validator->errors()->add('access_token', 'Enter the Order Desk API key.');
+                    $validator->errors()->add('access_token', 'Enter the Pipe17 API key.');
+                }
+
+                if (
+                    StorefrontConnection::query()
+                        ->where('platform', StorefrontPlatform::Pipe17->value)
+                        ->where('status', 'active')
+                        ->exists()
+                ) {
+                    $validator->errors()->add('platform', 'Only one active Pipe17 fulfillment connection is supported.');
                 }
             },
         ];

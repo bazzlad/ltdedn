@@ -42,8 +42,13 @@ return [
         'user_agent' => env('SQUARESPACE_CONNECT_USER_AGENT', env('APP_NAME', 'LTD EDN Connect')),
     ],
 
-    'orderdesk' => [
-        'api_url' => env('ORDERDESK_API_URL', 'https://app.orderdesk.me/api/v2'),
+    'pipe17' => [
+        'api_url' => env('PIPE17_API_URL', 'https://api-v3.pipe17.com/api/v3'),
+        'api_key' => env('PIPE17_API_KEY'),
+        'connection_id' => env('PIPE17_CONNECTION_ID'),
+        'location_id' => env('PIPE17_LOCATION_ID'),
+        'shipping_request_statuses' => array_filter(explode(',', env('PIPE17_SHIPPING_REQUEST_STATUSES', 'readyForFulfillment'))),
+        'allowed_hosts' => array_filter(explode(',', env('PIPE17_ALLOWED_HOSTS', 'api-v3.pipe17.com,api.pipe17.com'))),
     ],
 
     'slack' => [

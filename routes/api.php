@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Webhooks\OrderDeskWebhookController;
 use App\Http\Controllers\Webhooks\ShopifyWebhookController;
 use App\Http\Controllers\Webhooks\SquarespaceWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -10,6 +9,3 @@ Route::post('webhooks/shopify/{connection}', ShopifyWebhookController::class)
 
 Route::post('webhooks/squarespace/{connection}', SquarespaceWebhookController::class)
     ->name('webhooks.squarespace');
-
-Route::post('webhooks/orderdesk/{connection}', OrderDeskWebhookController::class)
-    ->name('webhooks.orderdesk');
