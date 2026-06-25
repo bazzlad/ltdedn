@@ -6,4 +6,5 @@ enum StorefrontPlatform: string
 {
     case Shopify = 'shopify';
     case Squarespace = 'squarespace';
+    case OrderDesk = 'orderdesk';
 }

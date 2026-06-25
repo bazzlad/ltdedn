@@ -69,7 +69,9 @@ class StorefrontConnectionController extends Controller
         $webhookSecret = $this->webhookSecret($platform, $validated['webhook_secret'] ?? null);
         $credentials = [];
 
-        if (filled($validated['access_token'] ?? null)) {
+        if (filled($validated['access_token'] ?? null) && $platform === StorefrontPlatform::OrderDesk) {
+            $credentials['api_key'] = $validated['access_token'];
+        } elseif (filled($validated['access_token'] ?? null)) {
             $credentials['access_token'] = $validated['access_token'];
         }
 
@@ -159,6 +161,7 @@ class StorefrontConnectionController extends Controller
         return match ($connection->platform) {
             StorefrontPlatform::Shopify => route('webhooks.shopify', $connection),
             StorefrontPlatform::Squarespace => route('webhooks.squarespace', $connection),
+            StorefrontPlatform::OrderDesk => route('webhooks.orderdesk', $connection),
         };
     }
 
@@ -170,6 +173,7 @@ class StorefrontConnectionController extends Controller
         return match ($platform) {
             StorefrontPlatform::Shopify => array_values(config('services.shopify_connect.scopes', [])),
             StorefrontPlatform::Squarespace => array_values(config('services.squarespace_connect.scopes', [])),
+            StorefrontPlatform::OrderDesk => [],
         };
     }
 
@@ -182,10 +186,14 @@ class StorefrontConnectionController extends Controller
         return parse_url($url, PHP_URL_HOST) ?: null;
     }
 
-    private function webhookSecret(StorefrontPlatform $platform, ?string $providedSecret): string
+    private function webhookSecret(StorefrontPlatform $platform, ?string $providedSecret): ?string
     {
         if ($providedSecret) {
             return $providedSecret;
+        }
+
+        if ($platform === StorefrontPlatform::OrderDesk) {
+            return null;
         }
 
         if ($platform === StorefrontPlatform::Shopify && filled(config('services.shopify_connect.client_secret'))) {

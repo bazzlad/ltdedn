@@ -35,7 +35,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <h1 class="text-2xl font-semibold">Storefront Connections</h1>
-                    <p class="text-sm text-muted-foreground">Shopify and Squarespace intake setup status</p>
+                    <p class="text-sm text-muted-foreground">Order Desk intake setup status for artist storefronts</p>
                 </div>
                 <Button as-child>
                     <Link href="/admin/storefront-connections/create">

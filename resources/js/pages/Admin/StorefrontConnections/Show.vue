@@ -117,6 +117,13 @@ const activate = () => {
                                 <div class="text-muted-foreground">Webhook URL</div>
                                 <code class="block break-all rounded border bg-muted px-3 py-2 text-xs">{{ connection.webhook_url }}</code>
                             </div>
+                            <div v-if="connection.platform === 'orderdesk'" class="md:col-span-2">
+                                <div class="text-muted-foreground">Order Desk rule headers</div>
+                                <div class="rounded border bg-muted px-3 py-2 text-xs">
+                                    Use Post Order JSON with X-ORDER-DESK-STORE-ID matching the external shop ID. Enable the API key hash so LTD EDN can
+                                    verify X-ORDER-DESK-HASH.
+                                </div>
+                            </div>
                             <div class="md:col-span-2">
                                 <div class="text-muted-foreground">OAuth scopes</div>
                                 <div class="flex flex-wrap gap-2 pt-1">

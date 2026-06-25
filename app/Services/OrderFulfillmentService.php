@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\OrderStatus;
+use App\Jobs\PushOrderDeskFulfilment;
 use App\Jobs\PushShopifyFulfilment;
 use App\Jobs\PushSquarespaceFulfilment;
 use App\Mail\OrderShippedMail;
@@ -114,6 +115,7 @@ class OrderFulfillmentService
         match ($order->source_platform) {
             'shopify' => PushShopifyFulfilment::dispatch($order->id),
             'squarespace' => PushSquarespaceFulfilment::dispatch($order->id),
+            'orderdesk' => PushOrderDeskFulfilment::dispatch($order->id),
             default => null,
         };
     }

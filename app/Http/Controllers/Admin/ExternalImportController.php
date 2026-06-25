@@ -19,7 +19,7 @@ class ExternalImportController extends Controller
 
         $filters = $request->validate([
             'status' => ['nullable', 'in:pending,processed,ignored,exception,failed'],
-            'platform' => ['nullable', 'in:shopify,squarespace'],
+            'platform' => ['nullable', 'in:shopify,squarespace,orderdesk'],
         ]);
 
         $imports = ExternalOrderImport::query()

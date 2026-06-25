@@ -77,6 +77,31 @@ class ConnectStorefrontTest extends TestCase
         $this->assertStringNotContainsString('configured-shopify-secret', (string) $connection->getRawOriginal('webhook_secret'));
     }
 
+    public function test_admin_can_create_orderdesk_connection(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $artist = Artist::factory()->create();
+
+        $this->actingAs($admin)
+            ->post('/admin/storefront-connections', [
+                'artist_id' => $artist->id,
+                'platform' => StorefrontPlatform::OrderDesk->value,
+                'name' => 'Joe Bloggs Order Desk',
+                'external_shop_id' => 'od-store-1',
+                'access_token' => 'od-api-key',
+                'connection_status' => StorefrontConnectionStatus::Testing->value,
+            ])
+            ->assertRedirect();
+
+        $connection = StorefrontConnection::query()->firstOrFail();
+
+        $this->assertSame(StorefrontPlatform::OrderDesk, $connection->platform);
+        $this->assertSame('od-store-1', $connection->external_shop_id);
+        $this->assertSame('od-api-key', data_get($connection->credentials, 'api_key'));
+        $this->assertNull($connection->webhook_secret);
+        $this->assertStringNotContainsString('od-api-key', (string) $connection->getRawOriginal('credentials'));
+    }
+
     public function test_artist_cannot_use_admin_connection_wizard(): void
     {
         $artistUser = User::factory()->artist()->create();

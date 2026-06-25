@@ -38,6 +38,7 @@ class ExternalOrderImportService
         try {
             return DB::transaction(function () use ($connection, $normalized, $rawPayload, $deliveryId, $payloadHash) {
                 $existingOrder = Order::query()
+                    ->where('storefront_connection_id', $connection->id)
                     ->where('source_platform', $connection->platform->value)
                     ->where('external_order_id', $normalized->externalOrderId)
                     ->first();

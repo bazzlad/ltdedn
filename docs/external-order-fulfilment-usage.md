@@ -8,6 +8,7 @@ The external storefront remains responsible for checkout, payment, tax, and frau
 
 - `POST /api/webhooks/shopify/{connection}` imports signed Shopify order payloads.
 - `POST /api/webhooks/squarespace/{connection}` imports signed Squarespace order payloads.
+- `POST /api/webhooks/orderdesk/{connection}` imports signed Order Desk `Post Order JSON` payloads.
 - `/admin/storefront-connections` lists configured connections and import counts.
 - `/admin/external-imports` lists webhook import attempts and their status.
 - `/admin/fulfilment` shows paid, unshipped, non-exception orders ready to ship.
@@ -24,6 +25,7 @@ For a successful import:
 
 - The webhook must be signed with the connection's `webhook_secret`.
 - The connection platform must match the endpoint.
+- For Order Desk, `X-ORDER-DESK-STORE-ID` must match `storefront_connections.external_shop_id`, and `X-ORDER-DESK-HASH` must match an HMAC of the posted `order` value using the connection `webhook_secret`.
 - The external order payment status must be paid.
 - Every line item must include a SKU that exists locally and is active.
 - The SKU must have enough `stock_on_hand`.
@@ -323,7 +325,7 @@ On first shipment:
 - `shipping_carrier`, `shipping_tracking_number`, and `shipped_at` are stored on the order.
 - A `shipped` order event is recorded.
 - A buyer shipment email is queued if `customer_email` is present.
-- A platform pushback job is queued for Shopify or Squarespace orders.
+- A platform pushback job is queued for Shopify, Squarespace, or Order Desk orders.
 
 Run a queue worker if one is not already running:
 
@@ -347,6 +349,12 @@ Squarespace pushback requires:
 
 - `store_url` using HTTPS and a `*.squarespace.com` host.
 - `credentials.access_token`.
+
+Order Desk pushback requires:
+
+- `storefront_connections.external_shop_id` set to the Order Desk store ID.
+- `storefront_connections.credentials.api_key` set to the Order Desk API key.
+- `orders.external_order_id` set to the internal Order Desk order ID.
 
 Pushback success or failure is visible on the sales detail page and recorded as an order event.
 

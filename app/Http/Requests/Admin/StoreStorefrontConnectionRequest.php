@@ -34,7 +34,7 @@ class StoreStorefrontConnectionRequest extends FormRequest
     {
         return [
             'artist_id.required' => 'Please choose the artist this store belongs to.',
-            'platform.required' => 'Please choose Shopify or Squarespace.',
+            'platform.required' => 'Please choose Shopify, Squarespace, or Order Desk.',
             'name.required' => 'Please name this connection.',
             'store_url.url' => 'Enter the full store URL, including https://.',
         ];
@@ -50,6 +50,18 @@ class StoreStorefrontConnectionRequest extends FormRequest
                     && blank(config('services.shopify_connect.client_secret'))
                 ) {
                     $validator->errors()->add('webhook_secret', 'Enter the Shopify app secret before saving this connection.');
+                }
+
+                if ($this->input('platform') !== StorefrontPlatform::OrderDesk->value) {
+                    return;
+                }
+
+                if (blank($this->input('external_shop_id'))) {
+                    $validator->errors()->add('external_shop_id', 'Enter the Order Desk store ID.');
+                }
+
+                if (blank($this->input('access_token'))) {
+                    $validator->errors()->add('access_token', 'Enter the Order Desk API key.');
                 }
             },
         ];

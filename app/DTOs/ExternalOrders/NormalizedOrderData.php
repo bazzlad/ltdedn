@@ -24,6 +24,6 @@ final readonly class NormalizedOrderData
 
     public function isPaid(): bool
     {
-        return in_array(strtolower($this->paymentStatus), ['paid', 'paid_ready', 'complete', 'completed'], true);
+        return in_array(strtolower($this->paymentStatus), ['approved', 'paid', 'paid_ready', 'captured', 'complete', 'completed'], true);
     }
 }

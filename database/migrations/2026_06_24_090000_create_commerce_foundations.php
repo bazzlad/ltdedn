@@ -83,7 +83,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('store_url')->nullable();
             $table->text('credentials')->nullable();
-            $table->text('webhook_secret');
+            $table->text('webhook_secret')->nullable();
             $table->string('status', 32)->default('active');
             $table->timestamp('last_synced_at')->nullable();
             $table->json('last_sync_meta')->nullable();

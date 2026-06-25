@@ -42,6 +42,10 @@ return [
         'user_agent' => env('SQUARESPACE_CONNECT_USER_AGENT', env('APP_NAME', 'LTD EDN Connect')),
     ],
 
+    'orderdesk' => [
+        'api_url' => env('ORDERDESK_API_URL', 'https://app.orderdesk.me/api/v2'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

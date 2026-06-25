@@ -37,7 +37,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <h1 class="text-2xl font-semibold">New Storefront Connection</h1>
-                    <p class="text-sm text-muted-foreground">Create the setup record and webhook endpoint for an artist store</p>
+                    <p class="text-sm text-muted-foreground">Create the Order Desk intake record and webhook endpoint for an artist store</p>
                 </div>
                 <Button variant="outline" as-child>
                     <Link href="/admin/storefront-connections">
@@ -52,6 +52,10 @@ const breadcrumbs: BreadcrumbItemType[] = [
                     <CardTitle>Connection Details</CardTitle>
                 </CardHeader>
                 <CardContent>
+                    <div class="mb-6 rounded-md border bg-muted p-3 text-sm text-muted-foreground">
+                        For Order Desk, use the Order Desk store ID as the external shop ID and the Order Desk API key as the access token. The webhook secret
+                        can be left blank; LTD EDN will verify the inbound hash with the encrypted API key.
+                    </div>
                     <Form action="/admin/storefront-connections" method="post" #default="{ errors, processing }">
                         <div class="grid gap-6 md:grid-cols-2">
                             <div class="grid gap-2">
@@ -96,13 +100,13 @@ const breadcrumbs: BreadcrumbItemType[] = [
 
                             <div class="grid gap-2">
                                 <Label for="external_shop_domain">Store domain</Label>
-                                <Input id="external_shop_domain" name="external_shop_domain" placeholder="example.myshopify.com" />
+                                <Input id="external_shop_domain" name="external_shop_domain" placeholder="example.myshopify.com or Order Desk store name" />
                                 <div v-if="errors.external_shop_domain" class="text-sm text-red-600">{{ errors.external_shop_domain }}</div>
                             </div>
 
                             <div class="grid gap-2">
                                 <Label for="external_shop_id">External shop ID</Label>
-                                <Input id="external_shop_id" name="external_shop_id" />
+                                <Input id="external_shop_id" name="external_shop_id" placeholder="Order Desk store ID" />
                                 <div v-if="errors.external_shop_id" class="text-sm text-red-600">{{ errors.external_shop_id }}</div>
                             </div>
 
@@ -128,7 +132,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
                             </div>
 
                             <div class="grid gap-2 md:col-span-2">
-                                <Label for="access_token">Access token</Label>
+                                <Label for="access_token">Access token / API key</Label>
                                 <Input id="access_token" name="access_token" type="password" autocomplete="off" />
                                 <div v-if="errors.access_token" class="text-sm text-red-600">{{ errors.access_token }}</div>
                             </div>
