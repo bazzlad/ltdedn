@@ -58,8 +58,8 @@ An LTD EDN operator does the technical work:
 2. Create or confirm the local products.
 3. Create the matching LTD EDN SKUs.
 4. Create limited editions if the product is limited.
-5. Create or confirm the single LTD EDN Pipe17 storefront connection.
-6. Configure Pipe17 routing to send LTD EDN SKUs to the LTD EDN fulfillment location.
+5. Create or confirm the direct Shopify or Squarespace storefront connection.
+6. Confirm LTD EDN registered the platform order webhook.
 7. Place or wait for Joe's test order.
 8. Check `/admin/external-imports`.
 9. Check `/admin/fulfilment`.

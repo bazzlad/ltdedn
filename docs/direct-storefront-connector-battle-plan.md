@@ -1,6 +1,6 @@
 # Direct Storefront Connector Battle Plan
 
-Status: active planning path.
+Status: active implementation path.
 
 This plan pivots LTD EDN back to direct Shopify and Squarespace connections. Pipe17 remains a possible fallback for complex middleware needs, but it is no longer the preferred v1 bridge for normal artist storefront onboarding.
 
@@ -35,7 +35,7 @@ Tasks:
 - Remove Pipe17 from the normal admin creation path, or clearly label it as advanced/fallback if retained.
 - Remove Pipe17 from artist-facing onboarding copy.
 - Keep legacy enum/data compatibility so existing `pipe17` rows do not break admin screens.
-- Decide whether the scheduler should keep running `pipe17:pull-shipping-requests`.
+- Keep the `pipe17:pull-shipping-requests` scheduler disabled by default unless `PIPE17_SCHEDULE_ENABLED` is enabled.
 
 Acceptance:
 
@@ -43,9 +43,9 @@ Acceptance:
 - Artist setup instructions no longer imply Pipe17 is required.
 - No existing Pipe17 data crashes admin pages.
 
-Human decision:
+Implementation decision:
 
-- Whether to fully remove Pipe17 UI/config now, or leave it hidden behind an advanced/fallback label.
+- Pipe17 stays readable as fallback/legacy data, but it is hidden from normal admin creation and automatic polling is opt-in.
 
 ## Phase 2: Confirm Connection Data Model
 
@@ -125,7 +125,7 @@ Existing path:
 
 - `ShopifyConnectionController` starts and completes OAuth.
 - `ShopifyConnectorService` exchanges authorization codes and registers `orders/create`.
-- `ShopifyWebhookController` verifies HMAC and normalizes the order payload.
+- `ShopifyWebhookController` verifies HMAC and queues the order payload.
 
 Tasks:
 
@@ -133,8 +133,8 @@ Tasks:
 - Confirm OAuth stores an offline shop token in `storefront_connections.credentials.access_token`.
 - Confirm webhook registration stores the Shopify webhook subscription id.
 - Add queue-first handling from Phase 3.
-- Confirm the app requests the minimum ingest scope, initially `read_orders`.
-- Add future fulfillment scopes when tracking write-back is implemented.
+- Confirm the app requests order ingest scope and any write scopes required by currently enabled tracking pushback.
+- Gate or remove fulfillment pushback before reducing Shopify scopes to read-only.
 
 Webhook registration decision:
 
@@ -160,7 +160,7 @@ Existing path:
 
 - `SquarespaceConnectionController` starts and completes OAuth.
 - `SquarespaceConnectorService` exchanges authorization codes and registers `order.create`.
-- `SquarespaceWebhookController` verifies the webhook signature and normalizes the order payload.
+- `SquarespaceWebhookController` verifies the webhook signature and queues the order payload.
 
 Required endpoint:
 
@@ -171,12 +171,12 @@ https://api.squarespace.com/1.0/webhook_subscriptions
 Tasks:
 
 - Complete Squarespace OAuth registration to obtain client credentials.
-- Request order read scope for ingest, such as `website.orders.read`.
+- Request order ingest scope and any write scopes required by currently enabled tracking pushback.
 - Register `order.create` after OAuth using the Squarespace access token.
 - Store the returned `websiteId`, subscription id, and webhook secret.
 - Add queue-first handling from Phase 3.
 - Confirm refresh-token handling for long-lived access.
-- Add order write scope later if tracking/fulfillment pushback needs it.
+- Gate or remove fulfillment pushback before reducing Squarespace scopes to read-only.
 
 Acceptance:
 

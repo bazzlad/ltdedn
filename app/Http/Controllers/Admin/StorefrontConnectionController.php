@@ -48,7 +48,10 @@ class StorefrontConnectionController extends Controller
                 ->orderBy('name')
                 ->get(),
             'platforms' => collect(StorefrontPlatform::cases())
-                ->reject(fn (StorefrontPlatform $platform) => $platform === StorefrontPlatform::LegacyOrderDesk)
+                ->reject(fn (StorefrontPlatform $platform) => in_array($platform, [
+                    StorefrontPlatform::LegacyOrderDesk,
+                    StorefrontPlatform::Pipe17,
+                ], true))
                 ->map(fn (StorefrontPlatform $platform) => [
                     'value' => $platform->value,
                     'label' => Str::headline($platform->value),

@@ -38,7 +38,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
                 <div>
                     <h1 class="text-2xl font-semibold">New Storefront Connection</h1>
                     <p class="text-sm text-muted-foreground">
-                        Create the Pipe17 fulfillment connection LTD EDN will poll for assigned shipping requests
+                        Create a direct Shopify or Squarespace connection for webhook-based fulfilment
                     </p>
                 </div>
                 <Button variant="outline" as-child>
@@ -55,8 +55,8 @@ const breadcrumbs: BreadcrumbItemType[] = [
                 </CardHeader>
                 <CardContent>
                     <div class="mb-6 rounded-md border bg-muted p-3 text-sm text-muted-foreground">
-                        For Pipe17, use the Pipe17 fulfillment location ID as the external shop ID and the Pipe17 API key as the access token. Pipe17
-                        orders are pulled by the scheduled shipping request poller, so no webhook secret is required.
+                        Use this only for direct Shopify or Squarespace connections. Pipe17 is fallback-only and is not part of normal storefront
+                        onboarding.
                     </div>
                     <Form action="/admin/storefront-connections" method="post" #default="{ errors, processing }">
                         <div class="grid gap-6 md:grid-cols-2">
@@ -105,14 +105,14 @@ const breadcrumbs: BreadcrumbItemType[] = [
                                 <Input
                                     id="external_shop_domain"
                                     name="external_shop_domain"
-                                    placeholder="example.myshopify.com or Pipe17 connection name"
+                                    placeholder="example.myshopify.com"
                                 />
                                 <div v-if="errors.external_shop_domain" class="text-sm text-red-600">{{ errors.external_shop_domain }}</div>
                             </div>
 
                             <div class="grid gap-2">
                                 <Label for="external_shop_id">External shop ID</Label>
-                                <Input id="external_shop_id" name="external_shop_id" placeholder="Pipe17 fulfillment location ID" />
+                                <Input id="external_shop_id" name="external_shop_id" placeholder="Squarespace website ID or platform store ID" />
                                 <div v-if="errors.external_shop_id" class="text-sm text-red-600">{{ errors.external_shop_id }}</div>
                             </div>
 

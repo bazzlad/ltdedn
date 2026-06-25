@@ -84,6 +84,47 @@ class SquarespaceConnectorService
         return $payload;
     }
 
+    /**
+     * @throws RequestException
+     */
+    public function accessTokenForRequest(StorefrontConnection $connection): ?string
+    {
+        $accessToken = data_get($connection->credentials, 'access_token');
+
+        if (! $accessToken) {
+            return null;
+        }
+
+        if (! $connection->token_expires_at || $connection->token_expires_at->greaterThan(now()->addMinute())) {
+            return (string) $accessToken;
+        }
+
+        if (! $connection->refresh_token || ! $this->isConfigured()) {
+            return null;
+        }
+
+        /** @var array<string, mixed> $payload */
+        $payload = Http::asForm()
+            ->withBasicAuth((string) config('services.squarespace_connect.client_id'), (string) config('services.squarespace_connect.client_secret'))
+            ->withHeaders(['User-Agent' => $this->userAgent()])
+            ->post('https://login.squarespace.com/api/1/login/oauth/provider/tokens', [
+                'grant_type' => 'refresh_token',
+                'refresh_token' => $connection->refresh_token,
+            ])
+            ->throw()
+            ->json();
+
+        $token = (string) ($payload['access_token'] ?? $payload['token']);
+
+        $connection->forceFill([
+            'credentials' => array_merge($connection->credentials ?? [], ['access_token' => $token]),
+            'refresh_token' => isset($payload['refresh_token']) ? (string) $payload['refresh_token'] : $connection->refresh_token,
+            'token_expires_at' => $this->timestampToCarbon($payload['access_token_expires_at'] ?? null),
+        ])->save();
+
+        return $token;
+    }
+
     private function timestampToCarbon(mixed $timestamp): ?CarbonImmutable
     {
         if (! is_numeric($timestamp)) {

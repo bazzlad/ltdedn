@@ -50,6 +50,7 @@ return [
         'shipping_request_statuses' => array_filter(explode(',', env('PIPE17_SHIPPING_REQUEST_STATUSES', 'readyForFulfillment'))),
         'allowed_hosts' => array_filter(explode(',', env('PIPE17_ALLOWED_HOSTS', 'api-v3.pipe17.com,api.pipe17.com'))),
         'max_pages' => (int) env('PIPE17_MAX_PAGES', 25),
+        'schedule_enabled' => env('PIPE17_SCHEDULE_ENABLED', false),
     ],
 
     'slack' => [

@@ -33,7 +33,7 @@ defineProps<{
         <div class="space-y-6">
             <div>
                 <h1 class="text-3xl font-bold text-white">LTD EDN Connect</h1>
-                <p class="text-sm text-neutral-400">Track your Pipe17 connection, SKU checks, and first test order.</p>
+                <p class="text-sm text-neutral-400">Track your Shopify or Squarespace connection, SKU checks, and first test order.</p>
             </div>
 
             <Card class="border-white/10 bg-white/95">
@@ -41,8 +41,8 @@ defineProps<{
                     <CardTitle>Connection Setup</CardTitle>
                 </CardHeader>
                 <CardContent class="text-sm text-muted-foreground">
-                    LTD EDN now connects storefronts through Pipe17. Confirm your product SKUs with LTD EDN, then place the paid test order once setup
-                    is ready.
+                    Connect your store through LTD EDN Connect. Confirm your product SKUs with LTD EDN, then place the paid test order once setup is
+                    ready.
                 </CardContent>
             </Card>
 

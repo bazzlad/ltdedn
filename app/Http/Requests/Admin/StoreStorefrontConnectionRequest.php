@@ -4,7 +4,6 @@ namespace App\Http\Requests\Admin;
 
 use App\Enums\StorefrontConnectionStatus;
 use App\Enums\StorefrontPlatform;
-use App\Models\StorefrontConnection;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -35,7 +34,7 @@ class StoreStorefrontConnectionRequest extends FormRequest
     {
         return [
             'artist_id.required' => 'Please choose the artist or fulfillment owner this connection belongs to.',
-            'platform.required' => 'Please choose Shopify, Squarespace, or Pipe17.',
+            'platform.required' => 'Please choose Shopify or Squarespace.',
             'name.required' => 'Please name this connection.',
             'store_url.url' => 'Enter the full store URL, including https://.',
         ];
@@ -51,7 +50,13 @@ class StoreStorefrontConnectionRequest extends FormRequest
                     return;
                 }
 
-                if ($this->input('platform') !== StorefrontPlatform::Pipe17->value && blank($this->input('artist_id'))) {
+                if ($this->input('platform') === StorefrontPlatform::Pipe17->value) {
+                    $validator->errors()->add('platform', 'Pipe17 is a fallback-only bridge. Re-enable it deliberately before creating new Pipe17 connections.');
+
+                    return;
+                }
+
+                if (blank($this->input('artist_id'))) {
                     $validator->errors()->add('artist_id', 'Please choose the artist this store belongs to.');
                 }
 
@@ -61,27 +66,6 @@ class StoreStorefrontConnectionRequest extends FormRequest
                     && blank(config('services.shopify_connect.client_secret'))
                 ) {
                     $validator->errors()->add('webhook_secret', 'Enter the Shopify app secret before saving this connection.');
-                }
-
-                if ($this->input('platform') !== StorefrontPlatform::Pipe17->value) {
-                    return;
-                }
-
-                if (blank($this->input('external_shop_id'))) {
-                    $validator->errors()->add('external_shop_id', 'Enter the Pipe17 fulfillment location ID.');
-                }
-
-                if (blank($this->input('access_token'))) {
-                    $validator->errors()->add('access_token', 'Enter the Pipe17 API key.');
-                }
-
-                if (
-                    StorefrontConnection::query()
-                        ->where('platform', StorefrontPlatform::Pipe17->value)
-                        ->where('status', 'active')
-                        ->exists()
-                ) {
-                    $validator->errors()->add('platform', 'Only one active Pipe17 fulfillment connection is supported.');
                 }
             },
         ];

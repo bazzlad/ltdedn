@@ -118,10 +118,9 @@ const activate = () => {
                                 <code class="block rounded border bg-muted px-3 py-2 text-xs break-all">{{ connection.webhook_url }}</code>
                             </div>
                             <div v-if="connection.platform === 'pipe17'" class="md:col-span-2">
-                                <div class="text-muted-foreground">Pipe17 pull setup</div>
+                                <div class="text-muted-foreground">Pipe17 fallback setup</div>
                                 <div class="rounded border bg-muted px-3 py-2 text-xs">
-                                    Route LTD EDN SKUs to this Pipe17 fulfillment location. LTD EDN polls Pipe17 shipping requests every 15 minutes
-                                    and pushes tracking back after shipment.
+                                    Pipe17 is fallback-only. Scheduled polling runs only when PIPE17_SCHEDULE_ENABLED is enabled.
                                 </div>
                             </div>
                             <div class="md:col-span-2">

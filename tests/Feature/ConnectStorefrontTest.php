@@ -79,11 +79,12 @@ class ConnectStorefrontTest extends TestCase
         $this->assertStringNotContainsString('configured-shopify-secret', (string) $connection->getRawOriginal('webhook_secret'));
     }
 
-    public function test_admin_can_create_pipe17_connection_without_artist(): void
+    public function test_admin_cannot_create_pipe17_connection_from_normal_wizard(): void
     {
         $admin = User::factory()->admin()->create();
 
         $this->actingAs($admin)
+            ->from('/admin/storefront-connections/create')
             ->post('/admin/storefront-connections', [
                 'platform' => StorefrontPlatform::Pipe17->value,
                 'name' => 'LTD EDN Pipe17',
@@ -91,38 +92,28 @@ class ConnectStorefrontTest extends TestCase
                 'access_token' => 'pipe17-api-key',
                 'connection_status' => StorefrontConnectionStatus::Testing->value,
             ])
-            ->assertRedirect();
+            ->assertRedirect('/admin/storefront-connections/create')
+            ->assertSessionHasErrors('platform');
 
-        $connection = StorefrontConnection::query()->firstOrFail();
-
-        $this->assertSame(StorefrontPlatform::Pipe17, $connection->platform);
-        $this->assertNull($connection->artist_id);
-        $this->assertSame('pipe17-location-1', $connection->external_shop_id);
-        $this->assertSame('pipe17-api-key', data_get($connection->credentials, 'api_key'));
-        $this->assertNull($connection->webhook_secret);
-        $this->assertStringNotContainsString('pipe17-api-key', (string) $connection->getRawOriginal('credentials'));
+        $this->assertSame(0, StorefrontConnection::query()->count());
     }
 
-    public function test_admin_cannot_create_second_active_pipe17_connection(): void
+    public function test_legacy_pipe17_rows_do_not_break_admin_indexes(): void
     {
         $admin = User::factory()->admin()->create();
 
-        StorefrontConnection::factory()->create([
+        $connection = StorefrontConnection::factory()->create([
             'platform' => StorefrontPlatform::Pipe17,
             'status' => 'active',
         ]);
 
         $this->actingAs($admin)
-            ->from('/admin/storefront-connections/create')
-            ->post('/admin/storefront-connections', [
-                'platform' => StorefrontPlatform::Pipe17->value,
-                'name' => 'Second Pipe17',
-                'external_shop_id' => 'pipe17-location-2',
-                'access_token' => 'pipe17-api-key',
-                'connection_status' => StorefrontConnectionStatus::Testing->value,
-            ])
-            ->assertRedirect('/admin/storefront-connections/create')
-            ->assertSessionHasErrors('platform');
+            ->get('/admin/storefront-connections')
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->get("/admin/storefront-connections/{$connection->id}")
+            ->assertOk();
     }
 
     public function test_admin_cannot_create_legacy_orderdesk_connection(): void

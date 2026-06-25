@@ -1,14 +1,14 @@
 # External Order Fulfilment Usage Guide
 
-This guide covers the current external order fulfilment pipeline for Shopify, Squarespace, and Pipe17-routed orders.
+This guide covers the current external order fulfilment pipeline for direct Shopify and Squarespace orders. Pipe17 remains a fallback-only bridge.
 
 The external storefront remains responsible for checkout, payment, tax, and fraud checks. LTD EDN imports paid orders, matches line items by SKU, allocates stock or limited editions, exposes the order in the admin fulfilment queue, records shipment tracking, emails the buyer, and attempts to push tracking back to the source storefront.
 
 ## What Exists Now
 
-- `POST /api/webhooks/shopify/{connection}` imports signed Shopify order payloads.
-- `POST /api/webhooks/squarespace/{connection}` imports signed Squarespace order payloads.
-- `php artisan pipe17:pull-shipping-requests` imports Pipe17 Shipping Requests assigned to LTD EDN.
+- `POST /api/webhooks/shopify/{connection}` accepts signed Shopify order payloads and queues import work.
+- `POST /api/webhooks/squarespace/{connection}` accepts signed Squarespace order payloads and queues import work.
+- `php artisan pipe17:pull-shipping-requests` can import Pipe17 Shipping Requests only if the fallback bridge is deliberately re-enabled.
 - `/admin/storefront-connections` lists configured connections and import counts.
 - `/admin/external-imports` lists webhook import attempts and their status.
 - `/admin/fulfilment` shows paid, unshipped, non-exception orders ready to ship.
@@ -25,7 +25,6 @@ For a successful import:
 
 - The webhook must be signed with the connection's `webhook_secret`.
 - The connection platform must match the endpoint.
-- Pipe17 imports require one active `pipe17` hub connection with the Pipe17 API key stored as encrypted `credentials.api_key`.
 - The external order payment status must be paid.
 - Every line item must include a SKU that exists locally and is active.
 - The SKU must have enough `stock_on_hand`.
@@ -49,7 +48,7 @@ Run the app:
 composer run dev
 ```
 
-For webhook-only testing, `php artisan serve` is enough, but `composer run dev` also starts the queue worker and frontend dev server used by the admin UI.
+For webhook testing, run a queue worker too. `composer run dev` starts the app, worker, logs, and frontend together.
 
 ## Create Local Test Data
 
@@ -179,7 +178,7 @@ curl -sS -X POST "http://127.0.0.1:8000/api/webhooks/shopify/${CONNECTION_ID}" \
 Expected response:
 
 ```json
-{"status":"processed","import_id":1,"order_id":1}
+{"status":"queued"}
 ```
 
 Then check:
@@ -199,7 +198,7 @@ Expected behavior:
 - The response is still `200`.
 - No duplicate order is created.
 - No extra stock is consumed.
-- The existing import record is returned.
+- The existing import record remains the only import after the queued job runs.
 
 ## Test An Exception Order
 
@@ -226,7 +225,7 @@ curl -sS -X POST "http://127.0.0.1:8000/api/webhooks/shopify/${CONNECTION_ID}" \
 Expected response:
 
 ```json
-{"status":"exception","import_id":2,"order_id":2}
+{"status":"queued"}
 ```
 
 Then check:
@@ -291,7 +290,7 @@ cat > /tmp/ltdedn-squarespace-order.json <<'JSON'
 JSON
 ```
 
-Sign and post it. Squarespace accepts either hex or base64 HMAC in this app; this example uses hex:
+Sign and post it. Squarespace sends hex secrets and this app converts them to bytes before checking the HMAC. This local example uses a raw manual secret:
 
 ```bash
 SQUARE_CONNECTION_ID=2
@@ -309,7 +308,7 @@ curl -sS -X POST "http://127.0.0.1:8000/api/webhooks/squarespace/${SQUARE_CONNEC
 Expected response:
 
 ```json
-{"status":"processed","import_id":3,"order_id":3}
+{"status":"queued"}
 ```
 
 ## Fulfil An Imported Order
@@ -325,7 +324,7 @@ On first shipment:
 - `shipping_carrier`, `shipping_tracking_number`, and `shipped_at` are stored on the order.
 - A `shipped` order event is recorded.
 - A buyer shipment email is queued if `customer_email` is present.
-- A platform pushback job is queued for Shopify, Squarespace, or Pipe17 orders.
+- A platform pushback job is queued for Shopify, Squarespace, or fallback Pipe17 orders.
 
 Run a queue worker if one is not already running:
 
@@ -355,10 +354,11 @@ Pipe17 pushback requires:
 - `storefront_connections.external_shop_id` set to the Pipe17 fulfillment location ID.
 - `storefront_connections.credentials.api_key` set to the Pipe17 API key, or `PIPE17_API_KEY` configured.
 - `orders.external_order_id` set to the Pipe17 Shipping Request ID.
+- `PIPE17_SCHEDULE_ENABLED=true` if LTD EDN should poll Pipe17 automatically.
 
 Pushback success or failure is visible on the sales detail page and recorded as an order event.
 
-Legacy `orderdesk` rows remain readable in admin screens so old data does not break enum casts, but Order Desk is not an active connection platform and cannot be created from the admin wizard.
+Legacy `orderdesk` rows and fallback `pipe17` rows remain readable in admin screens so old data does not break enum casts, but neither platform is part of normal storefront creation.
 
 ## Operational Statuses
 

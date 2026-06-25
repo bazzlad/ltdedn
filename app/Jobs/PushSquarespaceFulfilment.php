@@ -4,9 +4,11 @@ namespace App\Jobs;
 
 use App\Models\Order;
 use App\Models\OrderEvent;
+use App\Services\StorefrontConnect\SquarespaceConnectorService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
+use Throwable;
 
 class PushSquarespaceFulfilment implements ShouldQueue
 {
@@ -14,7 +16,7 @@ class PushSquarespaceFulfilment implements ShouldQueue
 
     public function __construct(public int $orderId) {}
 
-    public function handle(): void
+    public function handle(SquarespaceConnectorService $squarespace): void
     {
         $order = Order::query()->with('connection')->find($this->orderId);
 
@@ -22,12 +24,18 @@ class PushSquarespaceFulfilment implements ShouldQueue
             return;
         }
 
-        $credentials = $order->connection->credentials ?? [];
-        $accessToken = $credentials['access_token'] ?? null;
+        try {
+            $accessToken = $squarespace->accessTokenForRequest($order->connection);
+        } catch (Throwable $throwable) {
+            $this->recordFailure($order, 'Squarespace token refresh failed: '.$throwable->getMessage());
+
+            return;
+        }
+
         $storeUrl = rtrim((string) $order->connection->store_url, '/');
 
         if (! $accessToken || $storeUrl === '') {
-            $this->recordFailure($order, 'Missing Squarespace access token or store URL.');
+            $this->recordFailure($order, 'Missing or expired Squarespace access token or store URL.');
 
             return;
         }

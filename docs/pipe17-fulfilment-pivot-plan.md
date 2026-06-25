@@ -16,7 +16,7 @@ If LTD EDN later chooses the Pipe17 fallback, artist storefronts connect to Pipe
 4. LTD EDN creates one admin storefront connection with platform `pipe17`.
    - Pipe17 fulfillment location ID in `external_shop_id`.
    - Pipe17 API key in encrypted credentials as `api_key`.
-5. The scheduled `pipe17:pull-shipping-requests` command polls Pipe17 every 15 minutes.
+5. If `PIPE17_SCHEDULE_ENABLED=true`, the scheduled `pipe17:pull-shipping-requests` command polls Pipe17 every 15 minutes.
 6. LTD EDN imports ready Shipping Requests as local orders.
 7. Matching SKUs allocate stock and limited editions.
 8. Unknown SKUs or insufficient stock create exception orders.
@@ -42,7 +42,7 @@ In LTD EDN:
 4. Enter the Pipe17 API key as the access token/API key.
 5. Leave webhook secret blank.
 6. Save the connection and place a paid test order.
-7. Run `php artisan pipe17:pull-shipping-requests {connection_id}` or wait for the scheduler.
+7. Run `php artisan pipe17:pull-shipping-requests {connection_id}` manually, or enable `PIPE17_SCHEDULE_ENABLED=true` and wait for the scheduler.
 
 `PIPE17_API_URL` must be HTTPS and must use `api-v3.pipe17.com`, `api.pipe17.com`, another `*.pipe17.com` host, or a host explicitly listed in `PIPE17_ALLOWED_HOSTS`.
 
