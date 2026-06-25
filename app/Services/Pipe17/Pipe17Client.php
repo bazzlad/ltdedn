@@ -27,6 +27,7 @@ class Pipe17Client
         $items = [];
         $nextCursor = null;
         $page = 0;
+        $maxPages = max(1, (int) config('services.pipe17.max_pages', 25));
 
         do {
             $page++;
@@ -40,7 +41,11 @@ class Pipe17Client
 
             $items = array_merge($items, is_array($pageItems) ? $pageItems : []);
             $nextCursor = $this->nextCursor(is_array($payload) ? $payload : []);
-        } while ($nextCursor && $page < 25);
+        } while ($nextCursor && $page < $maxPages);
+
+        if ($nextCursor) {
+            throw new \RuntimeException("Pipe17 shipping request pagination exceeded {$maxPages} page(s).");
+        }
 
         return collect($items)
             ->filter(fn ($item) => is_array($item))

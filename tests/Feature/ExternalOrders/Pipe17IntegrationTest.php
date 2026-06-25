@@ -100,6 +100,7 @@ class Pipe17IntegrationTest extends TestCase
         Notification::fake();
         Config::set('services.pipe17.api_url', 'https://api.pipe17.test/api/v3');
         Http::fake([
+            'https://api.pipe17.test/api/v3/shipping-requests/sr-1005' => Http::response(['ok' => true]),
             'https://api.pipe17.test/api/v3/shipping-requests*' => Http::response([
                 'shippingRequests' => [$this->shippingRequestPayload('sr-1005', 'MISSING-P17-SKU')],
             ]),
@@ -115,6 +116,11 @@ class Pipe17IntegrationTest extends TestCase
         $this->assertStringContainsString('Unknown SKU', (string) $order->exception_reason);
         $this->assertDatabaseHas('external_order_imports', ['status' => ExternalImportStatus::Exception->value]);
 
+        Http::assertSent(fn ($request) => $request->method() === 'PUT'
+            && $request->url() === 'https://api.pipe17.test/api/v3/shipping-requests/sr-1005'
+            && data_get($request->data(), 'status') === 'sentToFulfillment'
+            && data_get($request->data(), 'extReferenceId') === 'ltdedn-order-'.$order->id);
+        $this->assertArrayHasKey('pipe17_last_updated_since', $connection->fresh()->last_sync_meta ?? []);
         Notification::assertSentTo($admin, ExternalOrderExceptionNotification::class);
     }
 
@@ -198,6 +204,27 @@ class Pipe17IntegrationTest extends TestCase
         $this->artisan('pipe17:pull-shipping-requests', ['connection' => $connection->id])->assertSuccessful();
 
         $this->assertSame(2, Order::query()->count());
+    }
+
+    public function test_pipe17_pull_fails_when_pagination_exceeds_page_cap(): void
+    {
+        Config::set('services.pipe17.api_url', 'https://api.pipe17.test/api/v3');
+        Config::set('services.pipe17.max_pages', 1);
+        Http::fake([
+            'https://api.pipe17.test/api/v3/shipping-requests*' => Http::response([
+                'shippingRequests' => [$this->shippingRequestPayload('sr-1014', 'TEE-P17-001')],
+                'nextCursor' => 'page-2',
+            ]),
+        ]);
+
+        $connection = $this->pipe17Connection();
+        $product = Product::factory()->for($connection->artist)->create(['is_limited' => false]);
+        ProductSku::factory()->for($product)->create(['sku_code' => 'TEE-P17-001', 'stock_on_hand' => 5]);
+
+        $this->artisan('pipe17:pull-shipping-requests', ['connection' => $connection->id])->assertFailed();
+
+        $this->assertSame(0, Order::query()->count());
+        $this->assertArrayNotHasKey('pipe17_last_updated_since', $connection->fresh()->last_sync_meta ?? []);
     }
 
     public function test_marking_pipe17_order_shipped_dispatches_pushback_job(): void

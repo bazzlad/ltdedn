@@ -112,6 +112,7 @@ class PullPipe17ShippingRequests extends Command
     private function shouldAcknowledge(ExternalOrderImport $import): bool
     {
         return $import->status === ExternalImportStatus::Processed
+            || ($import->status === ExternalImportStatus::Exception && $import->order_id)
             || (
                 $import->status === ExternalImportStatus::Ignored
                 && $import->order_id
