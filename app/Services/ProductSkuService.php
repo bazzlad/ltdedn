@@ -43,9 +43,10 @@ class ProductSkuService
             return;
         }
 
+        $availableEditions = $this->availableEditionCount($product);
+
         $sku->forceFill([
-            'stock_on_hand' => $this->availableEditionCount($product),
-            'stock_reserved' => 0,
+            'stock_on_hand' => $availableEditions + $sku->stock_reserved,
         ])->save();
     }
 

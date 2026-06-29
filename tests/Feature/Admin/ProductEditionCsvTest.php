@@ -189,6 +189,32 @@ class ProductEditionCsvTest extends TestCase
         ]);
     }
 
+    public function test_sku_csv_sync_preserves_reserved_stock(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $artist = Artist::factory()->create();
+        $product = Product::factory()->for($artist)->create(['is_limited' => true]);
+        $sku = ProductSku::factory()->for($product)->create([
+            'sku_code' => 'RESERVED-001',
+            'stock_on_hand' => 10,
+            'stock_reserved' => 2,
+        ]);
+
+        ProductEdition::factory()->for($product)->create([
+            'product_sku_id' => $sku->id,
+            'number' => 1,
+            'status' => ProductEditionStatus::Available,
+        ]);
+
+        $this->actingAs($admin)->get("/admin/products/{$product->id}/editions/sku-csv")->assertOk();
+
+        $sku->refresh();
+
+        $this->assertSame(2, $sku->stock_reserved);
+        $this->assertSame(3, $sku->stock_on_hand);
+        $this->assertSame(1, $sku->stock_available);
+    }
+
     public function test_artist_can_download_sku_csv_for_owned_product(): void
     {
         $artistUser = User::factory()->create(['role' => UserRole::Artist]);

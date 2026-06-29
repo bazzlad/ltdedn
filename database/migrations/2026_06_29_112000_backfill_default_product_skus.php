@@ -18,8 +18,7 @@ return new class extends Migration
                     ->from('product_skus')
                     ->whereColumn('product_skus.product_id', 'products.id');
             })
-            ->orderBy('id')
-            ->chunk(100, function ($products) use ($now): void {
+            ->chunkById(100, function ($products) use ($now): void {
                 foreach ($products as $product) {
                     DB::table('product_skus')->insert([
                         'product_id' => $product->id,
