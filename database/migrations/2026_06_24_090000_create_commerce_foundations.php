@@ -130,7 +130,7 @@ return new class extends Migration
                 $table->timestamp('shipped_at')->nullable();
                 $table->timestamp('last_refunded_at')->nullable();
                 $table->timestamp('last_pushback_attempted_at')->nullable();
-                $table->text('exception_reason')->nullable();
+                $table->string('exception_reason')->nullable();
                 $table->json('meta')->nullable();
                 $table->timestamps();
 
@@ -185,7 +185,7 @@ return new class extends Migration
             }
 
             if (! Schema::hasColumn('orders', 'exception_reason')) {
-                $table->text('exception_reason')->nullable()->after('last_pushback_attempted_at');
+                $table->string('exception_reason')->nullable()->after('last_pushback_attempted_at');
             }
         });
     }
