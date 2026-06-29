@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\UpdateProductEditionRequest;
 use App\Models\Product;
 use App\Models\ProductEdition;
 use App\Models\User;
+use App\Services\ProductSkuService;
 // QR code generation
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
@@ -21,9 +22,11 @@ class ProductEditionController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index(Product $product): Response
+    public function index(Product $product, ProductSkuService $skuService): Response
     {
         $this->authorize('view', $product);
+
+        $skuService->syncSingleSkuStockFromEditions($product);
 
         $product->load(['artist', 'skus']);
 
@@ -63,11 +66,12 @@ class ProductEditionController extends Controller
         ]);
     }
 
-    public function store(StoreProductEditionRequest $request, Product $product): RedirectResponse
+    public function store(StoreProductEditionRequest $request, Product $product, ProductSkuService $skuService): RedirectResponse
     {
         $this->authorize('create', [ProductEdition::class, $product]);
 
         $edition = $product->editions()->create($request->validated());
+        $skuService->syncSingleSkuStockFromEditions($product);
 
         return redirect()->route('admin.products.editions.index', $product)
             ->with('success', "Edition #{$edition->number} created successfully.");
@@ -96,22 +100,24 @@ class ProductEditionController extends Controller
         ]);
     }
 
-    public function update(UpdateProductEditionRequest $request, Product $product, ProductEdition $edition): RedirectResponse
+    public function update(UpdateProductEditionRequest $request, Product $product, ProductEdition $edition, ProductSkuService $skuService): RedirectResponse
     {
         $this->authorize('update', [$edition, $product]);
 
         $edition->update($request->validated());
+        $skuService->syncSingleSkuStockFromEditions($product);
 
         return redirect()->route('admin.products.editions.index', $product)
             ->with('success', "Edition #{$edition->number} updated successfully.");
     }
 
-    public function destroy(Product $product, ProductEdition $edition): RedirectResponse
+    public function destroy(Product $product, ProductEdition $edition, ProductSkuService $skuService): RedirectResponse
     {
         $this->authorize('delete', [$edition, $product]);
 
         $editionNumber = $edition->number;
         $edition->delete();
+        $skuService->syncSingleSkuStockFromEditions($product);
 
         return redirect()->route('admin.products.editions.index', $product)
             ->with('success', "Edition #{$editionNumber} deleted successfully.");

@@ -10,6 +10,7 @@ use App\Http\Resources\ProductResource;
 use App\Models\Artist;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\ProductSkuService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -67,7 +68,7 @@ class ProductController extends Controller
         ]);
     }
 
-    public function store(StoreProductRequest $request): RedirectResponse
+    public function store(StoreProductRequest $request, ProductSkuService $skuService): RedirectResponse
     {
         $this->authorize('create', [Product::class, $request->validated('artist_id')]);
 
@@ -78,6 +79,7 @@ class ProductController extends Controller
         }
 
         $product = Product::create($validated);
+        $skuService->ensureDefaultSku($product);
 
         return redirect()->route('admin.products.index')
             ->with('success', 'Product created successfully.');

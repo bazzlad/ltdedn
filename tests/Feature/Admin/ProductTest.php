@@ -202,6 +202,15 @@ class ProductTest extends TestCase
             'name' => 'Test Product',
             'artist_id' => $artist->id,
         ]);
+
+        $product = Product::where('name', 'Test Product')->firstOrFail();
+
+        $this->assertDatabaseHas('product_skus', [
+            'product_id' => $product->id,
+            'sku_code' => "LTD-{$product->id}-TEST-PRODUCT",
+            'price_amount' => 2999,
+            'stock_on_hand' => 0,
+        ]);
     }
 
     public function test_artist_can_create_product_for_owned_artist(): void

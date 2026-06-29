@@ -154,6 +154,12 @@ class ProductEditionTest extends TestCase
             'number' => 1,
             'status' => 'available',
         ]);
+
+        $this->assertDatabaseHas('product_skus', [
+            'product_id' => $product->id,
+            'sku_code' => 'LTD-'.$product->id.'-'.strtoupper($product->slug),
+            'stock_on_hand' => 1,
+        ]);
     }
 
     public function test_artist_can_create_edition_for_owned_product(): void

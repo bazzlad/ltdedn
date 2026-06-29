@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreBulkProductEditionRequest;
 use App\Models\Product;
 use App\Models\ProductEdition;
+use App\Services\ProductSkuService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,7 @@ class ProductEditionBulkController extends Controller
 {
     use AuthorizesRequests;
 
-    public function store(StoreBulkProductEditionRequest $request, Product $product): RedirectResponse
+    public function store(StoreBulkProductEditionRequest $request, Product $product, ProductSkuService $skuService): RedirectResponse
     {
         $this->authorize('create', [ProductEdition::class, $product]);
 
@@ -51,6 +52,8 @@ class ProductEditionBulkController extends Controller
 
                 $product->editions()->createMany($editions);
             });
+
+            $skuService->syncSingleSkuStockFromEditions($product);
 
             return redirect()->route('admin.products.editions.index', $product)
                 ->with('success', "{$quantity} editions created successfully (#{$startNumber} - #{$endNumber}).");

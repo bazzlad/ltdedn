@@ -6,6 +6,7 @@ use App\Enums\ProductEditionStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductEdition;
+use App\Services\ProductSkuService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -14,10 +15,12 @@ class ProductEditionSkuCsvController extends Controller
 {
     use AuthorizesRequests;
 
-    public function __invoke(Product $product): StreamedResponse
+    public function __invoke(Product $product, ProductSkuService $skuService): StreamedResponse
     {
         $this->authorize('view', $product);
         $this->authorize('viewAny', ProductEdition::class);
+
+        $skuService->syncSingleSkuStockFromEditions($product);
 
         $skuCodes = $product->skus()
             ->orderBy('sku_code')

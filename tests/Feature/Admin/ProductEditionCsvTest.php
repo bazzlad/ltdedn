@@ -165,6 +165,30 @@ class ProductEditionCsvTest extends TestCase
         $this->assertSame(['DEFAULT-001', '1', 'redeemed', 'Yes'], $rows[1]);
     }
 
+    public function test_sku_csv_creates_default_sku_when_product_has_none(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $artist = Artist::factory()->create();
+        $product = Product::factory()->for($artist)->create(['name' => 'I Am Turning']);
+
+        ProductEdition::factory()->for($product)->create([
+            'product_sku_id' => null,
+            'number' => 1,
+            'status' => ProductEditionStatus::Available,
+        ]);
+
+        $response = $this->actingAs($admin)->get("/admin/products/{$product->id}/editions/sku-csv");
+
+        $rows = array_map('str_getcsv', array_filter(explode("\n", trim($response->streamedContent()))));
+
+        $this->assertSame(['LTD-'.$product->id.'-I-AM-TURNING', '1', 'available', 'No'], $rows[1]);
+        $this->assertDatabaseHas('product_skus', [
+            'product_id' => $product->id,
+            'sku_code' => 'LTD-'.$product->id.'-I-AM-TURNING',
+            'stock_on_hand' => 1,
+        ]);
+    }
+
     public function test_artist_can_download_sku_csv_for_owned_product(): void
     {
         $artistUser = User::factory()->create(['role' => UserRole::Artist]);
