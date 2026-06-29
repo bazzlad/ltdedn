@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import UserLayout from '@/layouts/UserLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 interface Artist {
@@ -30,6 +30,7 @@ const props = defineProps<{
 }>();
 
 const platform = ref<'shopify' | 'squarespace'>('shopify');
+const page = usePage();
 
 const connectAction = computed(() => (platform.value === 'shopify' ? '/connect/shopify/start' : '/connect/squarespace/start'));
 const storeFieldId = computed(() => (platform.value === 'shopify' ? 'shopify_shop' : 'squarespace_website_id'));
@@ -37,6 +38,10 @@ const storeFieldName = computed(() => (platform.value === 'shopify' ? 'shop' : '
 const storeFieldLabel = computed(() => (platform.value === 'shopify' ? 'Shopify store' : 'Squarespace website ID'));
 const storeFieldPlaceholder = computed(() => (platform.value === 'shopify' ? 'ltdedn-test.myshopify.com' : 'Optional, for multi-site accounts'));
 const submitLabel = computed(() => (platform.value === 'shopify' ? 'Connect Shopify' : 'Connect Squarespace'));
+const errors = computed(() => (page.props.errors ?? {}) as Record<string, string | undefined>);
+const connectErrors = computed(() =>
+    ['shopify', 'squarespace', 'artist_id', 'shop', 'website_id', 'name'].map((key) => errors.value[key]).filter((message): message is string => Boolean(message)),
+);
 </script>
 
 <template>
@@ -58,6 +63,10 @@ const submitLabel = computed(() => (platform.value === 'shopify' ? 'Connect Shop
                         Connect your store through LTD EDN Connect. Confirm your product SKUs with LTD EDN, then place the paid test order once setup
                         is ready.
                     </p>
+
+                    <div v-if="connectErrors.length > 0" class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                        <p v-for="message in connectErrors" :key="message">{{ message }}</p>
+                    </div>
 
                     <form
                         :action="connectAction"
