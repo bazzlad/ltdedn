@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\Artist;
 use App\Models\Product;
 use App\Models\ProductEdition;
+use App\Models\ProductSku;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -45,7 +46,12 @@ class ProductEditionTest extends TestCase
         $admin = User::factory()->create(['role' => UserRole::Admin]);
         $artist = Artist::factory()->create();
         $product = Product::factory()->for($artist)->create();
-        ProductEdition::factory()->for($product)->create(['number' => 1, 'status' => 'available']);
+        $sku = ProductSku::factory()->for($product)->create(['sku_code' => 'PRINT-001']);
+        ProductEdition::factory()->for($product)->create([
+            'product_sku_id' => $sku->id,
+            'number' => 1,
+            'status' => 'available',
+        ]);
 
         $response = $this->actingAs($admin)->get("/admin/products/{$product->id}/editions");
         $response->assertStatus(200);
@@ -54,6 +60,8 @@ class ProductEditionTest extends TestCase
             ->has('product', fn (Assert $page) => $page
                 ->where('id', $product->id)
                 ->where('name', $product->name)
+                ->has('skus', 1)
+                ->where('skus.0.sku_code', 'PRINT-001')
                 ->has('artist', fn (Assert $page) => $page
                     ->where('id', $artist->id)
                     ->where('name', $artist->name)
@@ -66,6 +74,7 @@ class ProductEditionTest extends TestCase
             ->has('editions.data.0', fn (Assert $page) => $page
                 ->where('number', 1)
                 ->where('status', 'available')
+                ->where('sku.sku_code', 'PRINT-001')
                 ->has('qr_code')
                 ->etc()
             )

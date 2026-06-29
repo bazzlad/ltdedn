@@ -25,13 +25,13 @@ class ProductEditionController extends Controller
     {
         $this->authorize('view', $product);
 
-        $product->load('artist');
+        $product->load(['artist', 'skus']);
 
         $perPage = request('per_page', 20); // Default to 20, allow customization
         $perPage = in_array($perPage, [20, 50/* , 100, 200 */]) ? $perPage : 20; // Validate allowed values
 
         $editions = $product->editions()
-            ->with('owner')
+            ->with(['owner', 'sku'])
             ->orderBy('number')
             ->paginate($perPage);
 

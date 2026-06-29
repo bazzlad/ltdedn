@@ -26,7 +26,7 @@ class ProductEditionCsvController extends Controller
         $logo = $validated['logo'] ?? '';
         $total = $product->editions()->count();
         $filename = sprintf(
-            'product-%d-%s-editions.csv',
+            'product-%d-%s-qr-codes.csv',
             $product->id,
             Str::slug($product->name) ?: 'product'
         );

@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Enums\ProductEditionStatus;
 use App\Enums\UserRole;
 use App\Models\Artist;
 use App\Models\Product;
 use App\Models\ProductEdition;
+use App\Models\ProductSku;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -34,7 +36,7 @@ class ProductEditionCsvTest extends TestCase
 
         $response->assertOk();
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
-        $response->assertDownload("product-{$product->id}-test-product-editions.csv");
+        $response->assertDownload("product-{$product->id}-test-product-qr-codes.csv");
 
         $rows = array_map('str_getcsv', array_filter(explode("\n", trim($response->streamedContent()))));
 
@@ -107,6 +109,87 @@ class ProductEditionCsvTest extends TestCase
         $product = Product::factory()->for($otherArtist)->create();
 
         $response = $this->actingAs($artistUser)->get("/admin/products/{$product->id}/editions/csv");
+
+        $response->assertForbidden();
+    }
+
+    public function test_admin_can_download_product_edition_sku_csv(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $artist = Artist::factory()->create();
+        $product = Product::factory()->for($artist)->create(['name' => 'Test Product']);
+        $sku = ProductSku::factory()->for($product)->create(['sku_code' => 'PRINT-001']);
+
+        ProductEdition::factory()->for($product)->create([
+            'product_sku_id' => $sku->id,
+            'number' => 2,
+            'status' => ProductEditionStatus::Sold,
+        ]);
+
+        ProductEdition::factory()->for($product)->create([
+            'product_sku_id' => $sku->id,
+            'number' => 1,
+            'status' => ProductEditionStatus::Available,
+        ]);
+
+        $response = $this->actingAs($admin)->get("/admin/products/{$product->id}/editions/sku-csv");
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
+        $response->assertDownload("product-{$product->id}-test-product-skus.csv");
+
+        $rows = array_map('str_getcsv', array_filter(explode("\n", trim($response->streamedContent()))));
+
+        $this->assertSame(['SKU', 'EDN', 'STATUS', 'SOLD'], $rows[0]);
+        $this->assertSame(['PRINT-001', '1', 'available', 'No'], $rows[1]);
+        $this->assertSame(['PRINT-001', '2', 'sold', 'Yes'], $rows[2]);
+    }
+
+    public function test_sku_csv_uses_single_product_sku_for_unassigned_editions(): void
+    {
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $artist = Artist::factory()->create();
+        $product = Product::factory()->for($artist)->create();
+
+        ProductSku::factory()->for($product)->create(['sku_code' => 'DEFAULT-001']);
+        ProductEdition::factory()->for($product)->create([
+            'product_sku_id' => null,
+            'number' => 1,
+            'status' => ProductEditionStatus::Redeemed,
+        ]);
+
+        $response = $this->actingAs($admin)->get("/admin/products/{$product->id}/editions/sku-csv");
+
+        $rows = array_map('str_getcsv', array_filter(explode("\n", trim($response->streamedContent()))));
+
+        $this->assertSame(['DEFAULT-001', '1', 'redeemed', 'Yes'], $rows[1]);
+    }
+
+    public function test_artist_can_download_sku_csv_for_owned_product(): void
+    {
+        $artistUser = User::factory()->create(['role' => UserRole::Artist]);
+        $artist = Artist::factory()->create(['owner_id' => $artistUser->id]);
+        $product = Product::factory()->for($artist)->create();
+
+        ProductSku::factory()->for($product)->create(['sku_code' => 'OWNED-001']);
+        ProductEdition::factory()->for($product)->create([
+            'number' => 1,
+            'status' => ProductEditionStatus::Available,
+        ]);
+
+        $response = $this->actingAs($artistUser)->get("/admin/products/{$product->id}/editions/sku-csv");
+
+        $response->assertOk();
+        $this->assertStringContainsString('OWNED-001', $response->streamedContent());
+    }
+
+    public function test_artist_cannot_download_sku_csv_for_unowned_product(): void
+    {
+        $artistUser = User::factory()->create(['role' => UserRole::Artist]);
+        $otherArtist = Artist::factory()->create();
+        $product = Product::factory()->for($otherArtist)->create();
+
+        $response = $this->actingAs($artistUser)->get("/admin/products/{$product->id}/editions/sku-csv");
 
         $response->assertForbidden();
     }

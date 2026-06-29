@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ProductEditionBulkController;
 use App\Http\Controllers\Admin\ProductEditionController;
 use App\Http\Controllers\Admin\ProductEditionCsvController;
 use App\Http\Controllers\Admin\ProductEditionQrBatchPdfController;
+use App\Http\Controllers\Admin\ProductEditionSkuCsvController;
 use App\Http\Controllers\Admin\SalesController;
 use App\Http\Controllers\Admin\StorefrontConnectionController;
 use App\Http\Controllers\Admin\UserController;
@@ -35,6 +36,7 @@ Route::prefix('admin')
 
         Route::post('products/{product}/editions/bulk', [ProductEditionBulkController::class, 'store'])->name('products.editions.store-bulk');
         Route::get('products/{product}/editions/csv', ProductEditionCsvController::class)->name('products.editions.csv');
+        Route::get('products/{product}/editions/sku-csv', ProductEditionSkuCsvController::class)->name('products.editions.sku-csv');
         Route::get('products/{product}/editions/qr-batch-pdf', ProductEditionQrBatchPdfController::class)->name('products.editions.qr-batch-pdf');
 
         // Admin-only routes

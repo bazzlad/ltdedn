@@ -24,6 +24,12 @@ interface Product {
     id: number;
     name: string;
     artist: Artist;
+    skus?: ProductSku[];
+}
+
+interface ProductSku {
+    id: number;
+    sku_code: string;
 }
 
 interface Owner {
@@ -34,6 +40,7 @@ interface Owner {
 interface Edition {
     id: number;
     product_id: number;
+    sku?: ProductSku | null;
     number: number;
     status: string;
     owner_id?: number;
@@ -70,6 +77,7 @@ const props = defineProps<{
 }>();
 
 const totalCount = computed(() => props.editions.total || props.editions.data.length);
+const productDefaultSkuCode = computed(() => (props.product.skus?.length === 1 ? props.product.skus[0].sku_code : null));
 
 const breadcrumbs: BreadcrumbItemType[] = [
     { title: 'Admin', href: '/admin' },
@@ -231,7 +239,7 @@ const closeCsvDialog = () => {
     csvDialogOpen.value = false;
 };
 
-const downloadCsv = () => {
+const downloadQrCsv = () => {
     const url = new URL(`/admin/products/${props.product.id}/editions/csv`, window.location.origin);
     const logo = csvLogoName.value.trim();
 
@@ -248,6 +256,17 @@ const downloadCsv = () => {
 
     closeCsvDialog();
 };
+
+const downloadSkuCsv = () => {
+    const link = document.createElement('a');
+    link.href = `/admin/products/${props.product.id}/editions/sku-csv`;
+    link.download = '';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+const getEditionSkuCode = (edition: Edition) => edition.sku?.sku_code || productDefaultSkuCode.value || null;
 
 const changePerPage = (event: Event) => {
     const target = event.target as HTMLSelectElement;
@@ -299,7 +318,11 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                     <div v-if="editions?.data?.length > 0">
                         <Button size="sm" variant="outline" @click="csvDialogOpen = true">
                             <FileSpreadsheet class="mr-2 h-3 w-3" />
-                            Download CSV
+                            Download QR CSV
+                        </Button>
+                        <Button size="sm" variant="outline" @click="downloadSkuCsv">
+                            <FileSpreadsheet class="mr-2 h-3 w-3" />
+                            Download SKU CSV
                         </Button>
                         <Button size="sm" variant="outline" @click="downloadBatchPdf" :disabled="isDownloadingBatchPDF">
                             <div
@@ -360,6 +383,7 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Edition</TableHead>
+                                        <TableHead>SKU</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead>Owner</TableHead>
                                         <TableHead>QR Code</TableHead>
@@ -376,6 +400,10 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
                                                 </div>
                                                 <span class="font-mono text-lg">#{{ edition.number }}</span>
                                             </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span v-if="getEditionSkuCode(edition)" class="font-mono text-sm">{{ getEditionSkuCode(edition) }}</span>
+                                            <span v-else class="text-muted-foreground">Unassigned</span>
                                         </TableCell>
                                         <TableCell>
                                             <Badge :variant="getStatusBadgeVariant(edition.status)">
@@ -492,9 +520,9 @@ const isNavDisabled = (link: { url?: string; label: string; active: boolean }): 
         <!-- CSV Export Dialog -->
         <Dialog :open="csvDialogOpen" @update:open="csvDialogOpen = $event">
             <DialogContent class="sm:max-w-md">
-                <form @submit.prevent="downloadCsv">
+                <form @submit.prevent="downloadQrCsv">
                     <DialogHeader>
-                        <DialogTitle>Download CSV</DialogTitle>
+                        <DialogTitle>Download QR CSV</DialogTitle>
                         <DialogDescription>Enter the logo name to include in the LOGO column.</DialogDescription>
                     </DialogHeader>
 
