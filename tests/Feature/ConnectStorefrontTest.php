@@ -338,6 +338,52 @@ class ConnectStorefrontTest extends TestCase
         $this->assertStringNotContainsString('client-secret', (string) $connection->getRawOriginal('webhook_secret'));
     }
 
+    public function test_shopify_callback_surfaces_protected_customer_data_webhook_failure(): void
+    {
+        Config::set('services.shopify_connect.client_id', 'client-id');
+        Config::set('services.shopify_connect.client_secret', 'client-secret');
+        Config::set('services.shopify_connect.scopes', ['read_orders', 'write_fulfillments']);
+        Config::set('services.shopify_connect.api_version', '2025-10');
+
+        Http::fake([
+            'https://joe.myshopify.com/admin/oauth/access_token' => Http::response([
+                'access_token' => 'shpat_test_token',
+                'scope' => 'read_orders,write_fulfillments',
+            ]),
+            'https://joe.myshopify.com/admin/api/2025-10/webhooks.json' => Http::response([
+                'errors' => 'You do not have permission to create webhooks with orders/create topic. This topic contains protected customer data.',
+            ], 403),
+        ]);
+
+        $artistUser = User::factory()->artist()->create();
+        $artist = Artist::factory()->ownedBy($artistUser)->create();
+        $query = [
+            'shop' => 'joe.myshopify.com',
+            'code' => 'oauth-code',
+            'state' => 'state-token',
+            'timestamp' => '1710000000',
+        ];
+        $query['hmac'] = $this->shopifyHmac($query, 'client-secret');
+
+        $this->actingAs($artistUser)
+            ->withSession([
+                'connect.shopify' => [
+                    'state' => 'state-token',
+                    'artist_id' => $artist->id,
+                    'shop' => 'joe.myshopify.com',
+                    'name' => 'Joe Store',
+                ],
+            ])
+            ->get('/connect/shopify/callback?'.http_build_query($query))
+            ->assertRedirect();
+
+        $connection = StorefrontConnection::query()->firstOrFail();
+
+        $this->assertSame(StorefrontConnectionStatus::Failed, $connection->connection_status);
+        $this->assertStringContainsString('Protected customer data access', $connection->last_connection_error);
+        $this->assertStringContainsString('reinstall the app', $connection->last_connection_error);
+    }
+
     public function test_shopify_callback_cannot_reassign_existing_shop_to_another_artist(): void
     {
         Config::set('services.shopify_connect.client_id', 'client-id');

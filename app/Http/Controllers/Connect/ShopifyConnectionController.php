@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Artist;
 use App\Models\StorefrontConnection;
 use App\Services\StorefrontConnect\ShopifyConnectorService;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -132,20 +133,47 @@ class ShopifyConnectionController extends Controller
                 'last_connection_error' => null,
             ])->save();
         } catch (Throwable $exception) {
+            $registrationError = $this->webhookRegistrationError($exception);
+
             Log::warning('Shopify Connect webhook registration failed.', [
                 'connection_id' => $connection->id,
                 'shop' => $shopDomain,
                 'artist_id' => $artist->id,
                 'exception' => $exception::class,
                 'message' => $exception->getMessage(),
+                'response_status' => $exception instanceof RequestException ? $exception->response->status() : null,
+                'response_body' => $exception instanceof RequestException ? Str::limit($exception->response->body(), 1000) : null,
             ]);
 
             $connection->forceFill([
                 'connection_status' => StorefrontConnectionStatus::Failed,
-                'last_connection_error' => 'Shopify webhook registration failed. Please contact LTD EDN support.',
+                'last_connection_error' => $registrationError,
             ])->save();
         }
 
         return redirect()->route('connect.storefronts.check', $connection);
+    }
+
+    private function webhookRegistrationError(Throwable $exception): string
+    {
+        if ($exception instanceof RequestException) {
+            $body = $exception->response->body();
+
+            if (Str::contains(Str::lower($body), 'protected customer data')) {
+                return 'Shopify connected, but order webhook registration was blocked by Shopify protected customer data settings. In the Shopify Dev Dashboard, enable Protected customer data access for this app, then reinstall the app.';
+            }
+
+            $detail = data_get($exception->response->json(), 'errors');
+
+            if (is_string($detail) && $detail !== '') {
+                return 'Shopify connected, but webhook registration failed: '.Str::limit($detail, 220);
+            }
+
+            if (is_array($detail) && $detail !== []) {
+                return 'Shopify connected, but webhook registration failed: '.Str::limit(json_encode($detail, JSON_UNESCAPED_SLASHES) ?: $body, 220);
+            }
+        }
+
+        return 'Shopify connected, but webhook registration failed. Please contact LTD EDN support.';
     }
 }
