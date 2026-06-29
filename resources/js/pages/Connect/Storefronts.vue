@@ -40,7 +40,9 @@ const storeFieldPlaceholder = computed(() => (platform.value === 'shopify' ? 'lt
 const submitLabel = computed(() => (platform.value === 'shopify' ? 'Connect Shopify' : 'Connect Squarespace'));
 const errors = computed(() => (page.props.errors ?? {}) as Record<string, string | undefined>);
 const connectErrors = computed(() =>
-    ['shopify', 'squarespace', 'artist_id', 'shop', 'website_id', 'name'].map((key) => errors.value[key]).filter((message): message is string => Boolean(message)),
+    ['shopify', 'squarespace', 'artist_id', 'shop', 'website_id', 'name']
+        .map((key) => errors.value[key])
+        .filter((message): message is string => Boolean(message)),
 );
 </script>
 
