@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import UserLayout from '@/layouts/UserLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 interface Artist {
     id: number;
@@ -27,6 +28,15 @@ const props = defineProps<{
     artists: Artist[];
     connections: Connection[];
 }>();
+
+const platform = ref<'shopify' | 'squarespace'>('shopify');
+
+const connectAction = computed(() => (platform.value === 'shopify' ? '/connect/shopify/start' : '/connect/squarespace/start'));
+const storeFieldId = computed(() => (platform.value === 'shopify' ? 'shopify_shop' : 'squarespace_website_id'));
+const storeFieldName = computed(() => (platform.value === 'shopify' ? 'shop' : 'website_id'));
+const storeFieldLabel = computed(() => (platform.value === 'shopify' ? 'Shopify store' : 'Squarespace website ID'));
+const storeFieldPlaceholder = computed(() => (platform.value === 'shopify' ? 'ltdedn-test.myshopify.com' : 'Optional, for multi-site accounts'));
+const submitLabel = computed(() => (platform.value === 'shopify' ? 'Connect Shopify' : 'Connect Squarespace'));
 </script>
 
 <template>
@@ -50,14 +60,27 @@ const props = defineProps<{
                     </p>
 
                     <form
-                        action="/connect/shopify/start"
+                        :action="connectAction"
                         method="get"
-                        class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
+                        class="grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]"
                     >
                         <div class="space-y-2">
-                            <Label for="shopify_artist_id">Artist</Label>
+                            <Label for="platform">Platform</Label>
                             <select
-                                id="shopify_artist_id"
+                                id="platform"
+                                v-model="platform"
+                                class="flex h-9 w-full rounded-md border border-neutral-300 bg-white px-3 py-1 text-sm text-neutral-950 shadow-xs ring-offset-background transition-[color,box-shadow] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                :disabled="props.artists.length === 0"
+                            >
+                                <option value="shopify">Shopify</option>
+                                <option value="squarespace">Squarespace</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <Label for="artist_id">Artist</Label>
+                            <select
+                                id="artist_id"
                                 name="artist_id"
                                 required
                                 class="flex h-9 w-full rounded-md border border-neutral-300 bg-white px-3 py-1 text-sm text-neutral-950 shadow-xs ring-offset-background transition-[color,box-shadow] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -71,23 +94,23 @@ const props = defineProps<{
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="shopify_shop">Shopify store</Label>
+                            <Label :for="storeFieldId">{{ storeFieldLabel }}</Label>
                             <Input
-                                id="shopify_shop"
-                                name="shop"
+                                :id="storeFieldId"
+                                :name="storeFieldName"
                                 type="text"
                                 class="border-neutral-300 bg-white text-neutral-950 placeholder:text-neutral-500"
-                                placeholder="ltdedn-test.myshopify.com"
+                                :placeholder="storeFieldPlaceholder"
                                 autocomplete="off"
-                                required
+                                :required="platform === 'shopify'"
                                 :disabled="props.artists.length === 0"
                             />
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="shopify_name">Connection name</Label>
+                            <Label for="name">Connection name</Label>
                             <Input
-                                id="shopify_name"
+                                id="name"
                                 name="name"
                                 type="text"
                                 class="border-neutral-300 bg-white text-neutral-950 placeholder:text-neutral-500"
@@ -98,7 +121,7 @@ const props = defineProps<{
                         </div>
 
                         <div class="flex items-end">
-                            <Button type="submit" class="w-full lg:w-auto" :disabled="props.artists.length === 0">Connect Shopify</Button>
+                            <Button type="submit" class="w-full lg:w-auto" :disabled="props.artists.length === 0">{{ submitLabel }}</Button>
                         </div>
                     </form>
 
