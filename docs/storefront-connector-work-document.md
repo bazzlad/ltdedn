@@ -10,7 +10,7 @@ LTD EDN now has a working direct Shopify connector MVP. A Shopify development st
 
 This validates the direct connector approach for Shopify. Pipe17 is no longer the active v1 bridge. It remains fallback/reference only.
 
-The project is not yet a polished production onboarding product. Connection lifecycle status now updates after a successful paid direct storefront import. The next work should focus on operational hardening, a repeatable onboarding runbook, and then Squarespace validation once OAuth credentials are issued.
+The project is not yet a polished production onboarding product. Connection lifecycle status now updates after a successful paid direct storefront import, the check page shows the last successful test order/import, failed shipment pushback can be retried from admin, and the operator onboarding runbook now exists. The next work should focus on infrastructure confirmation and Squarespace validation once OAuth credentials are issued.
 
 ## Current Hold
 
@@ -37,6 +37,8 @@ SQUARESPACE_CONNECT_SCOPES=website.orders,website.orders.read,website.products.r
 ```
 
 Then deploy/reload config, connect the Squarespace test site from `/connect/storefronts`, and continue the real paid order test.
+
+The `/connect/storefronts` page now includes a Squarespace readiness panel showing whether OAuth credentials are configured, the required redirect URI, required scopes, missing env vars, and next steps. The Squarespace connect action is disabled until OAuth credentials are configured.
 
 ## Verified End-To-End State
 
@@ -157,6 +159,7 @@ Order operations:
 - Buyer shipment email exists.
 - Shipment email now uses `SUPPORT_EMAIL` instead of telling buyers to reply to `noreply`.
 - Shipment pushback success/failure events are recorded.
+- Failed shipment pushback can be retried from `/admin/sales/{order}` when the order is shipped, the previous pushback failed, shipment data exists, external order data exists, and the storefront connection is still active.
 
 SKU/product support:
 
@@ -169,10 +172,14 @@ UI/docs/ops:
 
 - Artist-facing connect/check pages exist.
 - Artist-facing connect page exposes Shopify and Squarespace options.
+- Artist-facing connect page shows Squarespace OAuth readiness, redirect URI, scopes, missing env vars, and next steps.
+- Artist-facing connect page disables Squarespace connection start until OAuth credentials are configured.
+- Connection check page shows the last successful paid test order/import directly.
 - Storefront connect errors now render on the connect page instead of appearing as a silent reload.
 - Connect page contrast bug fixed.
 - Terms and privacy pages have non-placeholder connector-aware copy for the Squarespace OAuth request.
 - Successful paid direct storefront imports now mark storefront connections as tested and ready without activating them.
+- Operator onboarding runbook exists at `docs/storefront-operator-onboarding-runbook.md`.
 - Direct connector docs are the active path.
 - Pipe17 is hidden from normal onboarding and treated as fallback/legacy.
 - GitHub linter workflow fixed.
@@ -219,7 +226,7 @@ Before production customer usage, confirm:
 - failed jobs are visible and actionable,
 - webhook failures are logged with enough context,
 - external import failures surface in admin,
-- shipment pushback failures are easy to retry,
+- retryable shipment pushback failures are easy to retry from admin,
 - support can see connection health without database access.
 
 ## Production Readiness Checklist
@@ -234,7 +241,7 @@ Shopify:
 - [x] Shipment email sends.
 - [x] Fulfillment tracking pushback works.
 - [x] Connection status auto-updates after successful test order.
-- [ ] Operator can retry failed shipment pushback from admin.
+- [x] Operator can retry failed shipment pushback from admin.
 - [ ] Production Shopify app distribution model decided.
 - [ ] Production app scopes and protected customer data settings confirmed.
 
@@ -253,8 +260,8 @@ Operations:
 - [ ] Queue worker supervision confirmed.
 - [ ] Failed job monitoring confirmed.
 - [ ] Webhook retry/idempotency tested under duplicate delivery.
-- [ ] Admin support workflow documented.
-- [ ] Store owner onboarding checklist written.
+- [x] Admin support workflow documented.
+- [x] Store owner onboarding checklist written.
 - [ ] Final production environment variables reviewed.
 
 ## Recommended Next Work
@@ -271,11 +278,12 @@ Immediate next steps after approval:
 
 1. Add credentials to `test.ltdedn.com`.
 2. Confirm config cache is refreshed.
-3. Connect the Squarespace test site from `/connect/storefronts`.
-4. Confirm webhook subscription registration.
-5. Confirm the test product SKU matches `product_skus.sku_code`.
-6. Place a paid test order.
-7. Confirm import, allocation, fulfilment email, and tracking pushback.
+3. Confirm `/connect/storefronts` shows Squarespace OAuth credentials configured.
+4. Connect the Squarespace test site from `/connect/storefronts`.
+5. Confirm webhook subscription registration.
+6. Confirm the test product SKU matches `product_skus.sku_code`.
+7. Place a paid test order.
+8. Confirm import, allocation, fulfilment email, and tracking pushback.
 
 ### P1: Repeat Shopify From A Blank Store
 
@@ -354,12 +362,12 @@ If a Shopify pushback fails:
 3. Confirm app scopes include fulfillment-order scopes.
 4. Confirm merchant reinstalled/approved the app after scope changes.
 5. Confirm Shopify returns fulfillment orders for the external order id.
-6. Retry pushback.
+6. Click `Retry pushback` on `/admin/sales/{order}`.
 
 If the check page is confusing:
 
 1. Confirm the connection status.
-2. Confirm whether a successful paid test order exists.
+2. Confirm whether the last successful paid test order/import is shown.
 3. Confirm SKU checklist rows match Shopify variant SKUs.
 4. Confirm any connection error is visible in `last_connection_error`.
 

@@ -84,6 +84,68 @@ class OrderFulfillmentService
         return ['ok' => true];
     }
 
+    public function canRetryShipmentPushback(Order $order): bool
+    {
+        return $order->shipment_pushback_status === 'failed'
+            && $order->shipped_at !== null
+            && filled($order->shipping_carrier)
+            && filled($order->shipping_tracking_number)
+            && filled($order->external_order_id)
+            && filled($order->storefront_connection_id)
+            && in_array($order->source_platform, ['shopify', 'squarespace', 'pipe17'], true);
+    }
+
+    /**
+     * @return array{ok: bool, error?: string}
+     */
+    public function retryShipmentPushback(Order $order, User $actor): array
+    {
+        $error = null;
+
+        DB::transaction(function () use ($order, $actor, &$error) {
+            $locked = Order::query()->lockForUpdate()->find($order->id);
+
+            if (! $locked) {
+                return;
+            }
+
+            if (! $this->canRetryShipmentPushback($locked)) {
+                $error = 'Only failed shipment pushbacks for shipped external orders can be retried.';
+
+                return;
+            }
+
+            $previousError = $locked->shipment_pushback_error;
+
+            $locked->update([
+                'shipment_pushback_status' => 'pending',
+                'shipment_pushback_error' => null,
+            ]);
+
+            OrderEvent::create([
+                'order_id' => $locked->id,
+                'user_id' => $actor->id,
+                'type' => 'shipment_pushback_retry_queued',
+                'payload' => [
+                    'platform' => $locked->source_platform,
+                    'carrier' => $locked->shipping_carrier,
+                    'tracking' => $locked->shipping_tracking_number,
+                    'previous_error' => $previousError,
+                ],
+            ]);
+
+            DB::afterCommit(function () use ($locked) {
+                $this->dispatchPushback($locked->fresh());
+            });
+        });
+
+        if ($error) {
+            return ['ok' => false, 'error' => $error];
+        }
+
+        return ['ok' => true];
+    }
+
     /**
      * Queue the shipped-confirmation email to the buyer exactly once.
      * Stamped on order meta so a manual re-trigger or duplicate save can't

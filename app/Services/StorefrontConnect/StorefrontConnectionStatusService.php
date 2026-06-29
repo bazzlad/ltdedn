@@ -65,13 +65,27 @@ class StorefrontConnectionStatusService
     }
 
     /**
-     * @return array{state: string, label: string, detail: string|null, import_id: int|null, order_id: int|null}
+     * @return array{
+     *     state: string,
+     *     label: string,
+     *     detail: string|null,
+     *     import_id: int|null,
+     *     order_id: int|null,
+     *     last_successful_import: array{
+     *         import_id: int,
+     *         order_id: int|null,
+     *         order_number: string|null,
+     *         imported_at: string|null,
+     *         pushback_status: string|null
+     *     }|null
+     * }
      */
     public function testOrderState(StorefrontConnection $connection): array
     {
         $latestImport = $connection->imports()
             ->latest()
             ->first();
+        $lastSuccessfulImport = $this->lastSuccessfulImport($connection);
 
         if (! $latestImport) {
             return [
@@ -80,6 +94,7 @@ class StorefrontConnectionStatusService
                 'detail' => null,
                 'import_id' => null,
                 'order_id' => null,
+                'last_successful_import' => $lastSuccessfulImport,
             ];
         }
 
@@ -89,6 +104,7 @@ class StorefrontConnectionStatusService
             'detail' => $latestImport->error_details,
             'import_id' => $latestImport->id,
             'order_id' => $latestImport->order_id,
+            'last_successful_import' => $lastSuccessfulImport,
         ];
     }
 
@@ -145,5 +161,30 @@ class StorefrontConnectionStatusService
             ExternalImportStatus::Failed => 'Latest import failed',
             default => 'Latest import is pending',
         };
+    }
+
+    /**
+     * @return array{import_id: int, order_id: int|null, order_number: string|null, imported_at: string|null, pushback_status: string|null}|null
+     */
+    private function lastSuccessfulImport(StorefrontConnection $connection): ?array
+    {
+        $import = $connection->imports()
+            ->with('order:id,external_order_number,shipment_pushback_status')
+            ->where('status', ExternalImportStatus::Processed->value)
+            ->orderByDesc('processed_at')
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $import) {
+            return null;
+        }
+
+        return [
+            'import_id' => $import->id,
+            'order_id' => $import->order_id,
+            'order_number' => $import->order?->external_order_number,
+            'imported_at' => $import->processed_at ? (string) $import->processed_at : null,
+            'pushback_status' => $import->order?->shipment_pushback_status,
+        ];
     }
 }

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
+import { Form } from '@inertiajs/vue3';
+import { RotateCcw } from 'lucide-vue-next';
 
 interface OrderDetail {
     id: number;
@@ -19,8 +22,10 @@ interface OrderDetail {
     exception_reason: string | null;
     shipment_pushback_status: string | null;
     shipment_pushback_error: string | null;
+    can_retry_pushback: boolean;
     shipping_carrier: string | null;
     shipping_tracking_number: string | null;
+    shipped_at: string | null;
     items: Array<{ id: number; product_name: string; sku_code_snapshot: string | null; quantity: number; line_total_amount: number }>;
     events: Array<{ id: number; type: string; created_at: string }>;
 }
@@ -83,14 +88,35 @@ const breadcrumbs: BreadcrumbItemType[] = [
                         <div>Fulfilment: {{ order.source_fulfilment_status || '-' }}</div>
                         <div>Pushback: {{ order.shipment_pushback_status || 'pending' }}</div>
                         <div v-if="order.shipment_pushback_error" class="text-red-600">{{ order.shipment_pushback_error }}</div>
+                        <div
+                            v-if="order.shipment_pushback_status === 'failed' && !order.can_retry_pushback"
+                            class="rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-800"
+                        >
+                            Retry is unavailable because this order is missing shipment data, external order data, or an active storefront connection.
+                        </div>
+                        <Form
+                            v-if="order.can_retry_pushback"
+                            :action="`/admin/sales/${order.id}/retry-pushback`"
+                            method="post"
+                            #default="{ errors, processing }"
+                            class="space-y-2 pt-2"
+                        >
+                            <Button type="submit" variant="outline" class="w-full justify-center" :disabled="processing">
+                                <RotateCcw class="mr-2 h-4 w-4" />
+                                {{ processing ? 'Queueing...' : 'Retry pushback' }}
+                            </Button>
+                            <div v-if="errors.pushback" class="text-red-600">{{ errors.pushback }}</div>
+                        </Form>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader><CardTitle>Shipment</CardTitle></CardHeader>
                     <CardContent class="space-y-2 text-sm">
+                        <div>Shipped: {{ order.shipped_at || '-' }}</div>
                         <div>Carrier: {{ order.shipping_carrier || '-' }}</div>
                         <div>Tracking: {{ order.shipping_tracking_number || '-' }}</div>
+                        <div>Customer email: {{ order.customer_email || '-' }}</div>
                     </CardContent>
                 </Card>
             </div>

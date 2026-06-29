@@ -47,6 +47,7 @@ Route::prefix('admin')
             Route::get('sales', [SalesController::class, 'index'])->name('sales.index');
             Route::get('sales/{order}', [SalesController::class, 'show'])->name('sales.show');
             Route::post('sales/{order}/ship', [SalesController::class, 'markShipped'])->name('sales.ship');
+            Route::post('sales/{order}/retry-pushback', [SalesController::class, 'retryShipmentPushback'])->name('sales.retry-pushback');
             Route::get('external-imports', [ExternalImportController::class, 'index'])->name('external-imports.index');
             Route::get('storefront-connections', [StorefrontConnectionController::class, 'index'])->name('storefront-connections.index');
             Route::get('storefront-connections/create', [StorefrontConnectionController::class, 'create'])->name('storefront-connections.create');
