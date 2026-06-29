@@ -39,7 +39,7 @@ const props = defineProps<{
                 <p class="text-sm text-neutral-400">Track your Shopify or Squarespace connection, SKU checks, and first test order.</p>
             </div>
 
-            <Card class="border-white/10 bg-white/95">
+            <Card class="border-white/10 bg-white/95 text-neutral-950 [&_.text-muted-foreground]:text-neutral-600">
                 <CardHeader>
                     <CardTitle>Connection Setup</CardTitle>
                 </CardHeader>
@@ -60,7 +60,7 @@ const props = defineProps<{
                                 id="shopify_artist_id"
                                 name="artist_id"
                                 required
-                                class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs ring-offset-background transition-[color,box-shadow] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                class="flex h-9 w-full rounded-md border border-neutral-300 bg-white px-3 py-1 text-sm text-neutral-950 shadow-xs ring-offset-background transition-[color,box-shadow] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 :disabled="props.artists.length === 0"
                             >
                                 <option value="" disabled selected>Select artist</option>
@@ -76,6 +76,7 @@ const props = defineProps<{
                                 id="shopify_shop"
                                 name="shop"
                                 type="text"
+                                class="border-neutral-300 bg-white text-neutral-950 placeholder:text-neutral-500"
                                 placeholder="ltdedn-test.myshopify.com"
                                 autocomplete="off"
                                 required
@@ -89,6 +90,7 @@ const props = defineProps<{
                                 id="shopify_name"
                                 name="name"
                                 type="text"
+                                class="border-neutral-300 bg-white text-neutral-950 placeholder:text-neutral-500"
                                 placeholder="LTD EDN Test"
                                 autocomplete="off"
                                 :disabled="props.artists.length === 0"
@@ -100,11 +102,13 @@ const props = defineProps<{
                         </div>
                     </form>
 
-                    <p v-if="props.artists.length === 0" class="text-sm text-muted-foreground">No artists are available for this account yet.</p>
+                    <p v-if="props.artists.length === 0" class="text-sm text-neutral-600">No artists are available for this account yet.</p>
                 </CardContent>
             </Card>
 
-            <Card class="border-white/10 bg-white/95">
+            <Card
+                class="border-white/10 bg-white/95 text-neutral-950 [&_.text-muted-foreground]:text-neutral-600 [&_td]:text-neutral-900 [&_th]:text-neutral-600"
+            >
                 <CardHeader>
                     <CardTitle>Connections</CardTitle>
                 </CardHeader>
@@ -124,7 +128,7 @@ const props = defineProps<{
                             <TableRow v-for="connection in connections" :key="connection.id">
                                 <TableCell>
                                     <Link
-                                        class="font-medium underline-offset-4 hover:underline"
+                                        class="font-medium text-neutral-950 underline-offset-4 hover:underline"
                                         :href="`/connect/storefronts/${connection.id}/check`"
                                     >
                                         {{ connection.name }}
@@ -139,9 +143,7 @@ const props = defineProps<{
                                 <TableCell>{{ connection.activated_at || '-' }}</TableCell>
                             </TableRow>
                             <TableRow v-if="connections.length === 0">
-                                <TableCell colspan="6" class="py-8 text-center text-sm text-muted-foreground"
-                                    >No storefront connections yet.</TableCell
-                                >
+                                <TableCell colspan="6" class="py-8 text-center text-sm text-neutral-600">No storefront connections yet.</TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>

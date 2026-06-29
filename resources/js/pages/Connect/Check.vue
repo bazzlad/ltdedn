@@ -61,7 +61,9 @@ defineProps<{
             </div>
 
             <div class="grid gap-4 lg:grid-cols-3">
-                <Card class="border-white/10 bg-white/95 lg:col-span-2">
+                <Card
+                    class="border-white/10 bg-white/95 text-neutral-950 lg:col-span-2 [&_.text-muted-foreground]:text-neutral-600 [&_td]:text-neutral-900 [&_th]:text-neutral-600"
+                >
                     <CardHeader>
                         <CardTitle>SKU Checklist</CardTitle>
                     </CardHeader>
@@ -79,7 +81,7 @@ defineProps<{
                             </TableHeader>
                             <TableBody>
                                 <TableRow v-for="row in skuChecklist" :key="row.sku_code">
-                                    <TableCell class="font-medium">{{ row.sku_code }}</TableCell>
+                                    <TableCell class="font-medium text-neutral-950">{{ row.sku_code }}</TableCell>
                                     <TableCell>{{ row.product_name }}</TableCell>
                                     <TableCell>{{ row.store_sku_found === null ? 'Not checked' : row.store_sku_found ? 'Yes' : 'No' }}</TableCell>
                                     <TableCell>{{ row.stock_available }}</TableCell>
@@ -89,7 +91,7 @@ defineProps<{
                                     >
                                 </TableRow>
                                 <TableRow v-if="skuChecklist.length === 0">
-                                    <TableCell colspan="6" class="py-8 text-center text-sm text-muted-foreground"
+                                    <TableCell colspan="6" class="py-8 text-center text-sm text-neutral-600"
                                         >No active local SKUs for this artist.</TableCell
                                     >
                                 </TableRow>
@@ -98,7 +100,7 @@ defineProps<{
                     </CardContent>
                 </Card>
 
-                <Card class="border-white/10 bg-white/95">
+                <Card class="border-white/10 bg-white/95 text-neutral-950 [&_.text-muted-foreground]:text-neutral-600">
                     <CardHeader>
                         <CardTitle>Connection</CardTitle>
                     </CardHeader>
@@ -122,7 +124,9 @@ defineProps<{
                         <div v-if="connection.last_connection_error" class="rounded-md border border-red-200 bg-red-50 p-3 text-red-700">
                             {{ connection.last_connection_error }}
                         </div>
-                        <div v-if="testOrder.detail" class="rounded-md border bg-muted p-3">{{ testOrder.detail }}</div>
+                        <div v-if="testOrder.detail" class="rounded-md border border-neutral-200 bg-neutral-100 p-3 text-neutral-700">
+                            {{ testOrder.detail }}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
