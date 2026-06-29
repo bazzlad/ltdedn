@@ -340,9 +340,14 @@ Shopify pushback requires:
 
 - `store_url` using HTTPS and a `*.myshopify.com` host.
 - `credentials.access_token`.
-- `orders.meta.shopify_fulfillment_order_id`.
+- Shopify OAuth scopes for order fulfillment:
+  `read_orders`, `write_fulfillments`, `read_merchant_managed_fulfillment_orders`, and
+  `write_merchant_managed_fulfillment_orders`.
 
-The Shopify webhook import does not currently fetch Shopify fulfilment order ids. Without `meta.shopify_fulfillment_order_id`, the pushback job records a failure on the order instead of making a network request.
+The Shopify pushback job fetches and caches fulfillment order ids in
+`orders.meta.shopify_fulfillment_order_ids` before creating the fulfillment. If Shopify returns HTTP 403
+for this lookup, redeploy the app configuration with the fulfillment-order scopes and reinstall the
+storefront app so the merchant approves the new permissions.
 
 Squarespace pushback requires:
 

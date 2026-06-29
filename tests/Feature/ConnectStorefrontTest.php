@@ -292,13 +292,18 @@ class ConnectStorefrontTest extends TestCase
     {
         Config::set('services.shopify_connect.client_id', 'client-id');
         Config::set('services.shopify_connect.client_secret', 'client-secret');
-        Config::set('services.shopify_connect.scopes', ['read_orders', 'write_fulfillments']);
+        Config::set('services.shopify_connect.scopes', [
+            'read_orders',
+            'write_fulfillments',
+            'read_merchant_managed_fulfillment_orders',
+            'write_merchant_managed_fulfillment_orders',
+        ]);
         Config::set('services.shopify_connect.api_version', '2025-10');
 
         Http::fake([
             'https://joe.myshopify.com/admin/oauth/access_token' => Http::response([
                 'access_token' => 'shpat_test_token',
-                'scope' => 'read_orders,write_fulfillments',
+                'scope' => 'read_orders,write_fulfillments,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders',
             ]),
             'https://joe.myshopify.com/admin/api/2025-10/webhooks.json' => Http::response([
                 'webhook' => ['id' => 123456],
@@ -342,13 +347,18 @@ class ConnectStorefrontTest extends TestCase
     {
         Config::set('services.shopify_connect.client_id', 'client-id');
         Config::set('services.shopify_connect.client_secret', 'client-secret');
-        Config::set('services.shopify_connect.scopes', ['read_orders', 'write_fulfillments']);
+        Config::set('services.shopify_connect.scopes', [
+            'read_orders',
+            'write_fulfillments',
+            'read_merchant_managed_fulfillment_orders',
+            'write_merchant_managed_fulfillment_orders',
+        ]);
         Config::set('services.shopify_connect.api_version', '2025-10');
 
         Http::fake([
             'https://joe.myshopify.com/admin/oauth/access_token' => Http::response([
                 'access_token' => 'shpat_test_token',
-                'scope' => 'read_orders,write_fulfillments',
+                'scope' => 'read_orders,write_fulfillments,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders',
             ]),
             'https://joe.myshopify.com/admin/api/2025-10/webhooks.json' => Http::response([
                 'errors' => 'You do not have permission to create webhooks with orders/create topic. This topic contains protected customer data.',

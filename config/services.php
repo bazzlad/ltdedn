@@ -31,7 +31,7 @@ return [
     'shopify_connect' => [
         'client_id' => env('SHOPIFY_CONNECT_CLIENT_ID'),
         'client_secret' => env('SHOPIFY_CONNECT_CLIENT_SECRET'),
-        'scopes' => array_filter(explode(',', env('SHOPIFY_CONNECT_SCOPES', 'read_orders,write_fulfillments'))),
+        'scopes' => array_filter(explode(',', env('SHOPIFY_CONNECT_SCOPES', 'read_orders,write_fulfillments,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders'))),
         'api_version' => env('SHOPIFY_CONNECT_API_VERSION', '2025-10'),
     ],
 
