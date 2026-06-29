@@ -18,6 +18,16 @@ interface Artist {
     name: string;
     slug: string;
 }
+
+interface ProductSku {
+    id: number;
+    sku_code: string;
+    stock_on_hand: number;
+    stock_reserved: number;
+    stock_available: number;
+    is_active: boolean;
+}
+
 interface Product {
     id: number;
     artist_id: number;
@@ -34,6 +44,7 @@ interface Product {
     created_at: string;
     updated_at: string;
     artist: Artist;
+    skus?: ProductSku[];
 }
 
 defineProps<{
@@ -130,6 +141,24 @@ const formatPrice = (price?: string | number) => {
                                     <Badge :variant="product.sell_through_ltdedn ? 'default' : 'secondary'">
                                         {{ product.sell_through_ltdedn ? 'Yes' : 'No' }}
                                     </Badge>
+                                </div>
+                                <div class="col-span-2">
+                                    <h4 class="text-sm font-medium text-muted-foreground">Storefront SKU</h4>
+                                    <div v-if="product.skus?.length" class="mt-2 space-y-2">
+                                        <div
+                                            v-for="sku in product.skus"
+                                            :key="sku.id"
+                                            class="flex flex-wrap items-center gap-3 rounded-md border bg-muted/30 px-3 py-2"
+                                        >
+                                            <span class="font-mono text-sm font-semibold">{{ sku.sku_code }}</span>
+                                            <span class="text-xs text-muted-foreground">Available: {{ sku.stock_available }}</span>
+                                            <span class="text-xs text-muted-foreground">Reserved: {{ sku.stock_reserved }}</span>
+                                            <Badge :variant="sku.is_active ? 'default' : 'secondary'">
+                                                {{ sku.is_active ? 'Active' : 'Inactive' }}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                    <p v-else class="mt-1 text-sm text-muted-foreground">No SKU configured.</p>
                                 </div>
                                 <div v-if="product.cover_image">
                                     <h4 class="text-sm font-medium text-muted-foreground">Cover Image</h4>

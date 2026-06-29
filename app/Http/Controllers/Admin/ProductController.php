@@ -85,11 +85,13 @@ class ProductController extends Controller
             ->with('success', 'Product created successfully.');
     }
 
-    public function show(Product $product): Response
+    public function show(Product $product, ProductSkuService $skuService): Response
     {
         $this->authorize('view', $product);
 
-        $product->load('artist')->loadCount('editions');
+        $skuService->syncSingleSkuStockFromEditions($product);
+
+        $product->load(['artist', 'skus'])->loadCount('editions');
 
         $editionStats = $product->editions()
             ->selectRaw('status, COUNT(*) as count')

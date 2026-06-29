@@ -264,6 +264,9 @@ class ProductTest extends TestCase
                 ->where('id', $product->id)
                 ->where('name', $product->name)
                 ->where('slug', $product->slug)
+                ->has('skus', 1)
+                ->where('skus.0.sku_code', 'LTD-'.$product->id.'-'.strtoupper($product->slug))
+                ->where('skus.0.stock_available', 0)
                 ->has('artist', fn (Assert $page) => $page
                     ->where('id', $artist->id)
                     ->where('name', $artist->name)
@@ -272,6 +275,11 @@ class ProductTest extends TestCase
                 ->etc()
             )
         );
+
+        $this->assertDatabaseHas('product_skus', [
+            'product_id' => $product->id,
+            'sku_code' => 'LTD-'.$product->id.'-'.strtoupper($product->slug),
+        ]);
     }
 
     public function test_artist_can_view_own_product(): void

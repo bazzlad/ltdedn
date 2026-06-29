@@ -31,6 +31,14 @@ class ProductResource extends JsonResource
             'updated_at' => $this->updated_at,
             'artist' => $this->whenLoaded('artist'),
             'editions' => $this->whenLoaded('editions'),
+            'skus' => $this->whenLoaded('skus', fn () => $this->skus->map(fn ($sku) => [
+                'id' => $sku->id,
+                'sku_code' => $sku->sku_code,
+                'stock_on_hand' => $sku->stock_on_hand,
+                'stock_reserved' => $sku->stock_reserved,
+                'stock_available' => $sku->stock_available,
+                'is_active' => $sku->is_active,
+            ])->values()),
             'editions_count' => $this->when(isset($this->editions_count), $this->editions_count),
         ];
     }
