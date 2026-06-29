@@ -8,6 +8,7 @@ use App\Enums\StorefrontConnectionStatus;
 use App\Enums\StorefrontPlatform;
 use App\Models\Artist;
 use App\Models\ExternalOrderImport;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductEdition;
 use App\Models\ProductSku;
@@ -262,6 +263,86 @@ class ConnectStorefrontTest extends TestCase
                 ->component('Connect/Storefronts')
                 ->has('connections', 1)
                 ->where('connections.0.id', $ownedConnection->id)
+            );
+    }
+
+    public function test_connect_page_shows_squarespace_readiness_when_credentials_are_missing(): void
+    {
+        Config::set('services.squarespace_connect.client_id', null);
+        Config::set('services.squarespace_connect.client_secret', null);
+        Config::set('services.squarespace_connect.scopes', ['website.orders', 'website.orders.read', 'website.products.read']);
+
+        $artistUser = User::factory()->artist()->create();
+        Artist::factory()->ownedBy($artistUser)->create();
+
+        $this->actingAs($artistUser)
+            ->get('/connect/storefronts')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Connect/Storefronts')
+                ->where('squarespaceReadiness.configured', false)
+                ->where('squarespaceReadiness.status_label', 'OAuth credentials missing')
+                ->where('squarespaceReadiness.missing.0', 'SQUARESPACE_CONNECT_CLIENT_ID')
+                ->where('squarespaceReadiness.missing.1', 'SQUARESPACE_CONNECT_CLIENT_SECRET')
+                ->where('squarespaceReadiness.redirect_uri', url('/connect/squarespace/callback'))
+                ->where('squarespaceReadiness.scopes.0', 'website.orders')
+            );
+    }
+
+    public function test_connect_page_shows_squarespace_readiness_when_credentials_are_configured(): void
+    {
+        Config::set('services.squarespace_connect.client_id', 'square-client-id');
+        Config::set('services.squarespace_connect.client_secret', 'square-client-secret');
+
+        $artistUser = User::factory()->artist()->create();
+        Artist::factory()->ownedBy($artistUser)->create();
+
+        $this->actingAs($artistUser)
+            ->get('/connect/storefronts')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('squarespaceReadiness.configured', true)
+                ->where('squarespaceReadiness.status_label', 'OAuth credentials configured')
+                ->has('squarespaceReadiness.missing', 0)
+            );
+    }
+
+    public function test_artist_connection_check_shows_last_successful_test_order_import(): void
+    {
+        $artistUser = User::factory()->artist()->create();
+        $artist = Artist::factory()->ownedBy($artistUser)->create();
+        $connection = StorefrontConnection::factory()->for($artist)->create([
+            'platform' => StorefrontPlatform::Shopify,
+        ]);
+        $order = Order::factory()->for($connection, 'connection')->create([
+            'source_platform' => 'shopify',
+            'external_order_number' => '#1001',
+            'shipment_pushback_status' => 'succeeded',
+        ]);
+
+        ExternalOrderImport::factory()->for($connection, 'connection')->for($order)->create([
+            'platform' => StorefrontPlatform::Shopify,
+            'status' => ExternalImportStatus::Processed,
+            'processed_at' => now()->subMinute(),
+            'created_at' => now()->subMinute(),
+        ]);
+        $failed = ExternalOrderImport::factory()->for($connection, 'connection')->create([
+            'platform' => StorefrontPlatform::Shopify,
+            'status' => ExternalImportStatus::Failed,
+            'error_details' => 'Webhook payload could not be transformed.',
+            'created_at' => now(),
+        ]);
+
+        $this->actingAs($artistUser)
+            ->get("/connect/storefronts/{$connection->id}/check")
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Connect/Check')
+                ->where('testOrder.state', 'failed')
+                ->where('testOrder.import_id', $failed->id)
+                ->where('testOrder.last_successful_import.order_id', $order->id)
+                ->where('testOrder.last_successful_import.order_number', '#1001')
+                ->where('testOrder.last_successful_import.pushback_status', 'succeeded')
             );
     }
 

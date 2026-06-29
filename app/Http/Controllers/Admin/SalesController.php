@@ -77,7 +77,7 @@ class SalesController extends Controller
         ]);
     }
 
-    public function show(Order $order): Response
+    public function show(Order $order, OrderFulfillmentService $service): Response
     {
         $this->authorize('view', $order);
 
@@ -107,6 +107,7 @@ class SalesController extends Controller
                 'shipping_tracking_number' => $order->shipping_tracking_number,
                 'shipment_pushback_status' => $order->shipment_pushback_status,
                 'shipment_pushback_error' => $order->shipment_pushback_error,
+                'can_retry_pushback' => $service->canRetryShipmentPushback($order),
                 'shipped_at' => $order->shipped_at ? (string) $order->shipped_at : null,
                 'shipping_name' => $order->shipping_name,
                 'shipping_line1' => $order->shipping_line1,
@@ -156,5 +157,21 @@ class SalesController extends Controller
         }
 
         return back()->with('status', 'Order marked as shipped.');
+    }
+
+    public function retryShipmentPushback(Request $request, Order $order, OrderFulfillmentService $service): RedirectResponse
+    {
+        $this->authorize('ship', $order);
+
+        /** @var \App\Models\User $actor */
+        $actor = $request->user();
+
+        $result = $service->retryShipmentPushback($order, $actor);
+
+        if (! $result['ok']) {
+            return back()->withErrors(['pushback' => (string) $result['error']]);
+        }
+
+        return back()->with('status', 'Shipment pushback retry queued.');
     }
 }

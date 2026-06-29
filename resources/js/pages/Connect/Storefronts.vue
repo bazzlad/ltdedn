@@ -24,9 +24,19 @@ interface Connection {
     activated_at: string | null;
 }
 
+interface SquarespaceReadiness {
+    configured: boolean;
+    status_label: string;
+    missing: string[];
+    redirect_uri: string;
+    scopes: string[];
+    next_steps: string[];
+}
+
 const props = defineProps<{
     artists: Artist[];
     connections: Connection[];
+    squarespaceReadiness: SquarespaceReadiness;
 }>();
 
 const platform = ref<'shopify' | 'squarespace'>('shopify');
@@ -38,6 +48,7 @@ const storeFieldName = computed(() => (platform.value === 'shopify' ? 'shop' : '
 const storeFieldLabel = computed(() => (platform.value === 'shopify' ? 'Shopify store' : 'Squarespace website ID'));
 const storeFieldPlaceholder = computed(() => (platform.value === 'shopify' ? 'ltdedn-test.myshopify.com' : 'Optional, for multi-site accounts'));
 const submitLabel = computed(() => (platform.value === 'shopify' ? 'Connect Shopify' : 'Connect Squarespace'));
+const connectDisabled = computed(() => props.artists.length === 0 || (platform.value === 'squarespace' && !props.squarespaceReadiness.configured));
 const errors = computed(() => (page.props.errors ?? {}) as Record<string, string | undefined>);
 const connectErrors = computed(() =>
     ['shopify', 'squarespace', 'artist_id', 'shop', 'website_id', 'name']
@@ -132,9 +143,42 @@ const connectErrors = computed(() =>
                         </div>
 
                         <div class="flex items-end">
-                            <Button type="submit" class="w-full lg:w-auto" :disabled="props.artists.length === 0">{{ submitLabel }}</Button>
+                            <Button type="submit" class="w-full lg:w-auto" :disabled="connectDisabled">{{ submitLabel }}</Button>
                         </div>
                     </form>
+
+                    <div v-if="platform === 'squarespace'" class="rounded-md border border-neutral-200 bg-neutral-50 p-4 text-sm">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div class="font-medium">Squarespace readiness</div>
+                            <Badge :variant="props.squarespaceReadiness.configured ? 'secondary' : 'destructive'">
+                                {{ props.squarespaceReadiness.status_label }}
+                            </Badge>
+                        </div>
+
+                        <div class="mt-4 grid gap-4 lg:grid-cols-2">
+                            <div class="space-y-1">
+                                <div class="text-muted-foreground">Redirect URI</div>
+                                <div class="font-mono text-xs break-all text-neutral-900">{{ props.squarespaceReadiness.redirect_uri }}</div>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="text-muted-foreground">Required scopes</div>
+                                <div class="font-mono text-xs text-neutral-900">{{ props.squarespaceReadiness.scopes.join(', ') || '-' }}</div>
+                            </div>
+                        </div>
+
+                        <div v-if="props.squarespaceReadiness.missing.length > 0" class="mt-4 space-y-1">
+                            <div class="text-muted-foreground">Missing env vars</div>
+                            <div class="font-mono text-xs text-neutral-900">{{ props.squarespaceReadiness.missing.join(', ') }}</div>
+                            <div class="text-neutral-700">Connect Squarespace is disabled until these credentials are configured.</div>
+                        </div>
+
+                        <div class="mt-4 space-y-1">
+                            <div class="text-muted-foreground">Next steps</div>
+                            <ol class="list-decimal space-y-1 pl-5 text-neutral-800">
+                                <li v-for="step in props.squarespaceReadiness.next_steps" :key="step">{{ step }}</li>
+                            </ol>
+                        </div>
+                    </div>
 
                     <p v-if="props.artists.length === 0" class="text-sm text-neutral-600">No artists are available for this account yet.</p>
                 </CardContent>
@@ -155,7 +199,7 @@ const connectErrors = computed(() =>
                                 <TableHead>Artist</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Tested</TableHead>
-                                <TableHead>Ready</TableHead>
+                                <TableHead>Activated</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>

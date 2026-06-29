@@ -14,9 +14,11 @@ The external storefront remains responsible for checkout, payment, tax, and frau
 - `/admin/external-imports` lists webhook import attempts and their status.
 - `/admin/fulfilment` shows paid, unshipped, non-exception orders ready to ship.
 - `/admin/sales` lists imported orders with filters for status, platform, and exception state.
-- `/admin/sales/{order}` shows order details, line items, events, and shipment pushback status.
+- `/admin/sales/{order}` shows order details, line items, events, shipment pushback status, and retry for failed shipment pushback.
 
 Connection creation is exposed at `/admin/storefront-connections/create`.
+
+Operator onboarding steps are maintained in `docs/storefront-operator-onboarding-runbook.md`.
 
 ## Squarespace OAuth Hold
 
@@ -384,7 +386,7 @@ Pipe17 pushback requires:
 - `orders.external_order_id` set to the Pipe17 Shipping Request ID.
 - `PIPE17_SCHEDULE_ENABLED=true` if LTD EDN should poll Pipe17 automatically.
 
-Pushback success or failure is visible on the sales detail page and recorded as an order event.
+Pushback success or failure is visible on the sales detail page and recorded as an order event. If a shipped Shopify, Squarespace, or Pipe17 order has `shipment_pushback_status=failed`, shipment data, external order data, and an active storefront connection, an admin can open `/admin/sales/{order}` and click `Retry pushback`. The retry clears the previous error, sets the status back to `pending`, records a `shipment_pushback_retry_queued` event, and queues the platform pushback job again.
 
 Legacy `orderdesk` rows and fallback `pipe17` rows remain readable in admin screens so old data does not break enum casts, but neither platform is part of normal storefront creation.
 

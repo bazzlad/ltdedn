@@ -33,6 +33,13 @@ interface TestOrder {
     detail: string | null;
     import_id: number | null;
     order_id: number | null;
+    last_successful_import: {
+        import_id: number;
+        order_id: number | null;
+        order_number: string | null;
+        imported_at: string | null;
+        pushback_status: string | null;
+    } | null;
 }
 
 defineProps<{
@@ -118,7 +125,7 @@ defineProps<{
                             <div>{{ connection.tested_at || '-' }}</div>
                         </div>
                         <div>
-                            <div class="text-muted-foreground">Ready</div>
+                            <div class="text-muted-foreground">Activated</div>
                             <div>{{ connection.activated_at || '-' }}</div>
                         </div>
                         <div v-if="connection.last_connection_error" class="rounded-md border border-red-200 bg-red-50 p-3 text-red-700">
@@ -126,6 +133,28 @@ defineProps<{
                         </div>
                         <div v-if="testOrder.detail" class="rounded-md border border-neutral-200 bg-neutral-100 p-3 text-neutral-700">
                             {{ testOrder.detail }}
+                        </div>
+                        <div class="border-t border-neutral-200 pt-4">
+                            <div class="text-muted-foreground">Last successful test order/import</div>
+                            <div v-if="testOrder.last_successful_import" class="mt-2 space-y-2">
+                                <Badge variant="secondary">Imported</Badge>
+                                <div class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+                                    <span class="text-muted-foreground">Order</span>
+                                    <span>{{
+                                        testOrder.last_successful_import.order_number ||
+                                        (testOrder.last_successful_import.order_id ? `#${testOrder.last_successful_import.order_id}` : '-')
+                                    }}</span>
+                                    <span class="text-muted-foreground">Order ID</span>
+                                    <span>{{ testOrder.last_successful_import.order_id || '-' }}</span>
+                                    <span class="text-muted-foreground">Import ID</span>
+                                    <span>{{ testOrder.last_successful_import.import_id }}</span>
+                                    <span class="text-muted-foreground">Imported</span>
+                                    <span>{{ testOrder.last_successful_import.imported_at || '-' }}</span>
+                                    <span class="text-muted-foreground">Pushback</span>
+                                    <span>{{ testOrder.last_successful_import.pushback_status || 'pending' }}</span>
+                                </div>
+                            </div>
+                            <div v-else class="mt-2 text-neutral-700">No successful paid test order imported yet.</div>
                         </div>
                     </CardContent>
                 </Card>

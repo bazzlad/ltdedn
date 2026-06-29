@@ -39,6 +39,7 @@ class StorefrontConnectionController extends Controller
                     'activated_at' => $connection->activated_at ? (string) $connection->activated_at : null,
                 ])
                 ->values(),
+            'squarespaceReadiness' => $this->squarespaceReadiness(),
         ]);
     }
 
@@ -82,5 +83,51 @@ class StorefrontConnectionController extends Controller
             ->merge($user->artistTeams()->pluck('artists.id'))
             ->unique()
             ->values();
+    }
+
+    /**
+     * @return array{
+     *     configured: bool,
+     *     status_label: string,
+     *     missing: list<string>,
+     *     redirect_uri: string,
+     *     scopes: list<string>,
+     *     next_steps: list<string>
+     * }
+     */
+    private function squarespaceReadiness(): array
+    {
+        $clientId = config('services.squarespace_connect.client_id');
+        $clientSecret = config('services.squarespace_connect.client_secret');
+        $missing = [];
+
+        if (! filled($clientId)) {
+            $missing[] = 'SQUARESPACE_CONNECT_CLIENT_ID';
+        }
+
+        if (! filled($clientSecret)) {
+            $missing[] = 'SQUARESPACE_CONNECT_CLIENT_SECRET';
+        }
+
+        $configured = $missing === [];
+
+        return [
+            'configured' => $configured,
+            'status_label' => $configured ? 'OAuth credentials configured' : 'OAuth credentials missing',
+            'missing' => $missing,
+            'redirect_uri' => route('connect.squarespace.callback'),
+            'scopes' => array_values((array) config('services.squarespace_connect.scopes', [])),
+            'next_steps' => $configured
+                ? [
+                    'Connect the Squarespace test site from this page.',
+                    'Confirm webhook registration succeeds.',
+                    'Place a paid test order with matching LTD EDN SKU.',
+                ]
+                : [
+                    'Wait for Squarespace to issue the OAuth client id and secret.',
+                    'Set the Squarespace env vars and reload Laravel config.',
+                    'Return here and start the Squarespace connection.',
+                ],
+        ];
     }
 }
