@@ -15,6 +15,7 @@ use App\Models\ProductSku;
 use App\Models\StorefrontConnection;
 use App\Models\User;
 use App\Notifications\ExternalOrderExceptionNotification;
+use App\Services\StorefrontConnect\StorefrontConnectionStatusService;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -22,6 +23,10 @@ use Throwable;
 
 class ExternalOrderImportService
 {
+    public function __construct(
+        private readonly StorefrontConnectionStatusService $connectionStatus,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $rawPayload
      */
@@ -92,6 +97,7 @@ class ExternalOrderImportService
                     'status' => ExternalImportStatus::Processed,
                     'processed_at' => now(),
                 ]);
+                $this->connectionStatus->markSuccessfulTestOrder($connection);
 
                 return $import;
             });

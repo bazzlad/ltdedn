@@ -5,6 +5,7 @@ namespace Tests\Feature\ExternalOrders;
 use App\Enums\ExternalImportStatus;
 use App\Enums\OrderStatus;
 use App\Enums\ProductEditionStatus;
+use App\Enums\StorefrontConnectionStatus;
 use App\Enums\StorefrontPlatform;
 use App\Jobs\PushPipe17Fulfilment;
 use App\Models\Artist;
@@ -44,7 +45,11 @@ class Pipe17IntegrationTest extends TestCase
             'https://api.pipe17.test/api/v3/shipping-requests/sr-1001' => Http::response(['ok' => true]),
         ]);
 
-        $connection = $this->pipe17Connection();
+        $connection = $this->pipe17Connection([
+            'connection_status' => StorefrontConnectionStatus::Failed,
+            'tested_at' => null,
+            'last_connection_error' => 'Pipe17 credentials need review.',
+        ]);
         $product = Product::factory()->for($connection->artist)->create(['is_limited' => true]);
         $sku = ProductSku::factory()->for($product)->create(['sku_code' => 'PRINT-P17-001', 'stock_on_hand' => 1]);
         ProductEdition::factory()->for($product)->create([
@@ -63,6 +68,9 @@ class Pipe17IntegrationTest extends TestCase
         $this->assertSame('shopify-order-1001', data_get($order->meta, 'pipe17_ext_order_id'));
         $this->assertDatabaseHas('product_skus', ['id' => $sku->id, 'stock_on_hand' => 0]);
         $this->assertDatabaseHas('product_editions', ['product_sku_id' => $sku->id, 'status' => ProductEditionStatus::Sold->value]);
+        $this->assertSame(StorefrontConnectionStatus::Failed, $connection->fresh()->connection_status);
+        $this->assertNull($connection->fresh()->tested_at);
+        $this->assertSame('Pipe17 credentials need review.', $connection->fresh()->last_connection_error);
 
         Http::assertSent(fn ($request) => $request->method() === 'GET'
             && str_starts_with($request->url(), 'https://api.pipe17.test/api/v3/shipping-requests')
@@ -325,16 +333,19 @@ class Pipe17IntegrationTest extends TestCase
         Http::assertNothingSent();
     }
 
-    private function pipe17Connection(): StorefrontConnection
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function pipe17Connection(array $attributes = []): StorefrontConnection
     {
         return StorefrontConnection::factory()
             ->for(Artist::factory())
-            ->create([
+            ->create(array_merge([
                 'platform' => StorefrontPlatform::Pipe17,
                 'external_shop_id' => 'pipe17-location-1',
                 'credentials' => ['api_key' => 'pipe17-api-key'],
                 'webhook_secret' => null,
-            ]);
+            ], $attributes));
     }
 
     /**

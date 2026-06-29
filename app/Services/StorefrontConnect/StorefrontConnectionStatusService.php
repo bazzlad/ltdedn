@@ -5,6 +5,7 @@ namespace App\Services\StorefrontConnect;
 use App\Enums\ExternalImportStatus;
 use App\Enums\ProductEditionStatus;
 use App\Enums\StorefrontConnectionStatus;
+use App\Enums\StorefrontPlatform;
 use App\Models\ExternalOrderImport;
 use App\Models\ProductEdition;
 use App\Models\ProductSku;
@@ -96,6 +97,19 @@ class StorefrontConnectionStatusService
         $connection->forceFill([
             'tested_at' => now(),
             'connection_status' => StorefrontConnectionStatus::Testing,
+            'last_connection_error' => null,
+        ])->save();
+    }
+
+    public function markSuccessfulTestOrder(StorefrontConnection $connection): void
+    {
+        if (! in_array($connection->platform, [StorefrontPlatform::Shopify, StorefrontPlatform::Squarespace], true)) {
+            return;
+        }
+
+        $connection->forceFill([
+            'tested_at' => $connection->tested_at ?? now(),
+            'connection_status' => StorefrontConnectionStatus::Ready,
             'last_connection_error' => null,
         ])->save();
     }

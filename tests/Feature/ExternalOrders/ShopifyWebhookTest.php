@@ -5,6 +5,7 @@ namespace Tests\Feature\ExternalOrders;
 use App\Enums\ExternalImportStatus;
 use App\Enums\OrderStatus;
 use App\Enums\ProductEditionStatus;
+use App\Enums\StorefrontConnectionStatus;
 use App\Enums\StorefrontPlatform;
 use App\Jobs\ProcessExternalOrderWebhook;
 use App\Models\Artist;
@@ -47,6 +48,13 @@ class ShopifyWebhookTest extends TestCase
         $this->assertSame('gid://shopify/Order/1001', $order->external_order_id);
         $this->assertDatabaseHas('product_skus', ['id' => $sku->id, 'stock_on_hand' => 0]);
         $this->assertDatabaseHas('product_editions', ['product_sku_id' => $sku->id, 'status' => ProductEditionStatus::Sold->value]);
+
+        $connection->refresh();
+
+        $this->assertSame(StorefrontConnectionStatus::Ready, $connection->connection_status);
+        $this->assertNotNull($connection->tested_at);
+        $this->assertNull($connection->activated_at);
+        $this->assertNull($connection->last_connection_error);
     }
 
     public function test_valid_shopify_webhook_dispatches_processing_job(): void
@@ -104,7 +112,10 @@ class ShopifyWebhookTest extends TestCase
         Notification::fake();
 
         $admin = User::factory()->create(['role' => 'admin']);
-        $connection = $this->shopifyConnection();
+        $connection = $this->shopifyConnection([
+            'connection_status' => StorefrontConnectionStatus::Testing,
+            'tested_at' => null,
+        ]);
         $payload = $this->shopifyPayload('1004', 'MISSING-SKU');
 
         $this->postSignedShopifyPayload($connection, $payload)
@@ -114,13 +125,18 @@ class ShopifyWebhookTest extends TestCase
         $order = Order::query()->firstOrFail();
         $this->assertSame(OrderStatus::Exception, $order->status);
         $this->assertStringContainsString('Unknown SKU', (string) $order->exception_reason);
+        $this->assertSame(StorefrontConnectionStatus::Testing, $connection->fresh()->connection_status);
+        $this->assertNull($connection->fresh()->tested_at);
 
         Notification::assertSentTo($admin, ExternalOrderExceptionNotification::class);
     }
 
     public function test_unpaid_shopify_order_is_recorded_as_ignored(): void
     {
-        $connection = $this->shopifyConnection();
+        $connection = $this->shopifyConnection([
+            'connection_status' => StorefrontConnectionStatus::Testing,
+            'tested_at' => null,
+        ]);
         $payload = $this->shopifyPayload('1005', 'TEE-001', 'pending');
 
         $this->postSignedShopifyPayload($connection, $payload)
@@ -129,6 +145,28 @@ class ShopifyWebhookTest extends TestCase
 
         $this->assertSame(0, Order::query()->count());
         $this->assertDatabaseHas('external_order_imports', ['status' => ExternalImportStatus::Ignored->value]);
+        $this->assertSame(StorefrontConnectionStatus::Testing, $connection->fresh()->connection_status);
+        $this->assertNull($connection->fresh()->tested_at);
+    }
+
+    public function test_successful_shopify_import_preserves_existing_test_timestamp(): void
+    {
+        $testedAt = now()->subDay();
+        $connection = $this->shopifyConnection([
+            'connection_status' => StorefrontConnectionStatus::Testing,
+            'tested_at' => $testedAt,
+        ]);
+        $product = Product::factory()->for($connection->artist)->create(['is_limited' => false]);
+        ProductSku::factory()->for($product)->create(['sku_code' => 'TEE-003', 'stock_on_hand' => 1]);
+
+        $this->postSignedShopifyPayload($connection, $this->shopifyPayload('1007', 'TEE-003'))
+            ->assertOk()
+            ->assertJson(['status' => 'queued']);
+
+        $connection->refresh();
+
+        $this->assertSame(StorefrontConnectionStatus::Ready, $connection->connection_status);
+        $this->assertSame($testedAt->toDateTimeString(), $connection->tested_at->toDateTimeString());
     }
 
     public function test_duplicate_sku_lines_are_allocated_cumulatively(): void
@@ -155,14 +193,17 @@ class ShopifyWebhookTest extends TestCase
         $this->assertSame(2, Order::query()->firstOrFail()->items()->count());
     }
 
-    private function shopifyConnection(): StorefrontConnection
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function shopifyConnection(array $attributes = []): StorefrontConnection
     {
         return StorefrontConnection::factory()
             ->for(Artist::factory())
-            ->create([
+            ->create(array_merge([
                 'platform' => StorefrontPlatform::Shopify,
                 'webhook_secret' => 'test-secret',
-            ]);
+            ], $attributes));
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\ExternalOrders;
 
+use App\Enums\StorefrontConnectionStatus;
 use App\Enums\StorefrontPlatform;
 use App\Jobs\ProcessExternalOrderWebhook;
 use App\Models\Artist;
@@ -73,6 +74,11 @@ class SquarespaceWebhookTest extends TestCase
             'external_order_id' => 'sq-1001',
         ]);
         $this->assertSame(1, Order::query()->count());
+
+        $connection->refresh();
+
+        $this->assertSame(StorefrontConnectionStatus::Ready, $connection->connection_status);
+        $this->assertNotNull($connection->tested_at);
     }
 
     public function test_valid_squarespace_webhook_dispatches_processing_job(): void

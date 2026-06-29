@@ -143,32 +143,15 @@ UI/docs/ops:
 
 - Artist-facing connect/check pages exist.
 - Connect page contrast bug fixed.
+- Successful paid direct storefront imports now mark storefront connections as tested and ready without activating them.
 - Direct connector docs are the active path.
 - Pipe17 is hidden from normal onboarding and treated as fallback/legacy.
 - GitHub linter workflow fixed.
+- `.node-version` now targets Node `22.22.3`, matching the verified local build lane.
 
 ## Known Gaps
 
-### 1. Connection Status Is Not Yet Trustworthy
-
-The real Shopify order flow succeeded, but the connection still shows:
-
-```text
-connection_status: testing
-tested_at: null
-activated_at: null
-```
-
-This is now the highest-value product/workflow gap. The backend knows the test succeeded, but the connection lifecycle does not reflect it.
-
-Recommended fix:
-
-- When a paid order imports successfully for a connection, set:
-  - `tested_at` if empty
-  - `connection_status = ready` or equivalent if all checks pass
-- Optionally require an admin/operator action to activate after the first successful paid test order.
-
-### 2. Shopify Distribution Decision Still Needed
+### 1. Shopify Distribution Decision Still Needed
 
 The technical flow works for a development/custom-style app. For multiple unrelated artist Shopify stores, decide whether LTD EDN will operate as:
 
@@ -178,7 +161,7 @@ The technical flow works for a development/custom-style app. For multiple unrela
 
 This affects review requirements, protected customer data approval, merchant install UX, and production support.
 
-### 3. Squarespace Is Not Proven End-To-End
+### 2. Squarespace Is Not Proven End-To-End
 
 Squarespace is planned and partially implemented, but it has not been proven with a real merchant/test account in the same way Shopify has.
 
@@ -199,7 +182,7 @@ Remaining work:
 - Import real paid order.
 - Confirm tracking pushback.
 
-### 4. Operational Monitoring Needs Hardening
+### 3. Operational Monitoring Needs Hardening
 
 Before production customer usage, confirm:
 
@@ -209,22 +192,6 @@ Before production customer usage, confirm:
 - external import failures surface in admin,
 - shipment pushback failures are easy to retry,
 - support can see connection health without database access.
-
-### 5. Node Version File Is Stale
-
-The repo currently has `.node-version` set to:
-
-```text
-20.12.2
-```
-
-Vite currently requires Node `20.19+` or `22.12+`. Local build was verified with Node `22.22.3`.
-
-Recommended fix:
-
-```text
-22.22.3
-```
 
 ## Production Readiness Checklist
 
@@ -237,7 +204,7 @@ Shopify:
 - [x] SKU allocation works.
 - [x] Shipment email sends.
 - [x] Fulfillment tracking pushback works.
-- [ ] Connection status auto-updates after successful test order.
+- [x] Connection status auto-updates after successful test order.
 - [ ] Operator can retry failed shipment pushback from admin.
 - [ ] Production Shopify app distribution model decided.
 - [ ] Production app scopes and protected customer data settings confirmed.
@@ -417,4 +384,3 @@ Docs:
 - `docs/direct-storefront-connector-battle-plan.md`
 - `docs/external-order-fulfilment-usage.md`
 - `docs/storefront-connector-work-document.md`
-
