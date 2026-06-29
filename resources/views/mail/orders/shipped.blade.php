@@ -27,7 +27,7 @@ Good news — order **#{{ $order->id }}** has been shipped.
 {{ $order->shipping_country }}
 @endif
 
-If anything looks wrong, just reply to this email and we'll sort it out.
+If anything looks wrong, email us at [{{ $supportEmail }}](mailto:{{ $supportEmail }}) and we'll sort it out.
 
 Thanks,<br>
 {{ config('app.name') }}

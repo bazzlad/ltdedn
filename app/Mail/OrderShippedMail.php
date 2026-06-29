@@ -20,6 +20,7 @@ class OrderShippedMail extends Mailable implements ShouldQueue
     {
         return new Envelope(
             subject: 'Your LTD/EDN order #'.$this->order->id.' has shipped',
+            replyTo: [(string) config('mail.support.address')],
         );
     }
 
@@ -33,6 +34,7 @@ class OrderShippedMail extends Mailable implements ShouldQueue
                 'order' => $this->order,
                 'items' => $this->order->items,
                 'currency' => strtoupper((string) $this->order->currency),
+                'supportEmail' => (string) config('mail.support.address'),
             ],
         );
     }
