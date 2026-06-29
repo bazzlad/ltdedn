@@ -1,6 +1,6 @@
 # Direct Storefront Connector Battle Plan
 
-Status: active implementation path.
+Status: active implementation path. Shopify MVP is verified; Squarespace validation is blocked on OAuth client approval.
 
 This plan pivots LTD EDN back to direct Shopify and Squarespace connections. Pipe17 remains a possible fallback for complex middleware needs, but it is no longer the preferred v1 bridge for normal artist storefront onboarding.
 
@@ -156,6 +156,16 @@ Human decision:
 
 Goal: use Squarespace OAuth and Webhook Subscriptions API directly.
 
+Current status:
+
+- LTD EDN Connect OAuth client request has been submitted to Squarespace.
+- Waiting for Squarespace to issue `client_id` and `client_secret`.
+- Test site is ready at `https://coconut-dog-nh33.squarespace.com`.
+- Product selected for validation: `https://coconut-dog-nh33.squarespace.com/shop/p/ltd-edn-pillow`.
+- Terms URL submitted: `https://test.ltdedn.com/terms`.
+- Privacy URL submitted: `https://test.ltdedn.com/privacy`.
+- Redirect URI submitted: `https://test.ltdedn.com/connect/squarespace/callback`.
+
 Existing path:
 
 - `SquarespaceConnectionController` starts and completes OAuth.
@@ -170,7 +180,8 @@ https://api.squarespace.com/1.0/webhook_subscriptions
 
 Tasks:
 
-- Complete Squarespace OAuth registration to obtain client credentials.
+- Receive Squarespace OAuth client credentials from the submitted request.
+- Configure `SQUARESPACE_CONNECT_CLIENT_ID` and `SQUARESPACE_CONNECT_CLIENT_SECRET` on `test.ltdedn.com`.
 - Request order ingest scope and any write scopes required by currently enabled tracking pushback.
 - Register `order.create` after OAuth using the Squarespace access token.
 - Store the returned `websiteId`, subscription id, and webhook secret.
@@ -187,7 +198,7 @@ Acceptance:
 
 Human decision:
 
-- Squarespace OAuth/Extension approval is an external platform process. Work can proceed locally with configured test credentials, but production onboarding depends on approval and working merchant test access.
+- Squarespace OAuth/Extension approval is an external platform process. Work is currently blocked until Squarespace returns OAuth credentials. Production onboarding still depends on approval and working merchant test access.
 
 ## Phase 6: Data Normalization And Import
 
@@ -270,8 +281,8 @@ Manual/platform checks:
 
 - Shopify development store install.
 - Shopify paid test order import.
-- Squarespace OAuth test connection.
-- Squarespace paid test order import.
+- Squarespace OAuth test connection after credentials are issued.
+- Squarespace paid test order import after credentials are issued.
 - Queue worker retry/failure behavior.
 
 ## Implementation Order
@@ -287,7 +298,7 @@ Manual/platform checks:
 ## Open Risks
 
 - Shopify app distribution/review may affect how quickly unrelated artist stores can install LTD EDN Connect.
-- Squarespace OAuth/Extension approval is outside the codebase.
+- Squarespace OAuth/Extension approval is outside the codebase and is the current blocker for end-to-end validation.
 - Fulfillment pushback is more complex than order ingest, especially for partial fulfillment and platform-specific IDs.
 - Queue configuration must be production-ready before onboarding real artists.
 - Platform webhook payloads can change additively, so transformers must tolerate unknown fields.

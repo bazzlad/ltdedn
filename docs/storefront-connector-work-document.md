@@ -1,6 +1,6 @@
 # Storefront Connector Work Document
 
-Status: Shopify MVP verified on `test.ltdedn.com`.
+Status: Shopify MVP verified on `test.ltdedn.com`; Squarespace validation is blocked on OAuth client approval.
 
 Last updated: 2026-06-29.
 
@@ -10,13 +10,39 @@ LTD EDN now has a working direct Shopify connector MVP. A Shopify development st
 
 This validates the direct connector approach for Shopify. Pipe17 is no longer the active v1 bridge. It remains fallback/reference only.
 
-The project is not yet a polished production onboarding product. The next work should focus on connection lifecycle status, operational hardening, a repeatable onboarding runbook, and then Squarespace validation.
+The project is not yet a polished production onboarding product. Connection lifecycle status now updates after a successful paid direct storefront import. The next work should focus on operational hardening, a repeatable onboarding runbook, and then Squarespace validation once OAuth credentials are issued.
+
+## Current Hold
+
+Squarespace validation is paused until Squarespace issues OAuth client credentials for LTD EDN Connect.
+
+Submitted request:
+
+- Subject: `OAuth client request for LTD EDN Connect Squarespace fulfilment integration`
+- Redirect URI: `https://test.ltdedn.com/connect/squarespace/callback`
+- Requested scopes:
+  - `website.orders`
+  - `website.orders.read`
+  - `website.products.read`
+- Terms URL: `https://test.ltdedn.com/terms`
+- Privacy URL: `https://test.ltdedn.com/privacy`
+- Test shop/product URL: `https://coconut-dog-nh33.squarespace.com/shop/p/ltd-edn-pillow`
+
+When Squarespace responds, configure:
+
+```text
+SQUARESPACE_CONNECT_CLIENT_ID=...
+SQUARESPACE_CONNECT_CLIENT_SECRET=...
+SQUARESPACE_CONNECT_SCOPES=website.orders,website.orders.read,website.products.read
+```
+
+Then deploy/reload config, connect the Squarespace test site from `/connect/storefronts`, and continue the real paid order test.
 
 ## Verified End-To-End State
 
 Environment: `test.ltdedn.com`.
 
-Current deployed commit:
+Verified Shopify deployed commit:
 
 ```text
 b28c59c Fix storefront connect page contrast
@@ -142,7 +168,10 @@ SKU/product support:
 UI/docs/ops:
 
 - Artist-facing connect/check pages exist.
+- Artist-facing connect page exposes Shopify and Squarespace options.
+- Storefront connect errors now render on the connect page instead of appearing as a silent reload.
 - Connect page contrast bug fixed.
+- Terms and privacy pages have non-placeholder connector-aware copy for the Squarespace OAuth request.
 - Successful paid direct storefront imports now mark storefront connections as tested and ready without activating them.
 - Direct connector docs are the active path.
 - Pipe17 is hidden from normal onboarding and treated as fallback/legacy.
@@ -161,9 +190,9 @@ The technical flow works for a development/custom-style app. For multiple unrela
 
 This affects review requirements, protected customer data approval, merchant install UX, and production support.
 
-### 2. Squarespace Is Not Proven End-To-End
+### 2. Squarespace Is Blocked On OAuth Client Approval
 
-Squarespace is planned and partially implemented, but it has not been proven with a real merchant/test account in the same way Shopify has.
+Squarespace is planned and partially implemented, but it has not been proven with a real merchant/test account in the same way Shopify has. The test site exists, and the OAuth client request has been submitted to Squarespace. Real validation cannot continue until Squarespace issues `client_id` and `client_secret`.
 
 Current intended Squarespace path:
 
@@ -176,7 +205,7 @@ https://api.squarespace.com/1.0/webhook_subscriptions
 
 Remaining work:
 
-- Obtain/confirm Squarespace OAuth credentials.
+- Receive and configure Squarespace OAuth credentials.
 - Connect a real Squarespace Commerce test site.
 - Register order webhook.
 - Import real paid order.
@@ -211,7 +240,8 @@ Shopify:
 
 Squarespace:
 
-- [ ] OAuth app credentials confirmed.
+- [x] OAuth client request submitted.
+- [ ] OAuth app credentials received and configured.
 - [ ] Real test site connected.
 - [ ] Webhook subscription registration verified.
 - [ ] Signed order webhook verified.
@@ -229,23 +259,23 @@ Operations:
 
 ## Recommended Next Work
 
-### P0: Make The Shopify MVP Operationally Honest
+### P0: Wait For Squarespace OAuth Client Credentials
 
-Goal: the UI should reflect the working integration state.
+Goal: resume Squarespace validation as soon as Squarespace approves the OAuth client request.
 
-Tasks:
+Blocked on:
 
-1. Auto-mark a connection as tested when its first paid order imports successfully.
-2. Decide whether successful import alone means `ready`, or whether an admin must activate after reviewing SKU mapping.
-3. Show last successful test order on `/connect/storefronts/{connection}/check`.
-4. Add admin retry action for failed shipment pushback.
-5. Update docs to describe the exact Shopify artist onboarding steps.
+- Squarespace returning `client_id` and `client_secret`.
 
-Acceptance:
+Immediate next steps after approval:
 
-- After a successful paid test order, the artist-facing check page no longer looks stuck in setup.
-- Support can see which order proved the connection.
-- A failed pushback can be retried without Tinker.
+1. Add credentials to `test.ltdedn.com`.
+2. Confirm config cache is refreshed.
+3. Connect the Squarespace test site from `/connect/storefronts`.
+4. Confirm webhook subscription registration.
+5. Confirm the test product SKU matches `product_skus.sku_code`.
+6. Place a paid test order.
+7. Confirm import, allocation, fulfilment email, and tracking pushback.
 
 ### P1: Repeat Shopify From A Blank Store
 
@@ -269,27 +299,13 @@ Acceptance:
 - The whole flow works using documented steps only.
 - Any confusing screens or copy are fixed.
 
-### P1: Update Runtime Tooling
-
-Goal: remove local/dev build friction.
-
-Tasks:
-
-1. Update `.node-version` to a supported Node version.
-2. Confirm CI uses Node 22.
-3. Confirm Forge/test deploy uses a supported Node version.
-
-Acceptance:
-
-- `npm run build` works without manually overriding `PATH`.
-
 ### P2: Squarespace Validation
 
 Goal: determine whether Squarespace can match the Shopify UX closely enough.
 
 Tasks:
 
-1. Confirm Squarespace OAuth app status.
+1. Receive and configure Squarespace OAuth credentials.
 2. Connect a real Commerce test site.
 3. Verify webhook subscription endpoint.
 4. Place test paid order.

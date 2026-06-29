@@ -8,6 +8,7 @@ The external storefront remains responsible for checkout, payment, tax, and frau
 
 - `POST /api/webhooks/shopify/{connection}` accepts signed Shopify order payloads and queues import work.
 - `POST /api/webhooks/squarespace/{connection}` accepts signed Squarespace order payloads and queues import work.
+- `/connect/storefronts` exposes Shopify and Squarespace OAuth connection starts for artists/operators.
 - `php artisan pipe17:pull-shipping-requests` can import Pipe17 Shipping Requests only if the fallback bridge is deliberately re-enabled.
 - `/admin/storefront-connections` lists configured connections and import counts.
 - `/admin/external-imports` lists webhook import attempts and their status.
@@ -16,6 +17,25 @@ The external storefront remains responsible for checkout, payment, tax, and frau
 - `/admin/sales/{order}` shows order details, line items, events, and shipment pushback status.
 
 Connection creation is exposed at `/admin/storefront-connections/create`.
+
+## Squarespace OAuth Hold
+
+Squarespace real-store validation is currently blocked on OAuth client approval from Squarespace. A request has been submitted for LTD EDN Connect with:
+
+- Redirect URI: `https://test.ltdedn.com/connect/squarespace/callback`
+- Scopes: `website.orders`, `website.orders.read`, `website.products.read`
+- Terms URL: `https://test.ltdedn.com/terms`
+- Privacy URL: `https://test.ltdedn.com/privacy`
+
+When Squarespace issues credentials, configure the test environment:
+
+```env
+SQUARESPACE_CONNECT_CLIENT_ID=...
+SQUARESPACE_CONNECT_CLIENT_SECRET=...
+SQUARESPACE_CONNECT_SCOPES=website.orders,website.orders.read,website.products.read
+```
+
+Then clear/reload Laravel config before retrying `/connect/storefronts`.
 
 ## Data Requirements
 
@@ -237,6 +257,8 @@ Then check:
 
 ## Test Squarespace Import
 
+This section covers local/manual signed webhook testing. It does not prove the live OAuth/webhook subscription path. The real Squarespace test remains blocked until Squarespace OAuth credentials are issued.
+
 Create a Squarespace connection in Tinker:
 
 ```php
@@ -353,6 +375,7 @@ Squarespace pushback requires:
 
 - `store_url` using HTTPS and a `*.squarespace.com` host.
 - `credentials.access_token`.
+- OAuth credentials configured in `services.squarespace_connect` so expired access tokens can be refreshed.
 
 Pipe17 pushback requires:
 
