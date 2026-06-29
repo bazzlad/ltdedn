@@ -86,9 +86,14 @@ defineProps<Props>();
         </div>
 
         <!-- Pending Transfers Section -->
-        <div v-if="pendingTransfers.length > 0" class="mb-12 rounded-2xl border border-yellow-200/50 bg-gradient-to-br from-yellow-50/80 to-orange-50/50 p-8 shadow-lg ring-1 ring-yellow-200/50 dark:border-yellow-800/50 dark:from-yellow-900/20 dark:to-orange-900/20 dark:ring-yellow-800/50">
+        <div
+            v-if="pendingTransfers.length > 0"
+            class="mb-12 rounded-2xl border border-yellow-200/50 bg-gradient-to-br from-yellow-50/80 to-orange-50/50 p-8 shadow-lg ring-1 ring-yellow-200/50 dark:border-yellow-800/50 dark:from-yellow-900/20 dark:to-orange-900/20 dark:ring-yellow-800/50"
+        >
             <div class="mb-8 text-center">
-                <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-600 ring-4 ring-yellow-500/10 dark:text-yellow-400">
+                <div
+                    class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-500/20 text-yellow-600 ring-4 ring-yellow-500/10 dark:text-yellow-400"
+                >
                     <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -149,7 +154,12 @@ defineProps<Props>();
                             class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-500/30 transition-all hover:scale-105 hover:shadow-green-500/50 focus:outline-none focus-visible:ring-4 focus-visible:ring-green-400"
                         >
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
                             </svg>
                             Review Transfer
                         </Link>
@@ -281,7 +291,9 @@ defineProps<Props>();
 
         <!-- Empty State -->
         <div v-if="ownedEditions.data.length === 0 && pendingTransfers.length === 0" class="py-20 text-center">
-            <div class="mx-auto mb-8 flex h-32 w-32 items-center justify-center rounded-full bg-neutral-100 ring-1 ring-neutral-200/50 dark:bg-neutral-800 dark:ring-neutral-700/50">
+            <div
+                class="mx-auto mb-8 flex h-32 w-32 items-center justify-center rounded-full bg-neutral-100 ring-1 ring-neutral-200/50 dark:bg-neutral-800 dark:ring-neutral-700/50"
+            >
                 <svg class="h-16 w-16 text-neutral-400 dark:text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                         stroke-linecap="round"
@@ -295,23 +307,31 @@ defineProps<Props>();
             <p class="mx-auto mb-8 max-w-md text-base leading-relaxed text-neutral-600 dark:text-neutral-400">
                 Discover and claim digital editions by scanning QR codes found on physical artworks, collectibles, and exclusive items.
             </p>
-            <div class="mx-auto max-w-md rounded-xl border border-neutral-200 bg-neutral-50/50 p-6 ring-1 ring-black/5 dark:border-neutral-800 dark:bg-neutral-900/50 dark:ring-white/5">
+            <div
+                class="mx-auto max-w-md rounded-xl border border-neutral-200 bg-neutral-50/50 p-6 ring-1 ring-black/5 dark:border-neutral-800 dark:bg-neutral-900/50 dark:ring-white/5"
+            >
                 <h4 class="mb-4 font-bold text-neutral-900 dark:text-white">How it works:</h4>
                 <div class="space-y-3 text-left text-sm text-neutral-600 dark:text-neutral-400">
                     <div class="flex items-start gap-3">
-                        <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-bold text-white dark:bg-white dark:text-black">
+                        <div
+                            class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-bold text-white dark:bg-white dark:text-black"
+                        >
                             1
                         </div>
                         <span>Find QR codes on physical art pieces or collectibles</span>
                     </div>
                     <div class="flex items-start gap-3">
-                        <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-bold text-white dark:bg-white dark:text-black">
+                        <div
+                            class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-bold text-white dark:bg-white dark:text-black"
+                        >
                             2
                         </div>
                         <span>Scan the code with your phone or camera</span>
                     </div>
                     <div class="flex items-start gap-3">
-                        <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-bold text-white dark:bg-white dark:text-black">
+                        <div
+                            class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-bold text-white dark:bg-white dark:text-black"
+                        >
                             3
                         </div>
                         <span>Claim your digital edition and add it to your collection</span>

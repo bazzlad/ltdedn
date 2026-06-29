@@ -31,6 +31,10 @@ const breadcrumbs: BreadcrumbItemType[] = [
     { title: 'Admin', href: '/admin' },
     { title: 'External Imports', href: '/admin/external-imports' },
 ];
+
+const formatLinkLabel = (label: string): string => {
+    return label.replace(/&amp;laquo;|&laquo;|«/g, '‹').replace(/&amp;raquo;|&raquo;|»/g, '›');
+};
 </script>
 
 <template>
@@ -60,7 +64,9 @@ const breadcrumbs: BreadcrumbItemType[] = [
                                 <TableCell>{{ row.platform }}</TableCell>
                                 <TableCell>{{ row.external_order_id || '-' }}</TableCell>
                                 <TableCell>{{ row.artist_name || '-' }}</TableCell>
-                                <TableCell><Badge variant="secondary">{{ row.status }}</Badge></TableCell>
+                                <TableCell
+                                    ><Badge variant="secondary">{{ row.status }}</Badge></TableCell
+                                >
                                 <TableCell class="max-w-md truncate">{{ row.error_details || '-' }}</TableCell>
                                 <TableCell class="text-right">
                                     <Button v-if="row.order_id" as-child variant="outline" size="sm">
@@ -71,9 +77,16 @@ const breadcrumbs: BreadcrumbItemType[] = [
                         </TableBody>
                     </Table>
                     <div v-if="imports.links.length > 3" class="mt-4 flex flex-wrap gap-2">
-                        <Button v-for="link in imports.links" :key="link.label" as-child size="sm" :variant="link.active ? 'default' : 'outline'" :disabled="!link.url">
-                            <Link v-if="link.url" :href="link.url" v-html="link.label" />
-                            <span v-else v-html="link.label" />
+                        <Button
+                            v-for="link in imports.links"
+                            :key="link.label"
+                            as-child
+                            size="sm"
+                            :variant="link.active ? 'default' : 'outline'"
+                            :disabled="!link.url"
+                        >
+                            <Link v-if="link.url" :href="link.url">{{ formatLinkLabel(link.label) }}</Link>
+                            <span v-else>{{ formatLinkLabel(link.label) }}</span>
                         </Button>
                     </div>
                 </CardContent>

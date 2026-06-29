@@ -162,9 +162,7 @@ const formatPrice = (price?: string | number) => {
                                 </div>
                                 <div v-if="product.cover_image">
                                     <h4 class="text-sm font-medium text-muted-foreground">Cover Image</h4>
-                                    <a :href="product.cover_image" target="_blank" class="text-sm text-blue-600 hover:underline">
-                                        View Image
-                                    </a>
+                                    <a :href="product.cover_image" target="_blank" class="text-sm text-blue-600 hover:underline"> View Image </a>
                                 </div>
                             </div>
                             <div v-if="product.description">

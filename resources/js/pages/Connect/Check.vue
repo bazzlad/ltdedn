@@ -84,10 +84,14 @@ defineProps<{
                                     <TableCell>{{ row.store_sku_found === null ? 'Not checked' : row.store_sku_found ? 'Yes' : 'No' }}</TableCell>
                                     <TableCell>{{ row.stock_available }}</TableCell>
                                     <TableCell>{{ row.editions_available }}</TableCell>
-                                    <TableCell><Badge variant="secondary">{{ row.status }}</Badge></TableCell>
+                                    <TableCell
+                                        ><Badge variant="secondary">{{ row.status }}</Badge></TableCell
+                                    >
                                 </TableRow>
                                 <TableRow v-if="skuChecklist.length === 0">
-                                    <TableCell colspan="6" class="py-8 text-center text-sm text-muted-foreground">No active local SKUs for this artist.</TableCell>
+                                    <TableCell colspan="6" class="py-8 text-center text-sm text-muted-foreground"
+                                        >No active local SKUs for this artist.</TableCell
+                                    >
                                 </TableRow>
                             </TableBody>
                         </Table>

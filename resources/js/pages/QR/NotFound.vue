@@ -13,10 +13,14 @@
         <div class="relative z-10 flex min-h-screen items-center justify-center py-8 sm:py-12">
             <div class="container mx-auto px-4">
                 <div class="mx-auto max-w-md">
-                    <div class="rounded-xl border border-neutral-200/50 bg-white/5 p-5 shadow-lg ring-1 ring-neutral-200/50 backdrop-blur-sm sm:p-8 dark:border-neutral-800/50 dark:ring-neutral-800/50">
+                    <div
+                        class="rounded-xl border border-neutral-200/50 bg-white/5 p-5 shadow-lg ring-1 ring-neutral-200/50 backdrop-blur-sm sm:p-8 dark:border-neutral-800/50 dark:ring-neutral-800/50"
+                    >
                         <!-- Error Icon -->
                         <div class="mb-6 sm:mb-8">
-                            <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-500/10 ring-1 ring-red-500/20 sm:h-24 sm:w-24">
+                            <div
+                                class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-500/10 ring-1 ring-red-500/20 sm:h-24 sm:w-24"
+                            >
                                 <svg class="h-10 w-10 text-red-500 sm:h-12 sm:w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                         stroke-linecap="round"
@@ -40,7 +44,7 @@
                             <p class="mb-2 text-center text-xs font-semibold text-neutral-400 sm:text-sm">Scanned Code:</p>
                             <code
                                 id="qr-display"
-                                class="block break-all rounded-lg bg-neutral-800 px-2.5 py-2 text-center font-mono text-xs text-neutral-300 sm:px-3 sm:text-sm"
+                                class="block rounded-lg bg-neutral-800 px-2.5 py-2 text-center font-mono text-xs break-all text-neutral-300 sm:px-3 sm:text-sm"
                             >
                                 {{ qrCode }}
                             </code>

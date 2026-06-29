@@ -67,7 +67,6 @@ onMounted(() => {
         form.artist_id = props.artists[0].id.toString();
     }
 });
-
 </script>
 
 <template>
@@ -136,17 +135,14 @@ onMounted(() => {
                                 <Label for="cover_image">Cover Image</Label>
                                 <div v-if="imagePreview" class="relative mb-4 inline-block">
                                     <img :src="imagePreview" alt="Cover preview" class="h-48 w-auto rounded-lg border object-cover" />
-                                    <Button
-                                        type="button"
-                                        variant="destructive"
-                                        size="sm"
-                                        class="absolute right-2 top-2"
-                                        @click="clearImage"
-                                    >
+                                    <Button type="button" variant="destructive" size="sm" class="absolute top-2 right-2" @click="clearImage">
                                         <X class="h-4 w-4" />
                                     </Button>
                                 </div>
-                                <div v-else class="flex items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 p-12">
+                                <div
+                                    v-else
+                                    class="flex items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 p-12"
+                                >
                                     <div class="text-center">
                                         <Upload class="mx-auto h-12 w-12 text-muted-foreground" />
                                         <div class="mt-4 flex text-sm leading-6 text-muted-foreground">
@@ -155,13 +151,7 @@ onMounted(() => {
                                                 class="relative cursor-pointer rounded-md font-semibold text-primary hover:text-primary/80"
                                             >
                                                 <span>Upload a file</span>
-                                                <input
-                                                    id="cover_image"
-                                                    type="file"
-                                                    accept="image/*"
-                                                    class="sr-only"
-                                                    @change="handleImageUpload"
-                                                />
+                                                <input id="cover_image" type="file" accept="image/*" class="sr-only" @change="handleImageUpload" />
                                             </label>
                                             <p class="pl-1">or drag and drop</p>
                                         </div>

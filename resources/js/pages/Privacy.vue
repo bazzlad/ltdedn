@@ -25,12 +25,17 @@ const LOGO_SVG = '/images/logo-sm.svg';
         </header>
 
         <main class="mx-auto max-w-4xl px-6 py-12 lg:px-8 lg:py-16">
-            <div class="prose prose-neutral max-w-none dark:prose-invert">
+            <div class="prose prose-neutral dark:prose-invert max-w-none">
                 <h1>Privacy Policy</h1>
-                <p class="text-lg text-neutral-600 dark:text-neutral-400">Last updated: {{ new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }}</p>
+                <p class="text-lg text-neutral-600 dark:text-neutral-400">
+                    Last updated: {{ new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }}
+                </p>
 
                 <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                    enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+                    reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt
+                    in culpa qui officia deserunt mollit anim id est laborum.
                 </p>
             </div>
         </main>
@@ -42,4 +47,3 @@ const LOGO_SVG = '/images/logo-sm.svg';
         </footer>
     </div>
 </template>
-

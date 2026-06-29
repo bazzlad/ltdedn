@@ -37,6 +37,10 @@ const breadcrumbs: BreadcrumbItemType[] = [
 function money(amount: number, currency: string): string {
     return `${currency.toUpperCase()} ${(amount / 100).toFixed(2)}`;
 }
+
+const formatLinkLabel = (label: string): string => {
+    return label.replace(/&amp;laquo;|&laquo;|«/g, '‹').replace(/&amp;raquo;|&raquo;|»/g, '›');
+};
 </script>
 
 <template>
@@ -70,7 +74,9 @@ function money(amount: number, currency: string): string {
                                 <TableCell>{{ order.source_platform }}</TableCell>
                                 <TableCell>{{ order.artist_name || '-' }}</TableCell>
                                 <TableCell>
-                                    <Badge :variant="order.exception_reason ? 'destructive' : 'secondary'">{{ order.exception_reason ? 'exception' : order.status }}</Badge>
+                                    <Badge :variant="order.exception_reason ? 'destructive' : 'secondary'">{{
+                                        order.exception_reason ? 'exception' : order.status
+                                    }}</Badge>
                                 </TableCell>
                                 <TableCell>{{ money(order.total_amount, order.currency) }}</TableCell>
                                 <TableCell>{{ order.customer_email || '-' }}</TableCell>
@@ -83,9 +89,16 @@ function money(amount: number, currency: string): string {
                         </TableBody>
                     </Table>
                     <div v-if="orders.links.length > 3" class="mt-4 flex flex-wrap gap-2">
-                        <Button v-for="link in orders.links" :key="link.label" as-child size="sm" :variant="link.active ? 'default' : 'outline'" :disabled="!link.url">
-                            <Link v-if="link.url" :href="link.url" v-html="link.label" />
-                            <span v-else v-html="link.label" />
+                        <Button
+                            v-for="link in orders.links"
+                            :key="link.label"
+                            as-child
+                            size="sm"
+                            :variant="link.active ? 'default' : 'outline'"
+                            :disabled="!link.url"
+                        >
+                            <Link v-if="link.url" :href="link.url">{{ formatLinkLabel(link.label) }}</Link>
+                            <span v-else>{{ formatLinkLabel(link.label) }}</span>
                         </Button>
                     </div>
                 </CardContent>

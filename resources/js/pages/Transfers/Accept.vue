@@ -22,7 +22,9 @@
                     </div>
 
                     <!-- Transfer Card -->
-                    <div class="mb-6 overflow-hidden rounded-xl border border-neutral-200/50 bg-white shadow-lg ring-1 ring-black/5 dark:border-neutral-800/50 dark:bg-neutral-900 dark:ring-white/5 sm:mb-8">
+                    <div
+                        class="mb-6 overflow-hidden rounded-xl border border-neutral-200/50 bg-white shadow-lg ring-1 ring-black/5 sm:mb-8 dark:border-neutral-800/50 dark:bg-neutral-900 dark:ring-white/5"
+                    >
                         <!-- Product Image -->
                         <div v-if="transfer.product_edition.product.cover_image" class="aspect-video bg-neutral-100 dark:bg-neutral-800">
                             <img
@@ -52,28 +54,44 @@
                             </div>
 
                             <!-- Edition Details -->
-                            <div class="mb-5 rounded-xl bg-neutral-50/50 p-4 ring-1 ring-neutral-200/50 sm:mb-6 sm:p-5 dark:bg-neutral-800/50 dark:ring-neutral-700/50">
+                            <div
+                                class="mb-5 rounded-xl bg-neutral-50/50 p-4 ring-1 ring-neutral-200/50 sm:mb-6 sm:p-5 dark:bg-neutral-800/50 dark:ring-neutral-700/50"
+                            >
                                 <div class="grid grid-cols-1 gap-4 sm:gap-6">
                                     <div>
-                                        <p class="mb-1 text-xs font-semibold text-neutral-600 sm:mb-1.5 sm:text-sm dark:text-neutral-400">Edition Number</p>
-                                        <p class="text-lg font-extrabold text-neutral-900 sm:text-xl dark:text-white">#{{ transfer.product_edition.number }}</p>
+                                        <p class="mb-1 text-xs font-semibold text-neutral-600 sm:mb-1.5 sm:text-sm dark:text-neutral-400">
+                                            Edition Number
+                                        </p>
+                                        <p class="text-lg font-extrabold text-neutral-900 sm:text-xl dark:text-white">
+                                            #{{ transfer.product_edition.number }}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Transfer Info -->
-                            <div class="mb-5 rounded-xl border border-blue-200/50 bg-blue-50/50 p-4 ring-1 ring-blue-200/50 sm:mb-6 sm:p-5 dark:border-blue-800/50 dark:bg-blue-900/20 dark:ring-blue-800/50">
+                            <div
+                                class="mb-5 rounded-xl border border-blue-200/50 bg-blue-50/50 p-4 ring-1 ring-blue-200/50 sm:mb-6 sm:p-5 dark:border-blue-800/50 dark:bg-blue-900/20 dark:ring-blue-800/50"
+                            >
                                 <div class="flex items-start gap-2.5 sm:gap-3">
-                                    <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    <svg
+                                        class="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600 dark:text-blue-400"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                        />
                                     </svg>
                                     <div class="flex-1">
                                         <h3 class="text-sm font-bold text-blue-900 sm:text-base dark:text-blue-300">
                                             Transfer from {{ transfer.sender.name }}
                                         </h3>
-                                        <p class="mt-1 text-xs text-blue-800 sm:text-sm dark:text-blue-400">
-                                            This offer expires {{ timeRemaining }}
-                                        </p>
+                                        <p class="mt-1 text-xs text-blue-800 sm:text-sm dark:text-blue-400">This offer expires {{ timeRemaining }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -86,9 +104,11 @@
                         <Button
                             @click="acceptTransfer"
                             :disabled="acceptForm.processing || rejectForm.processing"
-                            class="group relative flex h-16 w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-8 text-xl font-extrabold text-white shadow-2xl shadow-green-500/50 transition-all hover:scale-[1.02] hover:shadow-green-500/60 focus:outline-none focus-visible:ring-4 focus-visible:ring-green-400 active:scale-[0.98] sm:h-20 sm:text-2xl disabled:opacity-75 disabled:cursor-not-allowed"
+                            class="group relative flex h-16 w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 px-8 text-xl font-extrabold text-white shadow-2xl shadow-green-500/50 transition-all hover:scale-[1.02] hover:shadow-green-500/60 focus:outline-none focus-visible:ring-4 focus-visible:ring-green-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-75 sm:h-20 sm:text-2xl"
                         >
-                            <span class="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 opacity-0 transition-opacity group-hover:opacity-100"></span>
+                            <span
+                                class="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 opacity-0 transition-opacity group-hover:opacity-100"
+                            ></span>
                             <svg v-if="!acceptForm.processing" class="relative z-10 h-7 w-7 sm:h-8 sm:w-8" fill="currentColor" viewBox="0 0 20 20">
                                 <path
                                     fill-rule="evenodd"
@@ -96,9 +116,19 @@
                                     clip-rule="evenodd"
                                 />
                             </svg>
-                            <svg v-else class="animate-spin relative z-10 h-7 w-7 sm:h-8 sm:w-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <svg
+                                v-else
+                                class="relative z-10 h-7 w-7 animate-spin sm:h-8 sm:w-8"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
                             </svg>
                             <span class="relative z-10">{{ acceptForm.processing ? 'Accepting...' : 'Accept Transfer' }}</span>
                         </Button>
@@ -108,23 +138,24 @@
                             @click="rejectTransfer"
                             variant="outline"
                             :disabled="acceptForm.processing || rejectForm.processing"
-                            class="group relative flex h-12 w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl border-2 border-red-500/30 bg-transparent px-6 text-base font-bold text-red-400 transition-all hover:scale-[1.02] hover:border-red-500/50 hover:bg-red-500/10 focus:outline-none focus-visible:ring-4 focus-visible:ring-red-400/50 active:scale-[0.98] sm:h-14 sm:text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="group relative flex h-12 w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl border-2 border-red-500/30 bg-transparent px-6 text-base font-bold text-red-400 transition-all hover:scale-[1.02] hover:border-red-500/50 hover:bg-red-500/10 focus:outline-none focus-visible:ring-4 focus-visible:ring-red-400/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 sm:h-14 sm:text-lg"
                         >
                             <svg v-if="!rejectForm.processing" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
-                            <svg v-else class="animate-spin h-5 w-5 sm:h-6 sm:w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <svg v-else class="h-5 w-5 animate-spin sm:h-6 sm:w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
                             </svg>
                             <span>{{ rejectForm.processing ? 'Rejecting...' : 'Reject Transfer' }}</span>
                         </Button>
 
                         <!-- Back to Dashboard -->
-                        <Link
-                            href="/"
-                            class="block text-center text-xs font-medium text-neutral-400 transition-colors hover:text-white sm:text-sm"
-                        >
+                        <Link href="/" class="block text-center text-xs font-medium text-neutral-400 transition-colors hover:text-white sm:text-sm">
                             ← Back to Dashboard
                         </Link>
                     </div>
@@ -135,11 +166,11 @@
 </template>
 
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
 import Button from '@/components/ui/button/Button.vue';
-import { computed } from 'vue';
-import { formatDistanceToNow } from 'date-fns';
 import { accept, reject } from '@/routes/transfers';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { formatDistanceToNow } from 'date-fns';
+import { computed } from 'vue';
 
 const props = defineProps<{
     transfer: {

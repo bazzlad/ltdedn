@@ -11,8 +11,7 @@ const user = page.props.auth?.user;
 <style scoped></style>
 
 <template>
-    <Head title="LTD/EDN – Limited Editions">
-    </Head>
+    <Head title="LTD/EDN – Limited Editions"> </Head>
 
     <!-- KEY CHANGES: add flex flex-col; keep min-h-screen on wrapper only -->
     <div class="main-bg relative flex min-h-screen flex-col bg-black text-neutral-200 antialiased">

@@ -52,7 +52,10 @@ const breadcrumbs: BreadcrumbItemType[] = [
                     <CardHeader><CardTitle>Items</CardTitle></CardHeader>
                     <CardContent class="space-y-2">
                         <div v-for="item in order.items" :key="item.id" class="flex justify-between text-sm">
-                            <span>{{ item.quantity }}x {{ item.product_name }} <span class="text-muted-foreground">{{ item.sku_code_snapshot }}</span></span>
+                            <span
+                                >{{ item.quantity }}x {{ item.product_name }}
+                                <span class="text-muted-foreground">{{ item.sku_code_snapshot }}</span></span
+                            >
                             <span>{{ order.currency.toUpperCase() }} {{ (item.line_total_amount / 100).toFixed(2) }}</span>
                         </div>
                     </CardContent>
@@ -73,7 +76,9 @@ const breadcrumbs: BreadcrumbItemType[] = [
                 <Card>
                     <CardHeader><CardTitle>Status</CardTitle></CardHeader>
                     <CardContent class="space-y-2 text-sm">
-                        <div><Badge>{{ order.status }}</Badge></div>
+                        <div>
+                            <Badge>{{ order.status }}</Badge>
+                        </div>
                         <div>Payment: {{ order.source_payment_status || '-' }}</div>
                         <div>Fulfilment: {{ order.source_fulfilment_status || '-' }}</div>
                         <div>Pushback: {{ order.shipment_pushback_status || 'pending' }}</div>

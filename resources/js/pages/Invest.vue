@@ -1,66 +1,57 @@
 <script setup lang="ts">
-import { home } from '@/routes';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
-const LOGO_SVG = '/images/logo-sm.svg';
 const DL_IMG = '/images/dl-img.jpg';
 
 const INVESTOR_GUIDE_URL = '/downloads/Investor-Guide.pdf';
 const PITCH_DECK_URL = '/pitch-deck';
 
-const page = usePage();
-
-const userName = computed(function () {
-	const p: any = page.props;
-	return (p && p.auth && p.auth.user && p.auth.user.name) ? p.auth.user.name : 'Guest';
-});
-
 const investEmail = computed(function () {
-	return ['invest', 'ltdedn.com'].join('@');
+    return ['invest', 'ltdedn.com'].join('@');
 });
 
 function openInvestEmail(): void {
-	window.location.href = 'mai' + 'lto:' + investEmail.value;
+    window.location.href = 'mai' + 'lto:' + investEmail.value;
 }
 
 const guide = {
-	url: INVESTOR_GUIDE_URL,
-	label: 'INVESTOR GUIDE',
-	subtitle: 'DOWNLOADABLE PDF',
-	enabled: true,
+    url: INVESTOR_GUIDE_URL,
+    label: 'INVESTOR GUIDE',
+    subtitle: 'DOWNLOADABLE PDF',
+    enabled: true,
 };
 
 const otherDownloads = [
-	{
-		url: '#',
-		label: 'FULL FINANCIAL SUMMARY',
-		subtitle: 'AVAILABLE ON REQUEST',
-		enabled: false,
-	},
-	{
-		url: PITCH_DECK_URL,
-		label: 'INVESTOR PITCHDECK',
-		subtitle: 'VIEW ONLINE',
-		enabled: true,
-	},
+    {
+        url: '#',
+        label: 'FULL FINANCIAL SUMMARY',
+        subtitle: 'AVAILABLE ON REQUEST',
+        enabled: false,
+    },
+    {
+        url: PITCH_DECK_URL,
+        label: 'INVESTOR PITCHDECK',
+        subtitle: 'VIEW ONLINE',
+        enabled: true,
+    },
 ];
 </script>
 
 <template>
-	<Head title="Invest – LTD/EDN" />
+    <Head title="Invest – LTD/EDN" />
 
-	<div class="main-bg relative flex min-h-screen flex-col bg-black text-neutral-200 antialiased">
-		<!-- background layers -->
-		<div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden">
-			<div class="absolute inset-0 bg-cover bg-center opacity-40"></div>
-			<div
-				class="absolute inset-0 [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,.06)_1px,transparent_0)] [background-size:24px_24px] opacity-20 mix-blend-soft-light"
-			></div>
-			<div class="absolute inset-0 bg-gradient-to-b from-black via-black/50 to-black"></div>
-		</div>
+    <div class="main-bg relative flex min-h-screen flex-col bg-black text-neutral-200 antialiased">
+        <!-- background layers -->
+        <div aria-hidden="true" class="pointer-events-none absolute inset-0 overflow-hidden">
+            <div class="absolute inset-0 bg-cover bg-center opacity-40"></div>
+            <div
+                class="absolute inset-0 [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,.06)_1px,transparent_0)] [background-size:24px_24px] opacity-20 mix-blend-soft-light"
+            ></div>
+            <div class="absolute inset-0 bg-gradient-to-b from-black via-black/50 to-black"></div>
+        </div>
 
-		<!-- Top nav
+        <!-- Top nav
 		<header class="relative z-10">
 			<nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
 				<Link :href="home()" class="flex items-center gap-3">
@@ -85,160 +76,193 @@ const otherDownloads = [
 		</header>
 		-->
 
-		<!-- Main -->
-		<main class="relative z-10 mx-auto w-full max-w-7xl flex-1 px-6 pb-8 pt-10 lg:px-8 lg:pb-20 lg:pt-14">
-			<Link
-				:href="PITCH_DECK_URL"
-				class="mb-10 flex flex-col gap-4 rounded border border-white bg-white px-5 py-5 text-black shadow-2xl shadow-black/30 transition hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white sm:flex-row sm:items-center sm:justify-between sm:px-6"
-			>
-				<div class="flex min-w-0 items-start gap-4">
-					<div class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-black text-white">
-						<svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-7.5a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25h6.75" />
-							<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 8.25h7.5M8.25 12h5.25M16.5 18h4.5m0 0l-2.25-2.25M21 18l-2.25 2.25" />
-						</svg>
-					</div>
-					<div class="min-w-0">
-						<p class="font-sans text-xs font-semibold uppercase tracking-wide text-neutral-500">
-							Investor pitch deck
-						</p>
-						<h2 class="mt-1 font-sans text-xl font-semibold tracking-tight text-black sm:text-2xl">
-							View the LTD/EDN pitch deck online
-						</h2>
-						<!--<p class="mt-2 max-w-2xl font-mono text-sm leading-6 text-neutral-700">
+        <!-- Main -->
+        <main class="relative z-10 mx-auto w-full max-w-7xl flex-1 px-6 pt-10 pb-8 lg:px-8 lg:pt-14 lg:pb-20">
+            <Link
+                :href="PITCH_DECK_URL"
+                class="mb-10 flex flex-col gap-4 rounded border border-white bg-white px-5 py-5 text-black shadow-2xl shadow-black/30 transition hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white sm:flex-row sm:items-center sm:justify-between sm:px-6"
+            >
+                <div class="flex min-w-0 items-start gap-4">
+                    <div class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-black text-white">
+                        <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M19.5 14.25v-7.5a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25h6.75"
+                            />
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M8.25 8.25h7.5M8.25 12h5.25M16.5 18h4.5m0 0l-2.25-2.25M21 18l-2.25 2.25"
+                            />
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="font-sans text-xs font-semibold tracking-wide text-neutral-500 uppercase">Investor pitch deck</p>
+                        <h2 class="mt-1 font-sans text-xl font-semibold tracking-tight text-black sm:text-2xl">View the LTD/EDN pitch deck online</h2>
+                        <!--<p class="mt-2 max-w-2xl font-mono text-sm leading-6 text-neutral-700">
 							Read the deck in-browser, with options to open or download the PDF.
 						</p>-->
-					</div>
-				</div>
-				<div class="inline-flex shrink-0 items-center gap-2 self-start rounded bg-black px-4 py-2 font-sans text-xs font-semibold uppercase tracking-wide text-white sm:self-center">
-					View pitch deck
-					<svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-					</svg>
-				</div>
-			</Link>
+                    </div>
+                </div>
+                <div
+                    class="inline-flex shrink-0 items-center gap-2 self-start rounded bg-black px-4 py-2 font-sans text-xs font-semibold tracking-wide text-white uppercase sm:self-center"
+                >
+                    View pitch deck
+                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                </div>
+            </Link>
 
-			<!-- Guide: top on mobile, hidden on lg (shown in sidebar instead) -->
-			<div class="mx-auto mb-8 mt-4 flex w-full max-w-sm justify-center lg:hidden">
-				<a :href="guide.url" target="_blank" class="group block">
-					<div class="relative flex aspect-square w-64 items-center justify-center overflow-hidden border-4 border-white/80">
-						<img :src="DL_IMG" :alt="guide.label" class="absolute inset-0 h-full w-full object-cover" />
-					</div>
-					<div class="mt-3 flex items-center gap-2 text-xs font-bold tracking-wider text-white">
-						<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-						</svg>
-						<div>
-							<div>{{ guide.label }}</div>
-							<div class="font-normal text-white/60">{{ guide.subtitle }}</div>
-						</div>
-					</div>
-				</a>
-			</div>
+            <!-- Guide: top on mobile, hidden on lg (shown in sidebar instead) -->
+            <div class="mx-auto mt-4 mb-8 flex w-full max-w-sm justify-center lg:hidden">
+                <a :href="guide.url" target="_blank" class="group block">
+                    <div class="relative flex aspect-square w-64 items-center justify-center overflow-hidden border-4 border-white/80">
+                        <img :src="DL_IMG" :alt="guide.label" class="absolute inset-0 h-full w-full object-cover" />
+                    </div>
+                    <div class="mt-3 flex items-center gap-2 text-xs font-bold tracking-wider text-white">
+                        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                            />
+                        </svg>
+                        <div>
+                            <div>{{ guide.label }}</div>
+                            <div class="font-normal text-white/60">{{ guide.subtitle }}</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
 
-			<div class="grid items-start gap-14 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-20">
-				<!-- Left: copy -->
-				<section class="max-w-3xl font-mono text-sm leading-relaxed tracking-wide">
-					<h1 class="font-sans text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-						WELCOME TO LTD/EDN&hellip;
-					</h1>
+            <div class="grid items-start gap-14 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-20">
+                <!-- Left: copy -->
+                <section class="max-w-3xl font-mono text-sm leading-relaxed tracking-wide">
+                    <h1 class="font-sans text-3xl font-semibold tracking-tight text-white sm:text-4xl">WELCOME TO LTD/EDN&hellip;</h1>
 
-					<p class="mt-8 text-white/85">
-						LTD/EDN is building premium infrastructure for the next generation of artist-led commerce.
-					</p>
+                    <p class="mt-8 text-white/85">LTD/EDN is building premium infrastructure for the next generation of artist-led commerce.</p>
 
-					<p class="mt-6 text-white/75">
-						The platform enables artists to release authenticated, physical limited-edition capsule collections - from fine art prints to apparel and homeware - with control over production, pricing and distribution. Each edition is supported by an innovative QR-linked digital certification, providing verifiable authenticity, edition transparency and long-term provenance tracking.
-					</p>
+                    <p class="mt-6 text-white/75">
+                        The platform enables artists to release authenticated, physical limited-edition capsule collections - from fine art prints to
+                        apparel and homeware - with control over production, pricing and distribution. Each edition is supported by an innovative
+                        QR-linked digital certification, providing verifiable authenticity, edition transparency and long-term provenance tracking.
+                    </p>
 
-					<p class="mt-6 text-white/75">
-						As traditional marketplaces prioritise volume over quality, LTD/EDN focuses on scarcity, craftsmanship and sustainable unit economics.
-					</p>
+                    <p class="mt-6 text-white/75">
+                        As traditional marketplaces prioritise volume over quality, LTD/EDN focuses on scarcity, craftsmanship and sustainable unit
+                        economics.
+                    </p>
 
-					<p class="mt-6 text-white/75">
-						The business operates on a flat 50% gross margin model, providing predictable performance without relying on speculative scale assumptions.
-					</p>
+                    <p class="mt-6 text-white/75">
+                        The business operates on a flat 50% gross margin model, providing predictable performance without relying on speculative scale
+                        assumptions.
+                    </p>
 
-					<p class="mt-6 text-white/75">
-						The long-term opportunity extends beyond individual releases. By combining controlled production, QR-based authentication infrastructure and a growing network of curated artists, LTD/EDN is positioning itself as the premium backbone for limited-edition commerce — scalable across categories and collaborators.
-					</p>
+                    <p class="mt-6 text-white/75">
+                        The long-term opportunity extends beyond individual releases. By combining controlled production, QR-based authentication
+                        infrastructure and a growing network of curated artists, LTD/EDN is positioning itself as the premium backbone for
+                        limited-edition commerce — scalable across categories and collaborators.
+                    </p>
 
-					<p class="mt-6 text-white/75">
-						The model is capital-efficient and profitable from Year 1, with projected revenue exceeding £3.25 million by Year 3 under conservative sell-through assumptions.
-					</p>
+                    <p class="mt-6 text-white/75">
+                        The model is capital-efficient and profitable from Year 1, with projected revenue exceeding £3.25 million by Year 3 under
+                        conservative sell-through assumptions.
+                    </p>
 
-					<p class="mt-6 text-white/75">
-						The initial SEIS raise - with <a href="https://seedlegals.com/resources/seis/#seis-introduction" target="_blank" class="font-semibold text-white underline decoration-white/60 underline-offset-2 hover:decoration-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50">Seedlegals.com</a> - supports platform rollout, authentication integration and artist onboarding, establishing the foundation for disciplined growth and long-term strategic value creation.
-					</p>
+                    <p class="mt-6 text-white/75">
+                        The initial SEIS raise - with
+                        <a
+                            href="https://seedlegals.com/resources/seis/#seis-introduction"
+                            target="_blank"
+                            class="font-semibold text-white underline decoration-white/60 underline-offset-2 hover:decoration-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+                            >Seedlegals.com</a
+                        >
+                        - supports platform rollout, authentication integration and artist onboarding, establishing the foundation for disciplined
+                        growth and long-term strategic value creation.
+                    </p>
 
-					<h2 class="mt-10 font-sans text-xl font-semibold uppercase tracking-wide text-white">
-						OUR COMPREHENSIVE INVESTOR GUIDE IS AVAILABLE TO DOWNLOAD, ALONGSIDE FURTHER INVESTOR SUPPORT DOCUMENTS.
-					</h2>
+                    <h2 class="mt-10 font-sans text-xl font-semibold tracking-wide text-white uppercase">
+                        OUR COMPREHENSIVE INVESTOR GUIDE IS AVAILABLE TO DOWNLOAD, ALONGSIDE FURTHER INVESTOR SUPPORT DOCUMENTS.
+                    </h2>
 
-					<h2 class="mt-6 font-sans text-xl font-semibold uppercase tracking-wide text-white">
-						IF YOU REQUIRE FURTHER INFORMATION OR PRINTED VERSIONS OF THESE DOCUMENTS PLEASE REACH OUT AT <a href="#" class="underline decoration-white/60 underline-offset-2 hover:decoration-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50" @click.prevent="openInvestEmail">{{ investEmail.toUpperCase() }}</a>
-					</h2>
-				</section>
+                    <h2 class="mt-6 font-sans text-xl font-semibold tracking-wide text-white uppercase">
+                        IF YOU REQUIRE FURTHER INFORMATION OR PRINTED VERSIONS OF THESE DOCUMENTS PLEASE REACH OUT AT
+                        <a
+                            href="#"
+                            class="underline decoration-white/60 underline-offset-2 hover:decoration-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+                            @click.prevent="openInvestEmail"
+                            >{{ investEmail.toUpperCase() }}</a
+                        >
+                    </h2>
+                </section>
 
-				<!-- Right: all downloads on lg, only other downloads on mobile -->
-				<aside class="mx-auto w-full max-w-sm lg:mx-0 lg:max-w-none">
-					<div class="flex flex-col items-center gap-6 lg:items-end">
-						<!-- Guide: only visible on lg (mobile version is above) -->
-						<a :href="guide.url" target="_blank" class="group hidden lg:block">
-							<div class="relative flex aspect-square w-64 items-center justify-center overflow-hidden border-4 border-white/80">
-								<img :src="DL_IMG" :alt="guide.label" class="absolute inset-0 h-full w-full object-cover" />
-							</div>
-							<div class="mt-3 flex items-center gap-2 text-xs font-bold tracking-wider text-white">
-								<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-								</svg>
-								<div>
-									<div>{{ guide.label }}</div>
-									<div class="font-normal text-white/60">{{ guide.subtitle }}</div>
-								</div>
-							</div>
-						</a>
+                <!-- Right: all downloads on lg, only other downloads on mobile -->
+                <aside class="mx-auto w-full max-w-sm lg:mx-0 lg:max-w-none">
+                    <div class="flex flex-col items-center gap-6 lg:items-end">
+                        <!-- Guide: only visible on lg (mobile version is above) -->
+                        <a :href="guide.url" target="_blank" class="group hidden lg:block">
+                            <div class="relative flex aspect-square w-64 items-center justify-center overflow-hidden border-4 border-white/80">
+                                <img :src="DL_IMG" :alt="guide.label" class="absolute inset-0 h-full w-full object-cover" />
+                            </div>
+                            <div class="mt-3 flex items-center gap-2 text-xs font-bold tracking-wider text-white">
+                                <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                                    />
+                                </svg>
+                                <div>
+                                    <div>{{ guide.label }}</div>
+                                    <div class="font-normal text-white/60">{{ guide.subtitle }}</div>
+                                </div>
+                            </div>
+                        </a>
 
-						<!-- Other downloads: always visible -->
-						<component
-							v-for="dl in otherDownloads"
-							:key="dl.label"
-							:is="dl.enabled ? 'a' : 'div'"
-							v-bind="dl.enabled ? { href: dl.url, target: '_blank' } : {}"
-							:class="['group block', { 'cursor-default opacity-50': !dl.enabled }]"
-						>
-							<div
-								:class="[
-									'relative flex aspect-square w-64 items-center justify-center overflow-hidden border-4 border-white/80',
-									{ 'grayscale': !dl.enabled },
-								]"
-							>
-								<img
-									:src="DL_IMG"
-									:alt="dl.label"
-									class="absolute inset-0 h-full w-full object-cover"
-								/>
-							</div>
-							<div class="mt-3 flex items-center gap-2 text-xs font-bold tracking-wider text-white">
-								<svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-								</svg>
-								<div>
-									<div>{{ dl.label }}</div>
-									<div class="font-normal text-white/60">{{ dl.subtitle }}</div>
-								</div>
-							</div>
-						</component>
-					</div>
-				</aside>
-			</div>
-		</main>
+                        <!-- Other downloads: always visible -->
+                        <component
+                            v-for="dl in otherDownloads"
+                            :key="dl.label"
+                            :is="dl.enabled ? 'a' : 'div'"
+                            v-bind="dl.enabled ? { href: dl.url, target: '_blank' } : {}"
+                            :class="['group block', { 'cursor-default opacity-50': !dl.enabled }]"
+                        >
+                            <div
+                                :class="[
+                                    'relative flex aspect-square w-64 items-center justify-center overflow-hidden border-4 border-white/80',
+                                    { grayscale: !dl.enabled },
+                                ]"
+                            >
+                                <img :src="DL_IMG" :alt="dl.label" class="absolute inset-0 h-full w-full object-cover" />
+                            </div>
+                            <div class="mt-3 flex items-center gap-2 text-xs font-bold tracking-wider text-white">
+                                <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+                                    />
+                                </svg>
+                                <div>
+                                    <div>{{ dl.label }}</div>
+                                    <div class="font-normal text-white/60">{{ dl.subtitle }}</div>
+                                </div>
+                            </div>
+                        </component>
+                    </div>
+                </aside>
+            </div>
+        </main>
 
-		<!-- Footer -->
-		<footer class="relative z-10">
-			<div class="mx-auto flex max-w-7xl items-center justify-center px-6 py-8 text-xs font-semibold tracking-wide text-white/80 lg:px-8 lg:justify-end">
-				<p>&copy; {{ new Date().getFullYear() }} LTD/EDN</p>
-			</div>
-		</footer>
-	</div>
+        <!-- Footer -->
+        <footer class="relative z-10">
+            <div
+                class="mx-auto flex max-w-7xl items-center justify-center px-6 py-8 text-xs font-semibold tracking-wide text-white/80 lg:justify-end lg:px-8"
+            >
+                <p>&copy; {{ new Date().getFullYear() }} LTD/EDN</p>
+            </div>
+        </footer>
+    </div>
 </template>

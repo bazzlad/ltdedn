@@ -106,7 +106,9 @@ function ship(order: FulfilmentOrder): void {
                             <span>{{ order.external_order_number || `Order #${order.id}` }}</span>
                             <Badge variant="secondary">{{ order.source_platform }}</Badge>
                         </CardTitle>
-                        <p class="mt-1 text-sm text-muted-foreground">{{ order.artist_name || 'Unassigned artist' }} · {{ order.paid_at || 'Paid' }}</p>
+                        <p class="mt-1 text-sm text-muted-foreground">
+                            {{ order.artist_name || 'Unassigned artist' }} · {{ order.paid_at || 'Paid' }}
+                        </p>
                     </div>
                     <Button as-child variant="outline" size="sm">
                         <Link :href="`/admin/sales/${order.id}`">Open</Link>
@@ -115,7 +117,7 @@ function ship(order: FulfilmentOrder): void {
 
                 <CardContent class="grid gap-6 md:grid-cols-3">
                     <div>
-                        <div class="text-xs font-semibold uppercase text-muted-foreground">Ship to</div>
+                        <div class="text-xs font-semibold text-muted-foreground uppercase">Ship to</div>
                         <div class="mt-2 text-sm leading-6">
                             <div v-for="line in addressLines(order)" :key="line">{{ line }}</div>
                         </div>
@@ -124,7 +126,7 @@ function ship(order: FulfilmentOrder): void {
                     </div>
 
                     <div>
-                        <div class="text-xs font-semibold uppercase text-muted-foreground">Items</div>
+                        <div class="text-xs font-semibold text-muted-foreground uppercase">Items</div>
                         <div v-for="item in order.items" :key="item.id" class="mt-2 text-sm">
                             <span class="font-medium">{{ item.quantity }}x {{ item.product_name }}</span>
                             <span v-if="item.sku_code_snapshot" class="text-muted-foreground"> · {{ item.sku_code_snapshot }}</span>
@@ -134,14 +136,18 @@ function ship(order: FulfilmentOrder): void {
 
                     <div class="space-y-3">
                         <label class="block">
-                            <span class="text-xs font-semibold uppercase text-muted-foreground">Carrier</span>
+                            <span class="text-xs font-semibold text-muted-foreground uppercase">Carrier</span>
                             <input v-model="forms[order.id].carrier" class="mt-1 w-full rounded border px-2 py-1.5 text-sm" />
                         </label>
                         <label class="block">
-                            <span class="text-xs font-semibold uppercase text-muted-foreground">Tracking</span>
+                            <span class="text-xs font-semibold text-muted-foreground uppercase">Tracking</span>
                             <input v-model="forms[order.id].tracking" class="mt-1 w-full rounded border px-2 py-1.5 text-sm" />
                         </label>
-                        <Button class="w-full" :disabled="forms[order.id].busy || !forms[order.id].carrier || !forms[order.id].tracking" @click="ship(order)">
+                        <Button
+                            class="w-full"
+                            :disabled="forms[order.id].busy || !forms[order.id].carrier || !forms[order.id].tracking"
+                            @click="ship(order)"
+                        >
                             {{ forms[order.id].busy ? 'Saving...' : 'Mark shipped' }}
                         </Button>
                         <p v-if="forms[order.id].error" class="text-xs text-red-600">{{ forms[order.id].error }}</p>

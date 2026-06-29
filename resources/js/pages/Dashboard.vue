@@ -164,7 +164,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 
             <!-- Empty State -->
             <div v-else class="py-20 text-center">
-                <div class="mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-full bg-neutral-100 ring-1 ring-neutral-200/50 dark:bg-neutral-800 dark:ring-neutral-700/50">
+                <div
+                    class="mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-full bg-neutral-100 ring-1 ring-neutral-200/50 dark:bg-neutral-800 dark:ring-neutral-700/50"
+                >
                     <svg class="h-14 w-14 text-neutral-400 dark:text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
                             stroke-linecap="round"

@@ -37,9 +37,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <h1 class="text-2xl font-semibold">New Storefront Connection</h1>
-                    <p class="text-sm text-muted-foreground">
-                        Create a direct Shopify or Squarespace connection for webhook-based fulfilment
-                    </p>
+                    <p class="text-sm text-muted-foreground">Create a direct Shopify or Squarespace connection for webhook-based fulfilment</p>
                 </div>
                 <Button variant="outline" as-child>
                     <Link href="/admin/storefront-connections">
@@ -102,11 +100,7 @@ const breadcrumbs: BreadcrumbItemType[] = [
 
                             <div class="grid gap-2">
                                 <Label for="external_shop_domain">Store domain</Label>
-                                <Input
-                                    id="external_shop_domain"
-                                    name="external_shop_domain"
-                                    placeholder="example.myshopify.com"
-                                />
+                                <Input id="external_shop_domain" name="external_shop_domain" placeholder="example.myshopify.com" />
                                 <div v-if="errors.external_shop_domain" class="text-sm text-red-600">{{ errors.external_shop_domain }}</div>
                             </div>
 
